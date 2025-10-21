@@ -144,11 +144,11 @@ function bindUIEvents() {
   });
   elements.exportBtn?.addEventListener('click', () => {
     if (!state.width || !state.height) {
-      window.alert("�����½�������");
+      window.alert("画布尺寸无效，无法导出图片。");
       return;
     }
-    const includeCodes = window.confirm("�����Ƿ����ɫ�ŵ�ӡ��\n��ȷ����=��������ȡ����=��������");
-    const includeAxes = window.confirm("�����Ƿ���������ᣨ0 ��ʼ����\n��ȷ����=��������ȡ����=��������");
+    const includeCodes = window.confirm("图片添加色号提示吗？");
+    const includeAxes = window.confirm("图片添加坐标轴吗？");
     exportImage({ includeCodes, includeAxes });
   });
   elements.exportProjectBtn?.addEventListener('click', () => {
