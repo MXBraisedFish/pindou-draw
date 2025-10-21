@@ -22,8 +22,8 @@ export function validateCanvasSize(width, height) {
     && Number.isFinite(height)
     && width >= 1
     && height >= 1
-    && width <= 256
-    && height <= 256
+    && width <= 2048
+    && height <= 2048
   );
 }
 

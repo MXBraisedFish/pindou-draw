@@ -263,6 +263,12 @@ export function updateBaseEditButton() {
   elements.toggleBaseEditBtn.textContent = label;
   elements.toggleBaseEditBtn.setAttribute('aria-pressed', state.baseEditing ? 'true' : 'false');
   elements.toggleBaseEditBtn.disabled = !state.baseImage;
+  if (fullscreenBaseEditBtn) {
+    const fullscreenLabel = state.baseEditing ? TEXT_EXIT_EDIT : TEXT_ENTER_EDIT;
+    fullscreenBaseEditBtn.textContent = fullscreenLabel;
+    fullscreenBaseEditBtn.setAttribute('aria-pressed', state.baseEditing ? 'true' : 'false');
+    fullscreenBaseEditBtn.classList.toggle('is-editing', state.baseEditing);
+  }
   updateBaseScaleControls();
   syncFullscreenEditButton();
 }

@@ -20,6 +20,12 @@ export const elements = {
   widthInput: $('#widthInput'),
   heightInput: $('#heightInput'),
   createCanvasBtn: $('#createCanvasBtn'),
+  toggleReferenceBtn: $('#toggleReferenceBtn'),
+  referenceImageInput: $('#referenceImageInput'),
+  docsToggleBtn: $('#docsToggleBtn'),
+  exportProjectBtn: $('#exportProjectBtn'),
+  importProjectBtn: $('#importProjectBtn'),
+  projectFileInput: $('#projectFileInput'),
   loadDefaultPaletteBtn: $('#loadDefaultPaletteBtn'),
   importPaletteBtn: $('#importPaletteBtn'),
   paletteFileInput: $('#paletteFileInput'),
@@ -40,10 +46,17 @@ export const elements = {
   baseScaleRange: $('#baseScaleRange'),
   baseScaleValue: $('#baseScaleValue'),
   recenterBaseBtn: $('#recenterBaseBtn'),
-  snapBaseToCanvasBtn: $('#snapBaseToCanvasBtn')
+  snapBaseToCanvasBtn: $('#snapBaseToCanvasBtn'),
+  referenceWindow: document.getElementById('referenceWindow'),
+  docsWindow: document.getElementById('docsWindow'),
+  referenceList: document.getElementById('referenceList'),
+  referenceHeader: document.getElementById('referenceHeader'),
+  referenceAddBtn: document.getElementById('referenceAddBtn'),
+  docsCloseBtn: document.getElementById('docsCloseBtn'),
+  referenceMinimizeBtn: document.getElementById('referenceMinimizeBtn'),
+  referenceCloseBtn: document.getElementById('referenceCloseBtn'),
+  referenceResizer: document.getElementById('referenceResizer')
 };
-
-export const builtinPaletteNode = document.getElementById('builtin-dmc');
 
 export const fullscreenBaseEditBtn = (() => {
   const btn = document.createElement('button');

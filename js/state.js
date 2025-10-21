@@ -30,5 +30,11 @@ export const state = {
   paletteOrder: [],
   currentPaletteId: null,
   currentPaletteLabel: '',
-  axisPadding: { top: 0, right: 0, bottom: 0, left: 0 }
+  axisPadding: { top: 0, right: 0, bottom: 0, left: 0 },
+  docsVisible: false,
+  referenceImages: [],
+  referenceWindowVisible: false,
+  referenceWindowMinimized: false,
+  referenceWindowRect: { width: 320, height: 420, top: 24, left: null },
+  referenceWindowPrevRect: null
 };

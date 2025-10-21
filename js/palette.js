@@ -1,34 +1,154 @@
-import { STORAGE_KEYS } from './constants.js';
-import { elements, builtinPaletteNode } from './elements.js';
+﻿import { STORAGE_KEYS } from './constants.js';
+import { elements } from './elements.js';
 import { state } from './state.js';
 import { parseColor, hasLocalStorage } from './utils.js';
 import { clearDrawingGrid, isCanvasDirty } from './canvas.js';
-
-const DEFAULT_PALETTE_SOURCES = buildDefaultPaletteSources();
-
-function buildDefaultPaletteSources() {
-  let builtin = {};
-  if (builtinPaletteNode) {
-    try {
-      const raw = (builtinPaletteNode.textContent || '').trim();
-      builtin = raw ? JSON.parse(raw) : {};
-    } catch (error) {
-      console.warn('Failed to parse bundled DMC palette:', error);
+const OUTPUT_BASE_PATH_CANDIDATES = ['../output', './output'];
+const LEGACY_DEFAULT_FILES = [
+  'DMC.json',
+  'Coco.json',
+  'MARD-24.json',
+  'MARD-48.json',
+  'MARD-72.json',
+  'MARD-96.json',
+  'MARD-120.json',
+  'MARD-144.json',
+  'MARD-221.json'
+];
+let defaultPaletteSourcesPromise = null;
+const BUILTIN_NAME_SUFFIX = '\uFF08\u5185\u7F6E\uFF09';
+function ensureDefaultPaletteSources() {
+  if (!defaultPaletteSourcesPromise) {
+    defaultPaletteSourcesPromise = discoverDefaultPaletteSources();
+  }
+  return defaultPaletteSourcesPromise;
+}
+async function discoverDefaultPaletteSources() {
+  for (const basePath of OUTPUT_BASE_PATH_CANDIDATES) {
+    const manifest = await fetchOutputManifest(basePath);
+    if (manifest && manifest.length) {
+      return manifestToSources(manifest, basePath);
+    }
+    const listing = await fetchDirectoryListing(basePath);
+    if (listing && listing.length) {
+      return manifestToSources(listing, basePath);
     }
   }
-  return [
-    { id: 'builtin-dmc', name: 'DMC（内置）', data: builtin, prepend: true },
-    { id: 'output-coco', file: 'Coco.json', name: 'Coco' },
-    { id: 'output-mard-24', file: 'MARD-24.json', name: 'MARD 24' },
-    { id: 'output-mard-48', file: 'MARD-48.json', name: 'MARD 48' },
-    { id: 'output-mard-72', file: 'MARD-72.json', name: 'MARD 72' },
-    { id: 'output-mard-96', file: 'MARD-96.json', name: 'MARD 96' },
-    { id: 'output-mard-120', file: 'MARD-120.json', name: 'MARD 120' },
-    { id: 'output-mard-144', file: 'MARD-144.json', name: 'MARD 144' },
-    { id: 'output-mard-221', file: 'MARD-221.json', name: 'MARD 221' }
-  ];
+  console.warn('Falling back to legacy palette list; automatic discovery failed.');
+  return manifestToSources(LEGACY_DEFAULT_FILES, OUTPUT_BASE_PATH_CANDIDATES[0]);
 }
-
+async function fetchOutputManifest(basePath) {
+  const url = `${basePath}/manifest.json`;
+  try {
+    const response = await fetch(url, { cache: 'no-cache' });
+    if (!response.ok) return null;
+    const data = await response.json();
+    return Array.isArray(data) ? data : null;
+  } catch (error) {
+    return null;
+  }
+}
+async function fetchDirectoryListing(basePath) {
+  const url = `${basePath}/`;
+  try {
+    const response = await fetch(url, { cache: 'no-cache' });
+    if (!response.ok) return null;
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.includes('text')) return null;
+    const text = await response.text();
+    const matches = Array.from(text.matchAll(/href=["']([^"']+\.json)["']/gi));
+    const files = matches
+      .map((match) => {
+        const href = match[1] || '';
+        const parts = href.split('/');
+        const name = parts[parts.length - 1];
+        return name ? decodeURIComponent(name) : '';
+      })
+      .filter(Boolean);
+    return normalizeManifestFiles(files);
+  } catch (error) {
+    return null;
+  }
+}
+function manifestToSources(files, basePath) {
+  const normalizedFiles = normalizeManifestFiles(files);
+  if (!normalizedFiles.length) return [];
+  normalizedFiles.sort((a, b) => {
+    const al = a.toLowerCase();
+    const bl = b.toLowerCase();
+    if (al === 'dmc.json') return -1;
+    if (bl === 'dmc.json') return 1;
+    return al.localeCompare(bl, 'zh-Hans-u-nu-latn', { numeric: true });
+  });
+  const seenIds = new Set();
+  return normalizedFiles
+    .map((file) => {
+      const id = createBuiltinIdFromFile(file);
+      if (seenIds.has(id)) return null;
+      seenIds.add(id);
+      return {
+        id,
+        file,
+        name: `${derivePaletteName(file)}${BUILTIN_NAME_SUFFIX}`,
+        basePath,
+        prepend: file.toLowerCase() === 'dmc.json'
+      };
+    })
+    .filter(Boolean);
+}
+function normalizeManifestFiles(files) {
+  if (!Array.isArray(files)) return [];
+  const list = [];
+  const seen = new Set();
+  files.forEach((raw) => {
+    if (typeof raw !== 'string') return;
+    const trimmed = raw.trim();
+    if (!trimmed) return;
+    const lower = trimmed.toLowerCase();
+    if (!lower.endsWith('.json')) return;
+    if (lower === 'manifest.json') return;
+    if (seen.has(lower)) return;
+    seen.add(lower);
+    list.push(trimmed);
+  });
+  return list;
+}
+function createBuiltinIdFromFile(file) {
+  const base = String(file).replace(/\.json$/i, '').trim();
+  if (!base) {
+    return `builtin-${Date.now()}`;
+  }
+  if (base.toLowerCase() === 'dmc') {
+    return 'builtin-dmc';
+  }
+  const normalized = base
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9\u4e00-\u9fa5-]/gi, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+  const tail = normalized || base;
+  return `builtin-${tail}`;
+}
+async function fetchPaletteSourceData(source) {
+  if (source.data && typeof source.data === 'object') {
+    return source.data;
+  }
+  const basePath = source.basePath || OUTPUT_BASE_PATH_CANDIDATES[0];
+  if (!source.file) {
+    throw new Error('Palette source is missing file path.');
+  }
+  const encodedFile = String(source.file)
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/');
+  const url = `${basePath}/${encodedFile}`;
+  const response = await fetch(url, { cache: 'no-cache' });
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+  return response.json();
+}
 export function getActivePaletteLabel() {
   const label = (state.currentPaletteLabel || '').trim();
   if (label) return label;
@@ -38,7 +158,6 @@ export function getActivePaletteLabel() {
   }
   return '未选择色卡';
 }
-
 export function collectUsedColors() {
   const usage = new Map();
   for (let y = 0; y < state.height; y += 1) {
@@ -56,7 +175,6 @@ export function collectUsedColors() {
   list.sort((a, b) => a.code.localeCompare(b.code, 'zh-Hans-u-nu-latn', { numeric: true }));
   return list;
 }
-
 export function ensurePaletteSwitchAllowed() {
   if (!isCanvasDirty()) return true;
   const confirmed = window.confirm('切换色卡会导致画布颜色被清空，是否继续？');
@@ -64,7 +182,6 @@ export function ensurePaletteSwitchAllowed() {
   clearDrawingGrid();
   return true;
 }
-
 function normalizePalette(rawPalette) {
   const palette = {};
   const keys = [];
@@ -86,8 +203,7 @@ function normalizePalette(rawPalette) {
   keys.sort((a, b) => a.localeCompare(b, 'zh-Hans-u-nu-latn', { numeric: true }));
   return { map: palette, keys };
 }
-
-export function applyPalette(rawPalette, label = '自定义', options = {}) {
+export function applyPalette(rawPalette, label = '\u81EA\u5B9A\u4E49', options = {}) {
   const normalized = normalizePalette(rawPalette);
   if (!normalized.keys.length) {
     window.alert('色卡为空或格式不正确。');
@@ -112,7 +228,6 @@ export function applyPalette(rawPalette, label = '自定义', options = {}) {
   }
   updatePaletteHistorySelect();
 }
-
 export function renderPalette() {
   if (!elements.paletteContainer) return;
   const filterText = elements.paletteFilter?.value.trim().toLowerCase() ?? '';
@@ -156,7 +271,6 @@ export function renderPalette() {
   }
   elements.paletteContainer.appendChild(fragment);
 }
-
 function updatePaletteSelection() {
   if (!elements.paletteContainer) return;
   const items = elements.paletteContainer.querySelectorAll('.palette-item');
@@ -169,7 +283,6 @@ function updatePaletteSelection() {
   });
   updateFullscreenPaletteSelection();
 }
-
 export function renderFullscreenPalette() {
   const container = elements.fullscreenPalette;
   if (!container) return;
@@ -201,7 +314,6 @@ export function renderFullscreenPalette() {
   });
   container.appendChild(fragment);
 }
-
 export function updateFullscreenPaletteSelection() {
   const container = elements.fullscreenPalette;
   if (!container) return;
@@ -210,18 +322,16 @@ export function updateFullscreenPaletteSelection() {
     btn.classList.toggle('active', btn.dataset.code === state.selectedColorKey);
   });
 }
-
 export function updateCurrentColorInfo() {
   if (!elements.currentColorInfo) return;
   const codeSpan = elements.currentColorInfo.querySelector('.code');
   if (!codeSpan) return;
   if (!state.selectedColorKey || !state.palette[state.selectedColorKey]) {
-    codeSpan.textContent = '—';
+    codeSpan.textContent = '无';
     return;
   }
   codeSpan.textContent = state.selectedColorKey;
 }
-
 export function handlePaletteFile(ev) {
   const file = ev.target.files && ev.target.files[0];
   if (!file) return;
@@ -233,13 +343,12 @@ export function handlePaletteFile(ev) {
       addPaletteToLibrary(paletteId, file.name, raw, { persist: true });
       applyPalette(raw, file.name, { libraryId: paletteId, persistSelection: true });
     } catch (error) {
-      window.alert('色卡文件解析失败，请确认格式正确的 JSON。');
+      window.alert('色卡文件解析失败，请确认格式正确为 JSON。');
     }
   };
   reader.readAsText(file, 'utf-8');
   ev.target.value = '';
 }
-
 export function handleDeletePalette() {
   const id = elements.paletteHistorySelect?.value;
   if (!id || id === '__none') return;
@@ -271,7 +380,6 @@ export function handleDeletePalette() {
   }
   persistPaletteLibrary();
 }
-
 export function handlePaletteSelectionChange(ev) {
   const id = ev.target.value;
   if (id === '__none') return;
@@ -287,44 +395,35 @@ export function handlePaletteSelectionChange(ev) {
   }
   applyPalette(entry.data, entry.name, { libraryId: id, persistSelection: true });
 }
-
 export function updateStatusPalette(label) {
   if (!elements.statusPalette) return;
-  const title = label || '自定义';
+  const title = label || '\u81EA\u5B9A\u4E49';
   const count = state.paletteKeys.length;
   elements.statusPalette.textContent = `${title} · ${count} 色`;
   state.currentPaletteLabel = title;
 }
-
 export async function loadDefaultPalettes() {
-  for (const source of DEFAULT_PALETTE_SOURCES) {
-    if (state.paletteLibrary.has(source.id)) continue;
-    if (source.data && Object.keys(source.data).length) {
-      addPaletteToLibrary(source.id, source.name, source.data, {
+  const sources = await ensureDefaultPaletteSources();
+  for (const source of sources) {
+    if (!source || !source.id || state.paletteLibrary.has(source.id)) continue;
+    try {
+      const data = await fetchPaletteSourceData(source);
+      if (!data || typeof data !== 'object') continue;
+      addPaletteToLibrary(source.id, source.name, data, {
         persist: false,
         prepend: Boolean(source.prepend)
       });
-      continue;
-    }
-    if (!source.file) continue;
-    try {
-      const response = await fetch(`./output/${source.file}`);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
-      addPaletteToLibrary(source.id, source.name, data, { persist: false });
     } catch (error) {
-      console.warn('Failed to load palette from', source.file, error);
+      console.warn('Failed to load palette from', source?.file ?? source?.id, error);
     }
   }
   updatePaletteHistorySelect();
 }
-
 export function derivePaletteName(file) {
-  if (!file) return '未命名';
+  if (!file) return '\u672A\u547D\u540D';
   const base = file.replace(/\.json$/i, '');
   return base.replace(/[_-]+/g, ' ').trim() || base;
 }
-
 export function loadPaletteLibrary() {
   if (!hasLocalStorage()) return;
   try {
@@ -340,7 +439,6 @@ export function loadPaletteLibrary() {
     console.warn('Failed to load palette library from storage:', error);
   }
 }
-
 export function restoreLastPalette() {
   let applied = false;
   if (hasLocalStorage()) {
@@ -360,20 +458,34 @@ export function restoreLastPalette() {
     if (elements.paletteHistorySelect) {
       elements.paletteHistorySelect.value = 'builtin-dmc';
     }
-  } else if (!applied) {
+    applied = true;
+  }
+  if (!applied && state.paletteOrder.length) {
+    const firstId = state.paletteOrder[0];
+    const entry = state.paletteLibrary.get(firstId);
+    if (entry) {
+      applyPalette(entry.data, entry.name, { libraryId: firstId, persistSelection: false });
+      if (elements.paletteHistorySelect) {
+        elements.paletteHistorySelect.value = firstId;
+      }
+      applied = true;
+    }
+  }
+  if (!applied) {
     state.palette = {};
     state.paletteKeys = [];
     state.selectedColorKey = null;
     renderPalette();
     renderFullscreenPalette();
     updateCurrentColorInfo();
-    updateStatusPalette('自定义');
+    updateStatusPalette('\u81EA\u5B9A\u4E49');
     updatePaletteHistorySelect();
   }
 }
-
 function addPaletteToLibrary(id, name, data, options = {}) {
-  if (state.paletteLibrary.has(id)) {
+  const existing = state.paletteLibrary.get(id);
+  if (existing) {
+    state.paletteLibrary.set(id, { name, data });
     return;
   }
   const { persist = true, prepend = false } = options;
@@ -391,12 +503,11 @@ function addPaletteToLibrary(id, name, data, options = {}) {
     persistPaletteLibrary();
   }
 }
-
 function persistPaletteLibrary() {
   if (!hasLocalStorage()) return;
   try {
     const payload = state.paletteOrder
-      .filter((id) => id !== 'builtin-dmc' && !id.startsWith('output-'))
+      .filter((id) => !id.startsWith('builtin-') && !id.startsWith('output-'))
       .map((id) => {
         const entry = state.paletteLibrary.get(id);
         if (!entry) return null;
@@ -408,7 +519,6 @@ function persistPaletteLibrary() {
     console.warn('Failed to persist palette library:', error);
   }
 }
-
 function persistSelectedPalette(id) {
   if (!hasLocalStorage()) return;
   try {
@@ -421,7 +531,6 @@ function persistSelectedPalette(id) {
     console.warn('Failed to persist palette selection:', error);
   }
 }
-
 function updatePaletteHistorySelect() {
   const select = elements.paletteHistorySelect;
   if (!select) return;
@@ -437,7 +546,7 @@ function updatePaletteHistorySelect() {
     if (!entry) return;
     const option = document.createElement('option');
     option.value = id;
-    option.textContent = `${entry.name} (${Object.keys(entry.data || {}).length} 色)`;
+    option.textContent = `${ entry.name } (${ Object.keys(entry.data || {}).length } \u8272)`;
     if (currentValue === id || (!currentValue && existingValue === id)) {
       option.selected = true;
     }
@@ -445,14 +554,13 @@ function updatePaletteHistorySelect() {
   });
   if (currentValue && state.paletteLibrary.has(currentValue)) {
     select.value = currentValue;
-  } else if (existingValue && select.querySelector(`option[value="${existingValue}"]`)) {
+  } else if (existingValue && select.querySelector(`option[value = "${existingValue}"]`)) {
     select.value = existingValue;
   } else {
     select.value = '__none';
   }
 }
-
 function generatePaletteId(name = 'palette') {
   const safeName = name.replace(/\.[^/.\\]+$/, '').replace(/\s+/g, '_').slice(0, 40);
-  return `user-${safeName}-${Date.now()}`;
+  return `user - ${ safeName } -${ Date.now() } `;
 }

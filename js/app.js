@@ -9,7 +9,8 @@ import {
   setTool,
   updateCanvasOpacityLabel,
   updateToolButtons,
-  validateCanvasSize
+  validateCanvasSize,
+  isCanvasDirty
 } from './canvas.js';
 import {
   applyBaseLayerPosition,
@@ -40,10 +41,14 @@ import {
 } from './palette.js';
 import { exportImage } from './exporter.js';
 import { toggleFullscreen, updateFullscreenState } from './fullscreen.js';
+import { initializeReferenceFeature, toggleReferenceWindow } from './reference.js';
+import { initializeDocs } from './docs.js';
+import { exportProject, importProjectFile } from './pd.js';
 import { SIZE_LIMITS } from './constants.js';
 
 fullscreenBaseEditBtn.addEventListener('click', () => {
   toggleBaseEditMode();
+  showFullscreenBaseFeedback();
 });
 
 function showFullscreenBaseFeedback() {
@@ -60,6 +65,8 @@ function updateFullscreenOverlayState() {
 
 async function init() {
   bindUIEvents();
+  initializeReferenceFeature();
+  initializeDocs();
   loadPaletteLibrary();
   await loadDefaultPalettes();
   restoreLastPalette();
@@ -128,25 +135,46 @@ function bindUIEvents() {
   elements.snapBaseToCanvasBtn?.addEventListener('click', () => {
     snapBaseToCanvas();
   });
+  elements.toggleReferenceBtn?.addEventListener('click', () => {
+    toggleReferenceWindow();
+  });
   elements.toggleFullscreenBtn?.addEventListener('click', () => {
     toggleFullscreen();
     updateFullscreenOverlayState();
   });
   elements.exportBtn?.addEventListener('click', () => {
     if (!state.width || !state.height) {
-      window.alert("请先新建画布。");
+      window.alert("�����½�������");
       return;
     }
-    const includeCodes = window.confirm("导出是否包含色号叠印？\n“确定”=包含，“取消”=不包含。");
-    const includeAxes = window.confirm("导出是否包含坐标轴（0 起始）？\n“确定”=包含，“取消”=不包含。");
+    const includeCodes = window.confirm("�����Ƿ����ɫ�ŵ�ӡ��\n��ȷ����=��������ȡ����=��������");
+    const includeAxes = window.confirm("�����Ƿ���������ᣨ0 ��ʼ����\n��ȷ����=��������ȡ����=��������");
     exportImage({ includeCodes, includeAxes });
+  });
+  elements.exportProjectBtn?.addEventListener('click', () => {
+    exportProject();
+  });
+  elements.importProjectBtn?.addEventListener('click', () => {
+    elements.projectFileInput?.click();
+  });
+  elements.projectFileInput?.addEventListener('change', async (ev) => {
+    const file = ev.target.files && ev.target.files[0];
+    if (!file) return;
+    await importProjectFile(file);
+    ev.target.value = '';
   });
   elements.createCanvasBtn?.addEventListener('click', () => {
     const width = Number(elements.widthInput?.value);
     const height = Number(elements.heightInput?.value);
     if (!validateCanvasSize(width, height)) {
-      window.alert("请输入 1 - 256 范围内的画布尺寸。");
+      window.alert("请输入 1 - 2048 范围内的画布尺寸。");
       return;
+    }
+    if (isCanvasDirty()) {
+      const confirmed = window.confirm('新建画布会清空当前画布的颜色，是否继续？');
+      if (!confirmed) {
+        return;
+      }
     }
     createCanvas(width, height);
   });
@@ -183,7 +211,6 @@ function bindUIEvents() {
   elements.baseScaleRange?.addEventListener('input', (ev) => {
     const rawValue = Number(ev.target.value);
     if (!state.baseImage || !Number.isFinite(rawValue)) {
-      ev.target.value = String(state.baseScale);
       return;
     }
     applyBaseScale(rawValue, state.width / 2, state.height / 2);
