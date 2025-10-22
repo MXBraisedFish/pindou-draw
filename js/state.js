@@ -25,6 +25,7 @@ export const state = {
   panY: 0,
   lastMiddleClickTime: 0,
   currentTool: 'pencil',
+  previousTool: 'pencil',
   isFullscreen: false,
   paletteLibrary: new Map(),
   paletteOrder: [],
@@ -32,9 +33,19 @@ export const state = {
   currentPaletteLabel: '',
   axisPadding: { top: 0, right: 0, bottom: 0, left: 0 },
   docsVisible: false,
+  updateVisible: false,
   referenceImages: [],
   referenceWindowVisible: false,
   referenceWindowMinimized: false,
   referenceWindowRect: { width: 320, height: 420, top: 24, left: null },
-  referenceWindowPrevRect: null
+  referenceWindowPrevRect: null,
+  exportVisible: false,
+  exportSettings: {
+    format: 'image/png',
+    includeCodes: false,
+    includeAxes: false,
+    backgroundType: 'solid',
+    backgroundColor: '#ffffff',
+    filename: ''
+  }
 };

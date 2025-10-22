@@ -280,6 +280,10 @@ export function updateCanvasCursorState() {
     'bucket-tool',
     state.currentTool === 'bucket' && !state.baseEditing
   );
+  elements.canvas.classList.toggle(
+    'eyedropper-tool',
+    state.currentTool === 'eyedropper' && !state.baseEditing
+  );
   if (!state.baseEditing) {
     elements.canvas.classList.remove('is-base-dragging');
   }

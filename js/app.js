@@ -1,5 +1,8 @@
 ﻿import { elements, fullscreenBaseEditBtn } from './elements.js';
 import { state } from './state.js';
+import { initializeShortcuts } from './shortcuts.js';
+import { initializeUpdate } from './update.js';
+import { initializeExportWindow, toggleExportWindow } from './export-window.js';
 import {
   createCanvas,
   handleWheelEvent,
@@ -67,9 +70,12 @@ async function init() {
   bindUIEvents();
   initializeReferenceFeature();
   initializeDocs();
+  initializeUpdate();
   loadPaletteLibrary();
   await loadDefaultPalettes();
   restoreLastPalette();
+  initializeShortcuts();
+  initializeExportWindow();
   const initialWidth = Number(elements.widthInput?.value) || 32;
   const initialHeight = Number(elements.heightInput?.value) || 32;
   createCanvas(initialWidth, initialHeight);
@@ -144,15 +150,10 @@ function bindUIEvents() {
   });
   elements.exportBtn?.addEventListener('click', () => {
     if (!state.width || !state.height) {
-      window.alert("画布尺寸无效，无法导出图片。");
+      window.alert("请先创建画布");
       return;
     }
-    const includeCodes = window.confirm("图片添加色号提示吗？");
-    const includeAxes = window.confirm("图片添加坐标轴吗？");
-    exportImage({ includeCodes, includeAxes });
-  });
-  elements.exportProjectBtn?.addEventListener('click', () => {
-    exportProject();
+    toggleExportWindow(true);
   });
   elements.importProjectBtn?.addEventListener('click', () => {
     elements.projectFileInput?.click();
@@ -196,7 +197,7 @@ function bindUIEvents() {
   elements.deletePaletteBtn?.addEventListener('click', handleDeletePalette);
   elements.paletteHistorySelect?.addEventListener('change', handlePaletteSelectionChange);
   elements.canvasWrapper?.addEventListener('wheel', handleWheelEvent, { passive: false });
-  [elements.toolPencilBtn, elements.toolBucketBtn].forEach((btn) => {
+  [elements.toolPencilBtn, elements.toolBucketBtn, elements.toolEyedropperBtn].forEach((btn) => {
     btn?.addEventListener('click', () => setTool(btn.dataset.tool));
   });
   document.addEventListener('fullscreenchange', () => {

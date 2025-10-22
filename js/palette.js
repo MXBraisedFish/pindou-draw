@@ -73,6 +73,7 @@ async function fetchDirectoryListing(basePath) {
 function manifestToSources(files, basePath) {
   const normalizedFiles = normalizeManifestFiles(files);
   if (!normalizedFiles.length) return [];
+
   normalizedFiles.sort((a, b) => {
     const al = a.toLowerCase();
     const bl = b.toLowerCase();
@@ -80,6 +81,7 @@ function manifestToSources(files, basePath) {
     if (bl === 'dmc.json') return 1;
     return al.localeCompare(bl, 'zh-Hans-u-nu-latn', { numeric: true });
   });
+
   const seenIds = new Set();
   return normalizedFiles
     .map((file) => {
@@ -117,9 +119,6 @@ function createBuiltinIdFromFile(file) {
   const base = String(file).replace(/\.json$/i, '').trim();
   if (!base) {
     return `builtin-${Date.now()}`;
-  }
-  if (base.toLowerCase() === 'dmc') {
-    return 'builtin-dmc';
   }
   const normalized = base
     .toLowerCase()
@@ -271,7 +270,7 @@ export function renderPalette() {
   }
   elements.paletteContainer.appendChild(fragment);
 }
-function updatePaletteSelection() {
+export function updatePaletteSelection() {
   if (!elements.paletteContainer) return;
   const items = elements.paletteContainer.querySelectorAll('.palette-item');
   items.forEach((item) => {
@@ -356,6 +355,12 @@ export function handleDeletePalette() {
     window.alert('内置 DMC 色卡不能删除。');
     return;
   }
+
+  if (id.startsWith('builtin-')) {
+    window.alert('内置色卡不能删除。');
+    return;
+  }
+
   const entry = state.paletteLibrary.get(id);
   if (!entry) {
     window.alert('未找到该色卡。');
@@ -431,8 +436,15 @@ export function loadPaletteLibrary() {
     if (!raw) return;
     const list = JSON.parse(raw);
     if (!Array.isArray(list)) return;
+
     list.forEach((entry) => {
       if (!entry || !entry.id || !entry.name || !entry.data) return;
+
+      if (!entry.id.startsWith('builtin-')) {
+        console.warn('Ignoring invalid palette ID in library:', entry.id);
+        return;
+      }
+
       addPaletteToLibrary(entry.id, entry.name, entry.data, { persist: false });
     });
   } catch (error) {
@@ -499,7 +511,7 @@ function addPaletteToLibrary(id, name, data, options = {}) {
     }
   }
   updatePaletteHistorySelect();
-  if (persist) {
+  if (persist && !id.startsWith('builtin-')) {
     persistPaletteLibrary();
   }
 }
@@ -507,7 +519,7 @@ function persistPaletteLibrary() {
   if (!hasLocalStorage()) return;
   try {
     const payload = state.paletteOrder
-      .filter((id) => !id.startsWith('builtin-') && !id.startsWith('output-'))
+      .filter((id) => !id.startsWith('builtin-'))
       .map((id) => {
         const entry = state.paletteLibrary.get(id);
         if (!entry) return null;
@@ -546,7 +558,7 @@ function updatePaletteHistorySelect() {
     if (!entry) return;
     const option = document.createElement('option');
     option.value = id;
-    option.textContent = `${ entry.name } (${ Object.keys(entry.data || {}).length } \u8272)`;
+    option.textContent = `${entry.name} (${Object.keys(entry.data || {}).length} \u8272)`;
     if (currentValue === id || (!currentValue && existingValue === id)) {
       option.selected = true;
     }
@@ -562,5 +574,5 @@ function updatePaletteHistorySelect() {
 }
 function generatePaletteId(name = 'palette') {
   const safeName = name.replace(/\.[^/.\\]+$/, '').replace(/\s+/g, '_').slice(0, 40);
-  return `user - ${ safeName } -${ Date.now() } `;
+  return `user - ${safeName} -${Date.now()} `;
 }

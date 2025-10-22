@@ -5,20 +5,25 @@ export function computeAxisPadding(cellSize, widthCells, heightCells) {
   const tickLength = Math.max(AXIS_STYLE.minTick, Math.floor(fontSize * 0.5));
   const gap = Math.max(AXIS_STYLE.minGap, Math.floor(fontSize * 0.4));
   const approxCharWidth = Math.max(6, Math.floor(fontSize * 0.6));
-  const maxDigitsX = Math.max(1, String(widthCells - 1).length);
-  const maxDigitsY = Math.max(1, String(heightCells - 1).length);
-  const verticalPadding = Math.round(tickLength + gap + fontSize + fontSize * 0.3);
+
+  // 计算最大数字的位数（从1开始计数，所以是widthCells而不是widthCells-1）
+  const maxDigitsX = Math.max(1, String(widthCells).length);
+  const maxDigitsY = Math.max(1, String(heightCells).length);
+
+  // 增加padding以避免标签重叠
+  const verticalPadding = Math.round(tickLength + gap + fontSize + fontSize * 0.5);
   const horizontalPaddingY = Math.round(
-    tickLength + gap + maxDigitsY * approxCharWidth + fontSize * 0.3
+    tickLength + gap + maxDigitsY * approxCharWidth + fontSize * 0.5
   );
   const horizontalPaddingX = Math.round(
-    tickLength + gap + maxDigitsX * approxCharWidth + fontSize * 0.3
+    tickLength + gap + maxDigitsX * approxCharWidth + fontSize * 0.5
   );
+
   return {
     top: Math.max(verticalPadding, Math.round(cellSize * 0.8)),
     bottom: Math.max(verticalPadding, Math.round(cellSize * 0.8)),
-    left: Math.max(horizontalPaddingY, Math.round(cellSize * 1.1)),
-    right: Math.max(horizontalPaddingX, Math.round(cellSize * 1.1))
+    left: Math.max(horizontalPaddingY, Math.round(cellSize * 1.2)), // 增加左侧padding
+    right: Math.max(horizontalPaddingX, Math.round(cellSize * 1.2))  // 增加右侧padding
   };
 }
 

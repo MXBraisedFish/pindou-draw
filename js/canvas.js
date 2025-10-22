@@ -15,6 +15,7 @@ import {
   updateBaseImageDisplay,
   updateCanvasCursorState
 } from './base-image.js';
+import { updatePaletteSelection, updateCurrentColorInfo } from './palette.js';
 
 export function validateCanvasSize(width, height) {
   return (
@@ -200,7 +201,9 @@ export function renderAxisLabels(ctx, options = {}) {
   ctx.strokeStyle = tickColor;
   ctx.lineWidth = 1;
 
+  // 顶部X轴标签（从1开始）
   ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom'; // 改为底部对齐
   const topY = originY - gap - tickLength;
   for (let x = 0; x < widthCells; x += 1) {
     const centerX = originX + x * cellSize + cellSize / 2;
@@ -208,32 +211,41 @@ export function renderAxisLabels(ctx, options = {}) {
     ctx.moveTo(centerX, originY - 0.5);
     ctx.lineTo(centerX, originY - tickLength - 0.5);
     ctx.stroke();
-    ctx.fillText(String(x), centerX, topY);
+    // 显示 x+1 而不是 x，从1开始计数
+    ctx.fillText(String(x + 1), centerX, topY);
   }
 
-  ctx.textAlign = 'left';
-  const leftX = originX - gap - tickLength;
+  // 左侧Y轴标签（从1开始）
+  ctx.textAlign = 'right'; // 改为右对齐，避免与坐标轴重合
+  ctx.textBaseline = 'middle';
+  const leftX = originX - gap;
   for (let y = 0; y < heightCells; y += 1) {
     const centerY = originY + y * cellSize + cellSize / 2;
     ctx.beginPath();
     ctx.moveTo(originX - 0.5, centerY);
     ctx.lineTo(originX - tickLength - 0.5, centerY);
     ctx.stroke();
-    ctx.fillText(String(y), leftX, centerY);
+    // 显示 y+1 而不是 y，从1开始计数
+    ctx.fillText(String(y + 1), leftX, centerY);
   }
 
+  // 底部X轴标签（从1开始）
   ctx.textAlign = 'center';
-  const bottomY = originY + heightCells * cellSize + gap;
+  ctx.textBaseline = 'top'; // 改为顶部对齐
+  const bottomY = originY + heightCells * cellSize + gap + tickLength;
   for (let x = 0; x < widthCells; x += 1) {
     const centerX = originX + x * cellSize + cellSize / 2;
     ctx.beginPath();
     ctx.moveTo(centerX, originY + heightCells * cellSize + 0.5);
     ctx.lineTo(centerX, originY + heightCells * cellSize + tickLength + 0.5);
     ctx.stroke();
-    ctx.fillText(String(x), centerX, bottomY + fontSize * 0.1);
+    // 显示 x+1 而不是 x，从1开始计数
+    ctx.fillText(String(x + 1), centerX, bottomY);
   }
 
-  ctx.textAlign = 'left';
+  // 右侧Y轴标签（从1开始）
+  ctx.textAlign = 'left'; // 保持左对齐
+  ctx.textBaseline = 'middle';
   const rightEdge = originX + widthCells * cellSize + 0.5;
   const rightLabelX = rightEdge + tickLength + gap;
   for (let y = 0; y < heightCells; y += 1) {
@@ -242,7 +254,8 @@ export function renderAxisLabels(ctx, options = {}) {
     ctx.moveTo(rightEdge, centerY);
     ctx.lineTo(rightEdge + tickLength, centerY);
     ctx.stroke();
-    ctx.fillText(String(y), rightLabelX, centerY);
+    // 显示 y+1 而不是 y，从1开始计数
+    ctx.fillText(String(y + 1), rightLabelX, centerY);
   }
   ctx.restore();
 }
@@ -391,6 +404,21 @@ function paintAtPointer(ev, button) {
   const y = Math.floor(localY / state.cellSize);
   if (!Number.isInteger(x) || !Number.isInteger(y)) return;
   if (x < 0 || y < 0 || x >= state.width || y >= state.height) return;
+  if (state.currentTool === 'eyedropper' && button === 0) {
+    const cell = state.grid[y][x];
+    if (cell && cell.code) {
+      state.selectedColorKey = cell.code;
+      updatePaletteSelection();
+      updateCurrentColorInfo();
+      if (state.previousTool && state.previousTool !== 'eyedropper') {
+        setTool(state.previousTool);
+      } else {
+        setTool('pencil');
+      }
+      return;
+    }
+  }
+
   if (state.currentTool === 'bucket') {
     if (button === 0) {
       const colorEntry = resolvePaintColor(x, y);
@@ -478,16 +506,22 @@ function updateStatusSize() {
 
 export function setTool(tool) {
   if (state.currentTool === tool) return;
+
+  if (state.currentTool !== 'eyedropper') {
+    state.previousTool = state.currentTool;
+  }
+
   state.currentTool = tool;
   updateToolButtons();
   updateCanvasCursorState();
 }
 
 export function updateToolButtons() {
-  if (!elements.toolPencilBtn || !elements.toolBucketBtn) return;
+  if (!elements.toolPencilBtn || !elements.toolBucketBtn || !elements.toolEyedropperBtn) return;
   const mapping = {
     pencil: elements.toolPencilBtn,
-    bucket: elements.toolBucketBtn
+    bucket: elements.toolBucketBtn,
+    eyedropper: elements.toolEyedropperBtn
   };
   Object.entries(mapping).forEach(([key, btn]) => {
     const active = state.currentTool === key;
