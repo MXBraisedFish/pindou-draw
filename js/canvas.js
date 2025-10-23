@@ -17,6 +17,8 @@ import {
 } from './base-image.js';
 import { updatePaletteSelection, updateCurrentColorInfo } from './palette.js';
 
+const MAX_HISTORY_SIZE = 50;
+
 export function validateCanvasSize(width, height) {
   return (
     Number.isFinite(width)
@@ -48,6 +50,69 @@ export function createCanvas(width, height) {
   redrawCanvas();
   updateStatusSize();
   updateBaseImageDisplay();
+  state.history = [];
+  state.historyIndex = -1;
+  saveHistory();
+}
+
+function saveHistory() {
+  // 检查是否有实际变化
+  const currentState = JSON.stringify(state.grid);
+  const lastState = state.history.length > 0
+    ? JSON.stringify(state.history[state.historyIndex])
+    : null;
+
+  // 如果状态没有变化，则不保存历史记录
+  if (currentState === lastState) {
+    return;
+  }
+
+  // 如果当前不在最新状态，移除后面的历史
+  if (state.historyIndex < state.history.length - 1) {
+    state.history = state.history.slice(0, state.historyIndex + 1);
+  }
+
+  // 限制历史记录数量
+  if (state.history.length >= MAX_HISTORY_SIZE) {
+    state.history.shift();
+    state.historyIndex--;
+  }
+
+  // 深拷贝当前画布状态
+  const gridCopy = state.grid.map(row => [...row]);
+  state.history.push(gridCopy);
+  state.historyIndex = state.history.length - 1;
+
+  console.log('History saved. Total states:', state.history.length, 'Current index:', state.historyIndex);
+}
+
+// 新增：回退函数
+export function redo() {
+  if (state.historyIndex < state.history.length - 1) {
+    state.historyIndex++;
+    const nextState = state.history[state.historyIndex];
+    state.grid = nextState.map(row => [...row]);
+    redrawCanvas();
+    console.log('Redo to index:', state.historyIndex);
+    return true;
+  } else {
+    console.log('Cannot redo: at end of history');
+    return false;
+  }
+}
+
+export function undo() {
+  if (state.historyIndex > 0) {
+    state.historyIndex--;
+    const previousState = state.history[state.historyIndex];
+    state.grid = previousState.map(row => [...row]);
+    redrawCanvas();
+    console.log('Undo to index:', state.historyIndex);
+    return true;
+  } else {
+    console.log('Cannot undo: at beginning of history');
+    return false;
+  }
 }
 
 export function setCellSize(size) {
@@ -402,8 +467,10 @@ function paintAtPointer(ev, button) {
   const localY = (ev.clientY - rect.top) * scaleY - state.axisPadding.top;
   const x = Math.floor(localX / state.cellSize);
   const y = Math.floor(localY / state.cellSize);
+
   if (!Number.isInteger(x) || !Number.isInteger(y)) return;
   if (x < 0 || y < 0 || x >= state.width || y >= state.height) return;
+
   if (state.currentTool === 'eyedropper' && button === 0) {
     const cell = state.grid[y][x];
     if (cell && cell.code) {
@@ -423,25 +490,34 @@ function paintAtPointer(ev, button) {
     if (button === 0) {
       const colorEntry = resolvePaintColor(x, y);
       if (!colorEntry) return;
+      // 修复：移除这里的 saveHistory()，因为 bucketFill 内部已经调用了
       bucketFill(x, y, colorEntry);
       return;
     }
     if (button === 2) {
+      // 修复：移除这里的 saveHistory()，因为 bucketFill 内部已经调用了
       bucketFill(x, y, null);
       return;
     }
   }
+
   if (button === 2) {
+    // 修复：在擦除前保存历史记录
     if (state.grid[y][x]) {
+      saveHistory();
       state.grid[y][x] = null;
       redrawCanvas();
     }
     return;
   }
+
   const colorEntry = resolvePaintColor(x, y);
   if (!colorEntry) return;
+
   const cell = state.grid[y][x];
   if (!cell || cell.code !== colorEntry.code) {
+    // 修复：在绘制前保存历史记录
+    saveHistory();
     state.grid[y][x] = colorEntry;
     redrawCanvas();
   }
@@ -450,19 +526,27 @@ function paintAtPointer(ev, button) {
 function bucketFill(x, y, newCell) {
   const targetCell = state.grid[y][x];
   if (cellsEqual(targetCell, newCell)) return;
+
+  // 修复：在开始填充前保存历史记录
+  saveHistory();
+
   const queue = [[x, y]];
   const visited = new Set([`${x},${y}`]);
+
   while (queue.length) {
     const [cx, cy] = queue.shift();
     if (cx < 0 || cy < 0 || cx >= state.width || cy >= state.height) continue;
     if (!cellsEqual(state.grid[cy][cx], targetCell)) continue;
+
     state.grid[cy][cx] = newCell;
+
     const neighbors = [
       [cx + 1, cy],
       [cx - 1, cy],
       [cx, cy + 1],
       [cx, cy - 1]
     ];
+
     neighbors.forEach(([nx, ny]) => {
       if (nx < 0 || ny < 0 || nx >= state.width || ny >= state.height) return;
       const key = `${nx},${ny}`;
@@ -472,6 +556,7 @@ function bucketFill(x, y, newCell) {
       queue.push([nx, ny]);
     });
   }
+
   redrawCanvas();
 }
 

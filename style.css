@@ -1340,3 +1340,10 @@ body.canvas-fullscreen .canvas-wrapper {
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
+
+/* 在文件末尾添加 */
+#baseEditModeFeedback {
+  font-family: "PixelFont", "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}

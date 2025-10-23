@@ -5,6 +5,7 @@ import { toggleFullscreen } from './fullscreen.js';
 import { toggleReferenceWindow } from './reference.js';
 import { toggleBaseEditMode } from './base-image.js';
 import { exportImage } from './exporter.js';
+import { undo, redo } from './canvas.js';
 
 // 快捷键映射配置
 const SHORTCUTS = {
@@ -14,7 +15,9 @@ const SHORTCUTS = {
     'a': () => toggleFullscreen(),
     'c': () => toggleReferenceWindow(),
     'q': () => toggleBaseEditMode(),
-    's': () => handleExportShortcut()
+    's': () => handleExportShortcut(),
+    'z': () => undo(),
+    'x': () => redo()
 };
 
 // 需要忽略快捷键的输入元素类型
@@ -77,7 +80,9 @@ export function getShortcutHelp() {
         'a': '切换全屏',
         'c': '打开/关闭参考图',
         'q': '切换底图编辑模式',
-        's': '导出图片'
+        's': '导出图片',
+        'z': '撤回',
+        'x': '回退'
     };
 }
 

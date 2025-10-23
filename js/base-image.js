@@ -149,16 +149,27 @@ export function clearBaseImage() {
   state.baseOffsetX = 0;
   state.baseOffsetY = 0;
   state.baseEditing = false;
+
   if (elements.baseCtx) {
     elements.baseCtx.clearRect(0, 0, elements.baseCanvas.width, elements.baseCanvas.height);
   }
+
   updateStatusBase();
   syncBaseControlsAvailability();
   updateBaseEditButton();
   updateCanvasCursorState();
   applyBaseLayerPosition();
   disableBaseControls();
-  syncFullscreenEditButton();
+
+  // 修复：强制更新全屏按钮状态
+  if (typeof updateFullscreenOverlayState === 'function') {
+    updateFullscreenOverlayState();
+  } else {
+    // 如果函数不可用，使用事件触发
+    setTimeout(() => {
+      document.dispatchEvent(new CustomEvent('updateFullscreenOverlay'));
+    }, 0);
+  }
 }
 
 export function updateBaseImageDisplay() {
@@ -235,7 +246,15 @@ export function handleBaseImageChange(ev) {
       enableBaseControls();
       initializeBaseAnchorButton();
       updateBaseImageDisplay();
-      syncFullscreenEditButton();
+
+      // 修复：强制更新全屏按钮状态
+      if (typeof updateFullscreenOverlayState === 'function') {
+        updateFullscreenOverlayState();
+      } else {
+        setTimeout(() => {
+          document.dispatchEvent(new CustomEvent('updateFullscreenOverlay'));
+        }, 0);
+      }
     };
     img.src = reader.result;
   };
@@ -245,13 +264,60 @@ export function handleBaseImageChange(ev) {
 
 export function toggleBaseEditMode(force) {
   if (!state.baseImage) return;
+
+  const wasEditing = state.baseEditing;
+
   if (typeof force === 'boolean') {
     state.baseEditing = force;
   } else {
     state.baseEditing = !state.baseEditing;
   }
+
+  // 新增：显示模式切换提示
+  if (wasEditing !== state.baseEditing) {
+    showBaseEditModeFeedback(state.baseEditing);
+  }
+
   updateBaseEditButton();
   updateCanvasCursorState();
+}
+
+function showBaseEditModeFeedback(isEditing) {
+  // 创建提示元素
+  let feedback = document.getElementById('baseEditModeFeedback');
+  if (!feedback) {
+    feedback = document.createElement('div');
+    feedback.id = 'baseEditModeFeedback';
+    feedback.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.85);
+      color: white;
+      padding: 16px 24px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      z-index: 10000;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      white-space: nowrap;
+      border: 2px solid ${isEditing ? '#4CAF50' : '#ff4757'};
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    `;
+    document.body.appendChild(feedback);
+  }
+
+  feedback.textContent = isEditing ? '🎯 底图编辑模式已开启' : '❌ 底图编辑模式已关闭';
+  feedback.style.borderColor = isEditing ? '#4CAF50' : '#ff4757';
+  feedback.style.opacity = '1';
+
+  // 1.5秒后淡出
+  setTimeout(() => {
+    feedback.style.opacity = '0';
+  }, 800);
 }
 
 export function updateBaseEditButton() {

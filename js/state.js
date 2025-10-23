@@ -39,6 +39,9 @@ export const state = {
   referenceWindowMinimized: false,
   referenceWindowRect: { width: 320, height: 420, top: 24, left: null },
   referenceWindowPrevRect: null,
+  history: [],
+  historyIndex: -1,
+  maxHistorySize: 50,
   exportVisible: false,
   exportSettings: {
     format: 'image/png',

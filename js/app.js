@@ -47,7 +47,8 @@ import { toggleFullscreen, updateFullscreenState } from './fullscreen.js';
 import { initializeReferenceFeature, toggleReferenceWindow } from './reference.js';
 import { initializeDocs } from './docs.js';
 import { exportProject, importProjectFile } from './pd.js';
-import { SIZE_LIMITS } from './constants.js';
+import { SIZE_LIMITS } from './constants.js';// 在文件顶部的导入中添加
+import { undo, redo } from './canvas.js';
 
 fullscreenBaseEditBtn.addEventListener('click', () => {
   toggleBaseEditMode();
@@ -62,8 +63,17 @@ function showFullscreenBaseFeedback() {
 
 function updateFullscreenOverlayState() {
   if (!fullscreenBaseEditBtn) return;
-  fullscreenBaseEditBtn.style.display = state.isFullscreen ? 'inline-flex' : 'none';
+
+  // 修复：只有在全屏模式且有底图时才显示按钮
+  const shouldShow = state.isFullscreen && state.baseImage;
+  fullscreenBaseEditBtn.style.display = shouldShow ? 'inline-flex' : 'none';
   fullscreenBaseEditBtn.disabled = !state.baseImage;
+
+  console.log('Fullscreen overlay state:', {
+    isFullscreen: state.isFullscreen,
+    hasBaseImage: !!state.baseImage,
+    shouldShow: shouldShow
+  });
 }
 
 async function init() {
@@ -99,6 +109,9 @@ async function init() {
   updateCanvasCursorState();
   prepareCanvasInteractions();
   updateCurrentColorInfo();
+  setTimeout(() => {
+    updateFullscreenOverlayState();
+  }, 100);
 }
 
 function bindUIEvents() {
@@ -215,6 +228,23 @@ function bindUIEvents() {
       return;
     }
     applyBaseScale(rawValue, state.width / 2, state.height / 2);
+  });
+  document.addEventListener('updateFullscreenOverlay', () => {
+    updateFullscreenOverlayState();
+  });
+
+  // 修复：更可靠的全屏变化监听
+  const fullscreenEvents = [
+    'fullscreenchange',
+    'webkitfullscreenchange',
+    'mozfullscreenchange',
+    'MSFullscreenChange'
+  ];
+
+  fullscreenEvents.forEach(event => {
+    document.addEventListener(event, () => {
+      setTimeout(updateFullscreenOverlayState, 50);
+    });
   });
 }
 
