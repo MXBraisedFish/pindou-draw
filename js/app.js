@@ -1,54 +1,18 @@
-﻿import { elements, fullscreenBaseEditBtn } from './elements.js';
+﻿// app.js (优化后)
+import { elements, fullscreenBaseEditBtn } from './elements.js';
 import { state } from './state.js';
 import { initializeShortcuts } from './shortcuts.js';
 import { initializeUpdate } from './update.js';
 import { initializeExportWindow, toggleExportWindow } from './export-window.js';
-import {
-  createCanvas,
-  handleWheelEvent,
-  prepareCanvasInteractions,
-  redrawCanvas,
-  setCellSize,
-  setTool,
-  updateCanvasOpacityLabel,
-  updateToolButtons,
-  validateCanvasSize,
-  isCanvasDirty
-} from './canvas.js';
-import {
-  applyBaseLayerPosition,
-  applyBaseScale,
-  clearBaseImage,
-  handleBaseImageChange,
-  initializeBaseScaleRange,
-  recenterBaseImage,
-  snapBaseToCanvas,
-  syncBaseControlsAvailability,
-  toggleBaseEditMode,
-  updateBaseEditButton,
-  updateBaseImageDisplay,
-  updateCanvasCursorState,
-  updateStatusBase
-} from './base-image.js';
-import {
-  applyPalette,
-  ensurePaletteSwitchAllowed,
-  handleDeletePalette,
-  handlePaletteFile,
-  handlePaletteSelectionChange,
-  loadDefaultPalettes,
-  loadPaletteLibrary,
-  renderPalette,
-  restoreLastPalette,
-  updateCurrentColorInfo
-} from './palette.js';
+import { createCanvas, handleWheelEvent, prepareCanvasInteractions, redrawCanvas, setCellSize, setTool, updateCanvasOpacityLabel, updateToolButtons, validateCanvasSize, isCanvasDirty, undo, redo } from './canvas.js';
+import { applyBaseLayerPosition, applyBaseScale, clearBaseImage, handleBaseImageChange, initializeBaseScaleRange, recenterBaseImage, snapBaseToCanvas, syncBaseControlsAvailability, toggleBaseEditMode, updateBaseEditButton, updateBaseImageDisplay, updateCanvasCursorState, updateStatusBase } from './base-image.js';
+import { applyPalette, ensurePaletteSwitchAllowed, handleDeletePalette, handlePaletteFile, handlePaletteSelectionChange, loadDefaultPalettes, loadPaletteLibrary, renderPalette, restoreLastPalette, updateCurrentColorInfo } from './palette.js';
 import { exportImage } from './exporter.js';
 import { toggleFullscreen, updateFullscreenState } from './fullscreen.js';
 import { initializeReferenceFeature, toggleReferenceWindow } from './reference.js';
 import { initializeDocs } from './docs.js';
 import { exportProject, importProjectFile } from './pd.js';
-import { SIZE_LIMITS } from './constants.js';// 在文件顶部的导入中添加
-import { undo, redo } from './canvas.js';
+import { SIZE_LIMITS } from './constants.js';
 
 fullscreenBaseEditBtn.addEventListener('click', () => {
   toggleBaseEditMode();
@@ -63,17 +27,9 @@ function showFullscreenBaseFeedback() {
 
 function updateFullscreenOverlayState() {
   if (!fullscreenBaseEditBtn) return;
-
-  // 修复：只有在全屏模式且有底图时才显示按钮
   const shouldShow = state.isFullscreen && state.baseImage;
   fullscreenBaseEditBtn.style.display = shouldShow ? 'inline-flex' : 'none';
   fullscreenBaseEditBtn.disabled = !state.baseImage;
-
-  console.log('Fullscreen overlay state:', {
-    isFullscreen: state.isFullscreen,
-    hasBaseImage: !!state.baseImage,
-    shouldShow: shouldShow
-  });
 }
 
 async function init() {
@@ -86,18 +42,15 @@ async function init() {
   restoreLastPalette();
   initializeShortcuts();
   initializeExportWindow();
+
   const initialWidth = Number(elements.widthInput?.value) || 32;
   const initialHeight = Number(elements.heightInput?.value) || 32;
   createCanvas(initialWidth, initialHeight);
-  if (elements.autoSnapToggle) {
-    elements.autoSnapToggle.checked = state.autoSnap;
-  }
-  if (elements.showCodesToggle) {
-    elements.showCodesToggle.checked = state.showCodes;
-  }
-  if (elements.canvasOpacityRange) {
-    elements.canvasOpacityRange.value = Math.round(state.backgroundOpacity * 100);
-  }
+
+  elements.autoSnapToggle && (elements.autoSnapToggle.checked = state.autoSnap);
+  elements.showCodesToggle && (elements.showCodesToggle.checked = state.showCodes);
+  elements.canvasOpacityRange && (elements.canvasOpacityRange.value = Math.round(state.backgroundOpacity * 100));
+
   updateCanvasOpacityLabel();
   updateStatusBase();
   syncBaseControlsAvailability();
@@ -109,146 +62,92 @@ async function init() {
   updateCanvasCursorState();
   prepareCanvasInteractions();
   updateCurrentColorInfo();
-  setTimeout(() => {
-    updateFullscreenOverlayState();
-  }, 100);
+
+  setTimeout(updateFullscreenOverlayState, 100);
 }
 
 function bindUIEvents() {
-  elements.importBaseBtn?.addEventListener('click', () => elements.baseImageInput?.click());
-  elements.clearBaseBtn?.addEventListener('click', () => {
-    clearBaseImage();
-    updateFullscreenOverlayState();
-  });
-  elements.baseImageInput?.addEventListener('change', handleBaseImageChange);
-  elements.autoSnapToggle?.addEventListener('change', (ev) => {
-    state.autoSnap = ev.target.checked;
-  });
-  elements.showCodesToggle?.addEventListener('change', (ev) => {
-    state.showCodes = ev.target.checked;
-    redrawCanvas();
-  });
+  // 事件绑定简化
+  const eventMap = [
+    [elements.importBaseBtn, 'click', () => elements.baseImageInput?.click()],
+    [elements.clearBaseBtn, 'click', () => { clearBaseImage(); updateFullscreenOverlayState(); }],
+    [elements.baseImageInput, 'change', handleBaseImageChange],
+    [elements.autoSnapToggle, 'change', (ev) => state.autoSnap = ev.target.checked],
+    [elements.showCodesToggle, 'change', (ev) => { state.showCodes = ev.target.checked; redrawCanvas(); }],
+    [elements.canvasOpacityRange, 'input', (ev) => { state.backgroundOpacity = Number(ev.target.value) / 100; updateCanvasOpacityLabel(); redrawCanvas(); }],
+    [elements.baseLayerSelect, 'change', (ev) => { state.baseLayerPosition = ev.target.value; applyBaseLayerPosition(); updateBaseImageDisplay(); }],
+    [elements.toggleBaseEditBtn, 'click', toggleBaseEditMode],
+    [elements.recenterBaseBtn, 'click', recenterBaseImage],
+    [elements.snapBaseToCanvasBtn, 'click', snapBaseToCanvas],
+    [elements.toggleReferenceBtn, 'click', toggleReferenceWindow],
+    [elements.toggleFullscreenBtn, 'click', () => { toggleFullscreen(); updateFullscreenOverlayState(); }],
+    [elements.exportBtn, 'click', () => { state.width && state.height ? toggleExportWindow(true) : window.alert("请先创建画布"); }],
+    [elements.importProjectBtn, 'click', () => elements.projectFileInput?.click()],
+    [elements.createCanvasBtn, 'click', createNewCanvas],
+    [elements.loadDefaultPaletteBtn, 'click', loadDefaultPalette],
+    [elements.importPaletteBtn, 'click', () => elements.paletteFileInput?.click()],
+    [elements.paletteFileInput, 'change', handlePaletteFile],
+    [elements.paletteFilter, 'input', renderPalette],
+    [elements.deletePaletteBtn, 'click', handleDeletePalette],
+    [elements.paletteHistorySelect, 'change', handlePaletteSelectionChange],
+    [elements.canvasWrapper, 'wheel', handleWheelEvent, { passive: false }]
+  ];
+
+  eventMap.forEach(([element, event, handler, options]) =>
+    element?.addEventListener(event, handler, options)
+  );
+
+  // 工具按钮事件
+  [elements.toolPencilBtn, elements.toolBucketBtn, elements.toolEyedropperBtn].forEach(btn =>
+    btn?.addEventListener('click', () => setTool(btn.dataset.tool))
+  );
+
+  // 缩放范围初始化
   if (elements.zoomRange) {
     elements.zoomRange.min = String(SIZE_LIMITS.minCell);
     elements.zoomRange.max = String(SIZE_LIMITS.maxCell);
-    elements.zoomRange.addEventListener('input', (ev) => {
-      setCellSize(Number(ev.target.value));
-    });
+    elements.zoomRange.addEventListener('input', (ev) => setCellSize(Number(ev.target.value)));
   }
-  elements.canvasOpacityRange?.addEventListener('input', (ev) => {
-    state.backgroundOpacity = Number(ev.target.value) / 100;
-    updateCanvasOpacityLabel();
-    redrawCanvas();
-  });
-  elements.baseLayerSelect?.addEventListener('change', (ev) => {
-    state.baseLayerPosition = ev.target.value;
-    applyBaseLayerPosition();
-    updateBaseImageDisplay();
-  });
-  elements.toggleBaseEditBtn?.addEventListener('click', () => {
-    toggleBaseEditMode();
-  });
-  elements.recenterBaseBtn?.addEventListener('click', () => {
-    recenterBaseImage();
-  });
-  elements.snapBaseToCanvasBtn?.addEventListener('click', () => {
-    snapBaseToCanvas();
-  });
-  elements.toggleReferenceBtn?.addEventListener('click', () => {
-    toggleReferenceWindow();
-  });
-  elements.toggleFullscreenBtn?.addEventListener('click', () => {
-    toggleFullscreen();
-    updateFullscreenOverlayState();
-  });
-  elements.exportBtn?.addEventListener('click', () => {
-    if (!state.width || !state.height) {
-      window.alert("请先创建画布");
-      return;
-    }
-    toggleExportWindow(true);
-  });
-  elements.importProjectBtn?.addEventListener('click', () => {
-    elements.projectFileInput?.click();
-  });
-  elements.projectFileInput?.addEventListener('change', async (ev) => {
-    const file = ev.target.files && ev.target.files[0];
-    if (!file) return;
-    await importProjectFile(file);
-    ev.target.value = '';
-  });
-  elements.createCanvasBtn?.addEventListener('click', () => {
-    const width = Number(elements.widthInput?.value);
-    const height = Number(elements.heightInput?.value);
-    if (!validateCanvasSize(width, height)) {
-      window.alert("请输入 1 - 2048 范围内的画布尺寸。");
-      return;
-    }
-    if (isCanvasDirty()) {
-      const confirmed = window.confirm('新建画布会清空当前画布的颜色，是否继续？');
-      if (!confirmed) {
-        return;
-      }
-    }
-    createCanvas(width, height);
-  });
-  elements.loadDefaultPaletteBtn?.addEventListener('click', () => {
-    if (!ensurePaletteSwitchAllowed()) return;
-    const builtin = state.paletteLibrary.get('builtin-dmc');
-    if (!builtin) {
-      window.alert("内置 DMC 色卡尚未准备好，请先导入 JSON。");
-      return;
-    }
-    applyPalette(builtin.data, builtin.name, {
-      libraryId: 'builtin-dmc',
-      persistSelection: true
-    });
-  });
-  elements.importPaletteBtn?.addEventListener('click', () => elements.paletteFileInput?.click());
-  elements.paletteFileInput?.addEventListener('change', handlePaletteFile);
-  elements.paletteFilter?.addEventListener('input', renderPalette);
-  elements.deletePaletteBtn?.addEventListener('click', handleDeletePalette);
-  elements.paletteHistorySelect?.addEventListener('change', handlePaletteSelectionChange);
-  elements.canvasWrapper?.addEventListener('wheel', handleWheelEvent, { passive: false });
-  [elements.toolPencilBtn, elements.toolBucketBtn, elements.toolEyedropperBtn].forEach((btn) => {
-    btn?.addEventListener('click', () => setTool(btn.dataset.tool));
-  });
-  document.addEventListener('fullscreenchange', () => {
-    const active = Boolean(document.fullscreenElement);
-    if (state.isFullscreen !== active) {
-      state.isFullscreen = active;
-      updateFullscreenState();
-      updateFullscreenOverlayState();
-    }
-  });
+
+  // 底图缩放
   initializeBaseScaleRange();
   elements.baseScaleRange?.addEventListener('input', (ev) => {
     const rawValue = Number(ev.target.value);
-    if (!state.baseImage || !Number.isFinite(rawValue)) {
-      return;
-    }
-    applyBaseScale(rawValue, state.width / 2, state.height / 2);
-  });
-  document.addEventListener('updateFullscreenOverlay', () => {
-    updateFullscreenOverlayState();
+    state.baseImage && Number.isFinite(rawValue) && applyBaseScale(rawValue, state.width / 2, state.height / 2);
   });
 
-  // 修复：更可靠的全屏变化监听
-  const fullscreenEvents = [
-    'fullscreenchange',
-    'webkitfullscreenchange',
-    'mozfullscreenchange',
-    'MSFullscreenChange'
-  ];
-
-  fullscreenEvents.forEach(event => {
-    document.addEventListener(event, () => {
-      setTimeout(updateFullscreenOverlayState, 50);
-    });
+  // 项目文件导入
+  elements.projectFileInput?.addEventListener('change', async (ev) => {
+    const file = ev.target.files?.[0];
+    file && await importProjectFile(file);
+    ev.target.value = '';
   });
+
+  // 全屏事件监听
+  const fullscreenEvents = ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'];
+  fullscreenEvents.forEach(event => document.addEventListener(event, () => setTimeout(updateFullscreenOverlayState, 50)));
+  document.addEventListener('updateFullscreenOverlay', updateFullscreenOverlayState);
+}
+
+function createNewCanvas() {
+  const width = Number(elements.widthInput?.value);
+  const height = Number(elements.heightInput?.value);
+
+  if (!validateCanvasSize(width, height)) {
+    window.alert("请输入 1 - 2048 范围内的画布尺寸。");
+    return;
+  }
+
+  if (isCanvasDirty() && !window.confirm('新建画布会清空当前画布的颜色，是否继续？')) return;
+
+  createCanvas(width, height);
+}
+
+function loadDefaultPalette() {
+  if (!ensurePaletteSwitchAllowed()) return;
+  const builtin = state.paletteLibrary.get('builtin-dmc');
+  builtin ? applyPalette(builtin.data, builtin.name, { libraryId: 'builtin-dmc', persistSelection: true })
+    : window.alert("内置 DMC 色卡尚未准备好，请先导入 JSON。");
 }
 
 init();
-
-
-

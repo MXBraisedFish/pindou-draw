@@ -8,13 +8,13 @@
   --text: #1f1f2d;
   --muted: #6f7285;
   --link: #fc72e9;
-  --shadow: 0 0.6rem 1.6rem rgba(31, 31, 45, 0.12);
+  --shadow: 0 0.6rem 1.6rem rgba(31, 31, 45, 0.12)
 }
 
 *,
 *::before,
 *::after {
-  box-sizing: border-box;
+  box-sizing: border-box
 }
 
 html,
@@ -23,16 +23,16 @@ body {
   padding: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: inherit;
+  font-family: inherit
 }
 
 a {
   color: inherit;
-  text-decoration: none;
+  text-decoration: none
 }
 
 a:hover {
-  text-decoration: underline;
+  text-decoration: underline
 }
 
 button,
@@ -40,10 +40,9 @@ input,
 select,
 textarea {
   font: inherit;
-  color: inherit;
+  color: inherit
 }
 
-/* 统一按钮基础样式 */
 button {
   padding: 0.45rem 0.9rem;
   border-radius: 0.6rem;
@@ -52,18 +51,18 @@ button {
   color: var(--text);
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(31, 31, 45, 0.08);
+  box-shadow: 0 2px 8px rgba(31, 31, 45, 0.08)
 }
 
 button:hover:not(:disabled) {
   border-color: var(--accent);
   box-shadow: 0 4px 15px rgba(54, 82, 245, 0.2);
-  transform: translateY(-1px);
+  transform: translateY(-1px)
 }
 
 button:disabled {
   opacity: 0.55;
-  cursor: not-allowed;
+  cursor: not-allowed
 }
 
 input[type="number"],
@@ -74,21 +73,21 @@ textarea {
   padding: 0.45rem 0.6rem;
   border-radius: 0.55rem;
   border: 1px solid var(--border);
-  background: var(--panel-bg);
+  background: var(--panel-bg)
 }
 
 input[type="search"] {
-  padding-right: 2rem;
+  padding-right: 2rem
 }
 
 input[type="range"] {
-  width: 140px;
+  width: 140px
 }
 
 .app-shell {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  min-height: 100vh
 }
 
 .app-header {
@@ -99,7 +98,7 @@ input[type="range"] {
   padding: 1.4rem 2.2rem 1.2rem;
   background: var(--panel-bg);
   border-bottom: 1px solid var(--border);
-  box-shadow: 0 0.4rem 1rem rgba(31, 31, 45, 0.05);
+  box-shadow: 0 0.4rem 1rem rgba(31, 31, 45, 0.05)
 }
 
 .header-text {
@@ -107,30 +106,29 @@ input[type="range"] {
   flex-direction: column;
   gap: 0.35rem;
   text-align: left;
-  flex: 1;
+  flex: 1
 }
 
 .app-header h1 {
   margin: 0 0 0.35rem;
   font-size: 1.65rem;
   letter-spacing: 0.04em;
-  text-align: left;
+  text-align: left
 }
 
 .app-header p {
   margin: 0;
   color: var(--muted);
   font-size: 0.95rem;
-  text-align: left;
+  text-align: left
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 0.8rem
 }
 
-/* 图标按钮样式 */
 .icon-btn {
   display: flex;
   align-items: center;
@@ -143,19 +141,19 @@ input[type="range"] {
   font-weight: 600;
   font-size: 0.9rem;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(31, 31, 45, 0.08);
+  box-shadow: 0 2px 8px rgba(31, 31, 45, 0.08)
 }
 
 .icon-btn:hover:not(:disabled) {
   border-color: var(--accent);
   box-shadow: 0 4px 15px rgba(54, 82, 245, 0.2);
-  transform: translateY(-1px);
+  transform: translateY(-1px)
 }
 
 .btn-icon {
   width: 16px;
   height: 16px;
-  stroke: currentColor;
+  stroke: currentColor
 }
 
 .app-main {
@@ -163,14 +161,14 @@ input[type="range"] {
   display: flex;
   gap: 1.5rem;
   padding: 1.4rem 2.2rem 2rem;
-  min-height: 0;
+  min-height: 0
 }
 
 .canvas-pane {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-width: 0;
+  min-width: 0
 }
 
 .canvas-toolbar {
@@ -178,7 +176,7 @@ input[type="range"] {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.6rem;
-  margin-bottom: 0.9rem;
+  margin-bottom: 0.9rem
 }
 
 .toolbar-section {
@@ -186,14 +184,14 @@ input[type="range"] {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.6rem;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.6rem
 }
 
 .tool-toggle {
   display: inline-flex;
   border-radius: 0.6rem;
   border: 1px solid var(--border);
-  overflow: hidden;
+  overflow: hidden
 }
 
 .tool-btn {
@@ -205,42 +203,41 @@ input[type="range"] {
   border-right: 1px solid var(--border);
   background: var(--panel-bg);
   transition: background 0.2s ease, color 0.2s ease;
-  color: var(--muted);
+  color: var(--muted)
 }
 
 .tool-btn:hover:not(:disabled) {
   color: var(--accent);
   border-color: var(--border);
   box-shadow: none;
-  transform: none;
+  transform: none
 }
 
 .tool-btn.active {
   background: rgba(54, 82, 245, 0.12);
   color: var(--accent);
-  font-weight: 600;
+  font-weight: 600
 }
 
 .tool-btn:last-child {
-  border-right: none;
+  border-right: none
 }
 
 .tool-icon {
   width: 18px;
   height: 18px;
   fill: currentColor;
-  transition: fill 0.2s ease;
+  transition: fill 0.2s ease
 }
 
-/* 画布光标样式 */
 #drawingCanvas.eyedropper-tool {
-  cursor: copy;
+  cursor: copy
 }
 
 .tool-btn.active[data-tool="eyedropper"] {
   background: rgba(54, 82, 245, 0.12);
   color: var(--accent);
-  font-weight: 600;
+  font-weight: 600
 }
 
 .inline-control {
@@ -249,7 +246,7 @@ input[type="range"] {
   gap: 0.35rem;
   color: var(--muted);
   font-size: 0.92rem;
-  user-select: none;
+  user-select: none
 }
 
 .zoom-control {
@@ -258,7 +255,7 @@ input[type="range"] {
   background: #eef0fb;
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.35rem
 }
 
 .canvas-wrapper {
@@ -267,11 +264,7 @@ input[type="range"] {
   min-height: 0;
   border-radius: 0.9rem;
   border: 1px solid var(--border);
-  background-image:
-    linear-gradient(45deg, #f1f1f1 25%, transparent 25%),
-    linear-gradient(-45deg, #f1f1f1 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #f1f1f1 75%),
-    linear-gradient(-45deg, transparent 75%, #f1f1f1 75%);
+  background-image: linear-gradient(45deg, #f1f1f1 25%, transparent 25%), linear-gradient(-45deg, #f1f1f1 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f1f1f1 75%), linear-gradient(-45deg, transparent 75%, #f1f1f1 75%);
   background-size: 20px 20px;
   background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
   background-repeat: repeat;
@@ -280,49 +273,49 @@ input[type="range"] {
   justify-content: center;
   align-items: center;
   padding: 0.9rem;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow)
 }
 
 .canvas-stage {
   position: relative;
   display: inline-block;
-  transform-origin: 0 0;
+  transform-origin: 0 0
 }
 
 .canvas-stage canvas {
   position: absolute;
   top: 0;
-  left: 0;
+  left: 0
 }
 
 #baseCanvas {
   display: none;
   pointer-events: none;
   image-rendering: pixelated;
-  border-radius: 0.5rem;
+  border-radius: 0.5rem
 }
 
 #drawingCanvas {
   image-rendering: pixelated;
   border-radius: 0.5rem;
-  cursor: crosshair;
+  cursor: crosshair
 }
 
 #drawingCanvas.bucket-tool {
-  cursor: cell;
+  cursor: cell
 }
 
 #drawingCanvas.base-edit-mode,
 #drawingCanvas.is-base-dragging,
 #drawingCanvas.is-panning {
-  cursor: grabbing;
+  cursor: grabbing
 }
 
 .side-pane {
   width: 320px;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1rem
 }
 
 .panel {
@@ -332,26 +325,25 @@ input[type="range"] {
   box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  gap: 0.9rem
 }
 
 .panel h2 {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: 1.05rem
 }
 
 .form-row {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.35rem
 }
 
 .form-row label {
   font-size: 0.9rem;
-  color: var(--muted);
+  color: var(--muted)
 }
 
-/* 修复色卡布局 - 优化间距和排列 */
 .palette-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -363,25 +355,25 @@ input[type="range"] {
   scrollbar-color: rgba(54, 82, 245, 0.5) transparent;
   background: linear-gradient(135deg, #f5f7ff 0%, #f0f4ff 100%);
   border-radius: 0.8rem;
-  border: 1px solid rgba(54, 82, 245, 0.1);
+  border: 1px solid rgba(54, 82, 245, 0.1)
 }
 
 .palette-grid::-webkit-scrollbar {
-  width: 8px;
+  width: 8px
 }
 
 .palette-grid::-webkit-scrollbar-track {
   background: rgba(54, 82, 245, 0.05);
-  border-radius: 4px;
+  border-radius: 4px
 }
 
 .palette-grid::-webkit-scrollbar-thumb {
   background: rgba(54, 82, 245, 0.5);
-  border-radius: 4px;
+  border-radius: 4px
 }
 
 .palette-grid::-webkit-scrollbar-thumb:hover {
-  background: rgba(54, 82, 245, 0.7);
+  background: rgba(54, 82, 245, 0.7)
 }
 
 .palette-item {
@@ -396,7 +388,7 @@ input[type="range"] {
   box-shadow: 0 2px 8px rgba(31, 31, 45, 0.08);
   position: relative;
   overflow: hidden;
-  min-height: 60px;
+  min-height: 60px
 }
 
 .palette-item::before {
@@ -408,27 +400,27 @@ input[type="range"] {
   height: 3px;
   background: linear-gradient(90deg, var(--accent), #667eea);
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.3s ease
 }
 
 .palette-item:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(31, 31, 45, 0.12);
-  border-color: rgba(54, 82, 245, 0.2);
+  border-color: rgba(54, 82, 245, 0.2)
 }
 
 .palette-item:hover::before {
-  opacity: 1;
+  opacity: 1
 }
 
 .palette-item.active {
   border-color: var(--accent);
   background: rgba(54, 82, 245, 0.08);
-  box-shadow: 0 4px 15px rgba(54, 82, 245, 0.15);
+  box-shadow: 0 4px 15px rgba(54, 82, 245, 0.15)
 }
 
 .palette-item.active::before {
-  opacity: 1;
+  opacity: 1
 }
 
 .palette-swatch {
@@ -440,12 +432,12 @@ input[type="range"] {
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
-  flex-shrink: 0;
+  flex-shrink: 0
 }
 
 .palette-item:hover .palette-swatch {
   transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15)
 }
 
 .palette-swatch::after {
@@ -456,7 +448,7 @@ input[type="range"] {
   right: 0;
   bottom: 0;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 50%);
-  border-radius: inherit;
+  border-radius: inherit
 }
 
 .palette-meta {
@@ -465,7 +457,7 @@ input[type="range"] {
   font-size: 0.85rem;
   gap: 0.2rem;
   flex: 1;
-  min-width: 0;
+  min-width: 0
 }
 
 .palette-meta strong {
@@ -475,7 +467,7 @@ input[type="range"] {
   letter-spacing: 0.02em;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
+  text-overflow: ellipsis
 }
 
 .palette-meta span {
@@ -484,7 +476,7 @@ input[type="range"] {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
+  text-overflow: ellipsis
 }
 
 .palette-empty,
@@ -492,14 +484,14 @@ input[type="range"] {
   text-align: center;
   padding: 1rem 0;
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.9rem
 }
 
 .palette-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.6rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.5rem
 }
 
 .palette-actions button {
@@ -507,7 +499,7 @@ input[type="range"] {
   border-radius: 0.6rem;
   font-size: 0.85rem;
   text-align: center;
-  transition: all 0.3s ease;
+  transition: all 0.3s ease
 }
 
 #paletteFilter {
@@ -521,18 +513,18 @@ input[type="range"] {
   background-repeat: no-repeat;
   background-position: 12px center;
   background-size: 16px;
-  padding-left: 2.5rem;
+  padding-left: 2.5rem
 }
 
 #paletteFilter:focus {
   border-color: var(--accent);
   box-shadow: 0 4px 15px rgba(54, 82, 245, 0.2);
-  outline: none;
+  outline: none
 }
 
 #paletteFilter::placeholder {
   color: var(--muted);
-  opacity: 0.7;
+  opacity: 0.7
 }
 
 .current-color {
@@ -543,7 +535,7 @@ input[type="range"] {
   font-weight: 600;
   text-align: center;
   box-shadow: 0 2px 8px rgba(31, 31, 45, 0.08);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border)
 }
 
 .current-color .code {
@@ -551,7 +543,7 @@ input[type="range"] {
   padding: 0.2rem 0.6rem;
   border-radius: 0.4rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  color: var(--accent);
+  color: var(--accent)
 }
 
 .status-list {
@@ -562,12 +554,12 @@ input[type="range"] {
   flex-direction: column;
   gap: 0.45rem;
   font-size: 0.9rem;
-  color: var(--muted);
+  color: var(--muted)
 }
 
 .status-list span {
   color: var(--text);
-  font-weight: 600;
+  font-weight: 600
 }
 
 .fullscreen-palette {
@@ -577,7 +569,7 @@ input[type="range"] {
   border-radius: 0.8rem;
   background: rgba(255, 255, 255, 0.94);
   box-shadow: 0 0.6rem 1.8rem rgba(31, 31, 45, 0.16);
-  gap: 0.45rem;
+  gap: 0.45rem
 }
 
 body.canvas-fullscreen .fullscreen-palette {
@@ -585,7 +577,7 @@ body.canvas-fullscreen .fullscreen-palette {
   grid-template-columns: repeat(auto-fill, minmax(32px, 1fr));
   gap: 0.4rem;
   max-height: 28vh;
-  overflow-y: auto;
+  overflow-y: auto
 }
 
 .fullscreen-palette button {
@@ -594,10 +586,10 @@ body.canvas-fullscreen .fullscreen-palette {
   border-radius: 0.45rem;
   padding: 0;
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 1/1;
   background: transparent;
   cursor: pointer;
-  transition: transform 0.15s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.15s ease, border-color 0.2s ease, box-shadow 0.2s ease
 }
 
 .fullscreen-palette button .fullscreen-swatch {
@@ -605,24 +597,24 @@ body.canvas-fullscreen .fullscreen-palette {
   width: 100%;
   height: 100%;
   border-radius: 0.35rem;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(0, 0, 0, 0.12)
 }
 
 .fullscreen-palette button.active {
   border-color: var(--accent);
   box-shadow: 0 0 0 2px rgba(54, 82, 245, 0.35);
-  transform: scale(0.96);
+  transform: scale(0.96)
 }
 
 .base-tool-row {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.75rem
 }
 
 .base-scale-row {
-  display: none;
+  display: none
 }
 
 #fullscreenBaseEditBtn {
@@ -638,54 +630,53 @@ body.canvas-fullscreen .fullscreen-palette {
   display: none;
   font-family: inherit;
   box-shadow: 0 0.3rem 0.9rem rgba(31, 31, 45, 0.18);
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transition: box-shadow 0.2s ease, transform 0.2s ease
 }
 
 #fullscreenBaseEditBtn:focus-visible {
   outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  outline-offset: 2px
 }
 
 #fullscreenBaseEditBtn.active {
   box-shadow: 0 0.9rem 1.6rem rgba(54, 82, 245, 0.45);
-  transform: translateY(-2px);
+  transform: translateY(-2px)
 }
 
 #fullscreenBaseEditBtn.is-editing {
   border-color: var(--accent);
   color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(54, 82, 245, 0.25);
+  box-shadow: 0 0 0 2px rgba(54, 82, 245, 0.25)
 }
 
 body.canvas-fullscreen {
-  overflow: hidden;
+  overflow: hidden
 }
 
 body.canvas-fullscreen .app-shell {
-  height: 100vh;
+  height: 100vh
 }
 
 body.canvas-fullscreen .app-header,
 body.canvas-fullscreen .side-pane {
-  display: none;
+  display: none
 }
 
 body.canvas-fullscreen .app-main {
-  padding: 1.2rem;
+  padding: 1.2rem
 }
 
 body.canvas-fullscreen .canvas-pane {
-  padding: 0.6rem;
+  padding: 0.6rem
 }
 
 body.canvas-fullscreen .canvas-wrapper {
   flex: 1;
   width: 100%;
   height: calc(100vh - 3rem);
-  margin: 0 auto;
+  margin: 0 auto
 }
 
-/* 参考图和说明书窗口样式保持不变 */
 .reference-window {
   position: fixed;
   top: 24px;
@@ -701,11 +692,11 @@ body.canvas-fullscreen .canvas-wrapper {
   border-radius: 1rem;
   box-shadow: 0 1rem 2.4rem rgba(31, 31, 45, 0.18);
   backdrop-filter: blur(4px);
-  overflow: hidden;
+  overflow: hidden
 }
 
 .reference-window.is-visible {
-  display: flex;
+  display: flex
 }
 
 .reference-header {
@@ -716,22 +707,22 @@ body.canvas-fullscreen .canvas-wrapper {
   padding: 0.6rem 0.9rem;
   border-bottom: 1px solid var(--border);
   cursor: grab;
-  user-select: none;
+  user-select: none
 }
 
 .reference-window.is-dragging .reference-header {
-  cursor: grabbing;
+  cursor: grabbing
 }
 
 .reference-title {
   font-weight: 600;
-  color: var(--text);
+  color: var(--text)
 }
 
 .reference-actions {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.35rem
 }
 
 .reference-actions button {
@@ -741,7 +732,7 @@ body.canvas-fullscreen .canvas-wrapper {
   font-size: 1.2rem;
   line-height: 1;
   display: grid;
-  place-items: center;
+  place-items: center
 }
 
 .reference-body {
@@ -749,7 +740,7 @@ body.canvas-fullscreen .canvas-wrapper {
   overflow: auto;
   flex: 1;
   display: flex;
-  flex-direction: column;
+  flex-direction: column
 }
 
 .reference-resizer {
@@ -761,50 +752,50 @@ body.canvas-fullscreen .canvas-wrapper {
   border-radius: 3px;
   cursor: nwse-resize;
   background: linear-gradient(135deg, transparent 0 40%, rgba(54, 82, 245, 0.65) 40% 60%, transparent 60% 100%);
-  opacity: 0.65;
+  opacity: 0.65
 }
 
 .reference-window.is-minimized {
   width: 88px !important;
   height: 88px !important;
   border-radius: 1.5rem;
-  cursor: grab;
+  cursor: grab
 }
 
 .reference-window.is-minimized.is-dragging {
-  cursor: grabbing;
+  cursor: grabbing
 }
 
 .reference-window.is-minimized .reference-body,
 .reference-window.is-minimized .reference-resizer {
-  display: none;
+  display: none
 }
 
 .reference-window.is-minimized .reference-header {
   flex-direction: column;
   justify-content: center;
   gap: 0.4rem;
-  padding: 0.6rem;
+  padding: 0.6rem
 }
 
 .reference-window.is-minimized .reference-title {
-  display: none;
+  display: none
 }
 
 .reference-window.is-minimized .reference-actions {
   width: 100%;
-  justify-content: center;
+  justify-content: center
 }
 
 .reference-window.is-minimized .reference-actions button {
   width: 2.4rem;
-  height: 2.4rem;
+  height: 2.4rem
 }
 
 .reference-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.75rem
 }
 
 .reference-item {
@@ -815,7 +806,7 @@ body.canvas-fullscreen .canvas-wrapper {
   border-radius: 0.75rem;
   padding: 0.6rem;
   background: var(--panel-bg);
-  box-shadow: 0 0.4rem 1rem rgba(31, 31, 45, 0.08);
+  box-shadow: 0 0.4rem 1rem rgba(31, 31, 45, 0.08)
 }
 
 .reference-item header {
@@ -824,7 +815,7 @@ body.canvas-fullscreen .canvas-wrapper {
   gap: 0.4rem;
   justify-content: space-between;
   font-size: 0.88rem;
-  color: var(--muted);
+  color: var(--muted)
 }
 
 .reference-item .name {
@@ -832,7 +823,7 @@ body.canvas-fullscreen .canvas-wrapper {
   color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: nowrap
 }
 
 .reference-item img {
@@ -840,26 +831,26 @@ body.canvas-fullscreen .canvas-wrapper {
   max-height: 220px;
   object-fit: contain;
   border-radius: 0.6rem;
-  background: #fafbff;
+  background: #fafbff
 }
 
 .reference-empty {
   text-align: center;
   color: var(--muted);
   font-size: 0.92rem;
-  padding: 1rem 0.5rem;
+  padding: 1rem 0.5rem
 }
 
 .reference-delete {
-  align-self: flex-end;
+  align-self: flex-end
 }
 
 .reference-window .reference-footer {
-  margin-top: 0.6rem;
+  margin-top: 0.6rem
 }
 
 .reference-window.is-minimized .reference-actions button#referenceMinimizeBtn {
-  font-weight: 600;
+  font-weight: 600
 }
 
 .docs-window {
@@ -875,11 +866,11 @@ body.canvas-fullscreen .canvas-wrapper {
   display: none;
   flex-direction: column;
   backdrop-filter: blur(4px);
-  z-index: 1300;
+  z-index: 1300
 }
 
 .docs-window.is-visible {
-  display: flex;
+  display: flex
 }
 
 .docs-header {
@@ -888,13 +879,13 @@ body.canvas-fullscreen .canvas-wrapper {
   justify-content: space-between;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border);
-  gap: 0.6rem;
+  gap: 0.6rem
 }
 
 .docs-title {
   font-weight: 600;
   font-size: 1.05rem;
-  color: var(--text);
+  color: var(--text)
 }
 
 .docs-header button {
@@ -905,17 +896,17 @@ body.canvas-fullscreen .canvas-wrapper {
   line-height: 1;
   padding: 0.2rem;
   border-radius: 0.45rem;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition: background 0.2s ease, transform 0.2s ease
 }
 
 .docs-header button:hover {
   background: rgba(54, 82, 245, 0.12);
-  transform: scale(1.05);
+  transform: scale(1.05)
 }
 
 .docs-header button:focus-visible {
   outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  outline-offset: 2px
 }
 
 .docs-body {
@@ -923,18 +914,18 @@ body.canvas-fullscreen .canvas-wrapper {
   overflow: auto;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-size: 0.95rem;
-  color: var(--text);
+  color: var(--text)
 }
 
 .docs-body a {
   color: var(--link);
-  text-decoration: underline;
+  text-decoration: underline
 }
 
 .docs-markdown {
   margin: 0;
   white-space: pre-wrap;
-  word-break: break-word;
+  word-break: break-word
 }
 
 .update-window {
@@ -950,11 +941,11 @@ body.canvas-fullscreen .canvas-wrapper {
   display: none;
   flex-direction: column;
   backdrop-filter: blur(4px);
-  z-index: 1300;
+  z-index: 1300
 }
 
 .update-window.is-visible {
-  display: flex;
+  display: flex
 }
 
 .update-header {
@@ -963,13 +954,13 @@ body.canvas-fullscreen .canvas-wrapper {
   justify-content: space-between;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border);
-  gap: 0.6rem;
+  gap: 0.6rem
 }
 
 .update-title {
   font-weight: 600;
   font-size: 1.05rem;
-  color: var(--text);
+  color: var(--text)
 }
 
 .update-header button {
@@ -980,17 +971,17 @@ body.canvas-fullscreen .canvas-wrapper {
   line-height: 1;
   padding: 0.2rem;
   border-radius: 0.45rem;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition: background 0.2s ease, transform 0.2s ease
 }
 
 .update-header button:hover {
   background: rgba(54, 82, 245, 0.12);
-  transform: scale(1.05);
+  transform: scale(1.05)
 }
 
 .update-header button:focus-visible {
   outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  outline-offset: 2px
 }
 
 .update-body {
@@ -998,29 +989,29 @@ body.canvas-fullscreen .canvas-wrapper {
   overflow: auto;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-size: 0.95rem;
-  color: var(--text);
+  color: var(--text)
 }
 
 .update-body a {
   color: var(--link);
-  text-decoration: underline;
+  text-decoration: underline
 }
 
 .update-content {
   margin: 0;
   white-space: pre-wrap;
-  word-break: break-word;
+  word-break: break-word
 }
 
 .update-content h1 {
   margin-top: 0;
   font-size: 1.4rem;
-  color: var(--accent);
+  color: var(--accent)
 }
 
 .update-content p {
   line-height: 1.6;
-  margin-bottom: 1rem;
+  margin-bottom: 1rem
 }
 
 .export-window {
@@ -1037,11 +1028,11 @@ body.canvas-fullscreen .canvas-wrapper {
   display: none;
   flex-direction: column;
   backdrop-filter: blur(8px);
-  z-index: 1400;
+  z-index: 1400
 }
 
 .export-window.is-visible {
-  display: flex;
+  display: flex
 }
 
 .export-header {
@@ -1051,13 +1042,13 @@ body.canvas-fullscreen .canvas-wrapper {
   padding: 1rem 1.5rem;
   border-bottom: 1px solid var(--border);
   gap: 0.6rem;
-  flex-shrink: 0;
+  flex-shrink: 0
 }
 
 .export-title {
   font-weight: 600;
   font-size: 1.2rem;
-  color: var(--text);
+  color: var(--text)
 }
 
 .export-header button {
@@ -1068,12 +1059,12 @@ body.canvas-fullscreen .canvas-wrapper {
   line-height: 1;
   padding: 0.2rem;
   border-radius: 0.45rem;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition: background 0.2s ease, transform 0.2s ease
 }
 
 .export-header button:hover {
   background: rgba(54, 82, 245, 0.12);
-  transform: scale(1.05);
+  transform: scale(1.05)
 }
 
 .export-body {
@@ -1081,20 +1072,20 @@ body.canvas-fullscreen .canvas-wrapper {
   flex: 1;
   overflow: hidden;
   gap: 1.5rem;
-  padding: 1.5rem;
+  padding: 1.5rem
 }
 
 .export-preview-container {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-width: 0;
+  min-width: 0
 }
 
 .export-preview-container h3 {
   margin: 0 0 1rem 0;
   font-size: 1.1rem;
-  color: var(--text);
+  color: var(--text)
 }
 
 .export-preview {
@@ -1106,24 +1097,23 @@ body.canvas-fullscreen .canvas-wrapper {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  /* 改为hidden防止滚动条 */
   padding: 1rem;
   position: relative;
-  cursor: grab;
+  cursor: grab
 }
 
 .export-preview:active {
-  cursor: grabbing;
+  cursor: grabbing
 }
 
 #exportPreviewCanvas {
   display: block;
   background: transparent;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.3s ease
 }
 
 .preview-controls-hint {
-  font-weight: 400;
+  font-weight: 400
 }
 
 .preview-zoom-controls {
@@ -1133,7 +1123,7 @@ body.canvas-fullscreen .canvas-wrapper {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  z-index: 10;
+  z-index: 10
 }
 
 .preview-zoom-controls button {
@@ -1149,12 +1139,12 @@ body.canvas-fullscreen .canvas-wrapper {
   font-weight: bold;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  transition: all 0.2s ease;
+  transition: all 0.2s ease
 }
 
 .preview-zoom-controls button:hover {
   background: white;
-  transform: scale(1.05);
+  transform: scale(1.05)
 }
 
 .export-settings {
@@ -1162,13 +1152,13 @@ body.canvas-fullscreen .canvas-wrapper {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  overflow-y: auto;
+  overflow-y: auto
 }
 
 .export-setting-group {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1rem
 }
 
 .export-setting-group h3 {
@@ -1176,13 +1166,13 @@ body.canvas-fullscreen .canvas-wrapper {
   font-size: 1.1rem;
   color: var(--text);
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border)
 }
 
 .radio-group {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.75rem
 }
 
 .radio-label {
@@ -1195,38 +1185,38 @@ body.canvas-fullscreen .canvas-wrapper {
   background: white;
   cursor: pointer;
   transition: all 0.3s ease;
-  user-select: none;
+  user-select: none
 }
 
 .radio-label:hover {
   border-color: var(--accent);
-  box-shadow: 0 2px 8px rgba(54, 82, 245, 0.1);
+  box-shadow: 0 2px 8px rgba(54, 82, 245, 0.1)
 }
 
 .radio-label input[type="radio"] {
   margin: 0;
   width: 1.2rem;
-  height: 1.2rem;
+  height: 1.2rem
 }
 
 .radio-label input[type="radio"]:checked {
-  accent-color: var(--accent);
+  accent-color: var(--accent)
 }
 
 .radio-label input[type="radio"]:checked+span {
   color: var(--accent);
-  font-weight: 600;
+  font-weight: 600
 }
 
 .color-picker-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.5rem
 }
 
 .color-picker-group label {
   font-weight: 600;
-  color: var(--text);
+  color: var(--text)
 }
 
 #exportBackgroundColor {
@@ -1234,32 +1224,32 @@ body.canvas-fullscreen .canvas-wrapper {
   height: 3rem;
   border: 1px solid var(--border);
   border-radius: 0.75rem;
-  cursor: pointer;
+  cursor: pointer
 }
 
 .filename-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.5rem
 }
 
 .filename-group label {
   font-weight: 600;
-  color: var(--text);
+  color: var(--text)
 }
 
 #exportFilename {
   padding: 0.75rem 1rem;
   border: 1px solid var(--border);
   border-radius: 0.75rem;
-  font-size: 0.95rem;
+  font-size: 0.95rem
 }
 
 .filename-suffix {
   font-size: 0.85rem;
   color: var(--muted);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  margin-top: 0.25rem;
+  margin-top: 0.25rem
 }
 
 .export-footer {
@@ -1268,38 +1258,38 @@ body.canvas-fullscreen .canvas-wrapper {
   gap: 1rem;
   padding: 1rem 1.5rem;
   border-top: 1px solid var(--border);
-  flex-shrink: 0;
+  flex-shrink: 0
 }
 
 .export-footer button {
   padding: 0.75rem 1.5rem;
   border-radius: 0.75rem;
   font-weight: 600;
-  min-width: 120px;
+  min-width: 120px
 }
 
 .export-footer button.secondary {
   background: transparent;
   border: 1px solid var(--border);
-  color: var(--muted);
+  color: var(--muted)
 }
 
 .export-footer button.secondary:hover {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--accent)
 }
 
 .export-footer button.primary {
   background: var(--accent);
   border: 1px solid var(--accent);
-  color: white;
+  color: white
 }
 
 .export-footer button.primary:hover {
   background: #2a42d4;
   border-color: #2a42d4;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(54, 82, 245, 0.3);
+  box-shadow: 0 4px 12px rgba(54, 82, 245, 0.3)
 }
 
 .export-preview.loading::after {
@@ -1309,7 +1299,7 @@ body.canvas-fullscreen .canvas-wrapper {
   left: 50%;
   transform: translate(-50%, -50%);
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.9rem
 }
 
 .export-progress {
@@ -1325,11 +1315,11 @@ body.canvas-fullscreen .canvas-wrapper {
   display: none;
   align-items: center;
   gap: 1rem;
-  font-weight: 600;
+  font-weight: 600
 }
 
 .export-progress.visible {
-  display: flex;
+  display: flex
 }
 
 .export-spinner {
@@ -1338,12 +1328,11 @@ body.canvas-fullscreen .canvas-wrapper {
   border: 3px solid #f3f3f3;
   border-top: 3px solid var(--accent);
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: spin 1s linear infinite
 }
 
-/* 在文件末尾添加 */
 #baseEditModeFeedback {
   font-family: "PixelFont", "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
   backdrop-filter: blur(4px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3)
 }

@@ -6,24 +6,18 @@ export function computeAxisPadding(cellSize, widthCells, heightCells) {
   const gap = Math.max(AXIS_STYLE.minGap, Math.floor(fontSize * 0.4));
   const approxCharWidth = Math.max(6, Math.floor(fontSize * 0.6));
 
-  // 计算最大数字的位数（从1开始计数，所以是widthCells而不是widthCells-1）
   const maxDigitsX = Math.max(1, String(widthCells).length);
   const maxDigitsY = Math.max(1, String(heightCells).length);
 
-  // 增加padding以避免标签重叠
   const verticalPadding = Math.round(tickLength + gap + fontSize + fontSize * 0.5);
-  const horizontalPaddingY = Math.round(
-    tickLength + gap + maxDigitsY * approxCharWidth + fontSize * 0.5
-  );
-  const horizontalPaddingX = Math.round(
-    tickLength + gap + maxDigitsX * approxCharWidth + fontSize * 0.5
-  );
+  const horizontalPaddingY = Math.round(tickLength + gap + maxDigitsY * approxCharWidth + fontSize * 0.5);
+  const horizontalPaddingX = Math.round(tickLength + gap + maxDigitsX * approxCharWidth + fontSize * 0.5);
 
   return {
     top: Math.max(verticalPadding, Math.round(cellSize * 0.8)),
     bottom: Math.max(verticalPadding, Math.round(cellSize * 0.8)),
-    left: Math.max(horizontalPaddingY, Math.round(cellSize * 1.2)), // 增加左侧padding
-    right: Math.max(horizontalPaddingX, Math.round(cellSize * 1.2))  // 增加右侧padding
+    left: Math.max(horizontalPaddingY, Math.round(cellSize * 1.2)),
+    right: Math.max(horizontalPaddingX, Math.round(cellSize * 1.2))
   };
 }
 
@@ -36,20 +30,18 @@ export function clampBaseScale(scale) {
 }
 
 export function clampAlpha(alpha) {
-  if (!Number.isFinite(alpha)) return 0;
-  return Math.max(0, Math.min(1, alpha));
+  return Number.isFinite(alpha) ? Math.max(0, Math.min(1, alpha)) : 0;
 }
 
 export function parseColor(value) {
   if (typeof value === 'string') {
     const rgbMatch = value.match(/rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/i);
-    if (rgbMatch) {
-      return {
-        r: clampChannel(Number(rgbMatch[1])),
-        g: clampChannel(Number(rgbMatch[2])),
-        b: clampChannel(Number(rgbMatch[3]))
-      };
-    }
+    if (rgbMatch) return {
+      r: clampChannel(Number(rgbMatch[1])),
+      g: clampChannel(Number(rgbMatch[2])),
+      b: clampChannel(Number(rgbMatch[3]))
+    };
+
     const hexMatch = value.trim().match(/^#?([0-9a-f]{6})$/i);
     if (hexMatch) {
       const num = parseInt(hexMatch[1], 16);
@@ -61,25 +53,23 @@ export function parseColor(value) {
     }
     return null;
   }
-  if (Array.isArray(value) && value.length >= 3) {
-    return {
-      r: clampChannel(Number(value[0])),
-      g: clampChannel(Number(value[1])),
-      b: clampChannel(Number(value[2]))
-    };
-  }
+
+  if (Array.isArray(value) && value.length >= 3) return {
+    r: clampChannel(Number(value[0])),
+    g: clampChannel(Number(value[1])),
+    b: clampChannel(Number(value[2]))
+  };
+
   if (value && typeof value === 'object') {
     const r = channelFromObject(value, ['r', 'red', 'R']);
     const g = channelFromObject(value, ['g', 'green', 'G']);
     const b = channelFromObject(value, ['b', 'blue', 'B']);
-    if ([r, g, b].every((channel) => channel !== null)) {
-      return {
-        r: clampChannel(r),
-        g: clampChannel(g),
-        b: clampChannel(b)
-      };
-    }
+
+    if ([r, g, b].every(channel => channel !== null)) return {
+      r: clampChannel(r), g: clampChannel(g), b: clampChannel(b)
+    };
   }
+
   return null;
 }
 
@@ -94,8 +84,7 @@ export function channelFromObject(obj, keys) {
 }
 
 export function clampChannel(channel) {
-  if (!Number.isFinite(channel)) return 0;
-  return Math.max(0, Math.min(255, Math.round(channel)));
+  return Number.isFinite(channel) ? Math.max(0, Math.min(255, Math.round(channel))) : 0;
 }
 
 export function pickTextColor({ r, g, b }) {

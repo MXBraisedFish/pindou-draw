@@ -2,23 +2,22 @@
 <html lang="zh-Hans">
 
 <head>
-  <meta charset="UTF-8" />
-  <title>拼豆稿图制作工具</title>
-  <link rel="stylesheet" href="/pindou-draw/style.css" />
-  <link rel="icon" type="image/png" sizes="16x16" href="/pindou-draw/icon/web_icon.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="拼豆像素画工具 - 由闷香红烧鱼制作的免费拼豆手工草图创作工具">
+  <title>拼豆像素画工具 - 免费在线拼豆草图制作</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" sizes="16x16" href="icon/web_icon.png">
 </head>
 
 <body>
   <div class="app-shell">
-    <!-- 顶部标题栏 -->
-    <header class="app-header">
-      <!-- 左侧标题 -->
+    <header class="app-header" role="banner">
       <div class="header-text">
         <h1>拼豆像素画工具</h1>
         <p>由"闷香红烧鱼"制作，详细使用可看右侧说明书</p>
       </div>
 
-      <!-- 右侧按钮组 -->
       <div class="header-right">
         <button id="updateManualBtn" class="icon-btn" type="button" aria-label="更新手册" title="更新手册">
           <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -36,45 +35,36 @@
       </div>
     </header>
 
-    <!-- 主内容区域 -->
-    <main class="app-main">
-      <!-- 左侧画布区 -->
-      <section class="canvas-pane">
-        <!-- 工具栏 -->
-        <div class="canvas-toolbar">
-          <!-- 导入导出部分 -->
+    <main class="app-main" role="main">
+      <section class="canvas-pane" aria-label="画布区域">
+        <div class="canvas-toolbar" role="toolbar" aria-label="绘图工具">
           <div class="toolbar-section">
             <button id="importBaseBtn" type="button">导入底图</button>
             <button id="clearBaseBtn" type="button">移除底图</button>
             <button id="exportBtn" type="button">导出</button>
             <button id="toggleFullscreenBtn" type="button">全屏绘制</button>
-            <button id="toggleReferenceBtn" type="button" aria-pressed="false">
-              参考图窗
-            </button>
+            <button id="toggleReferenceBtn" type="button" aria-pressed="false">参考图窗</button>
           </div>
 
-          <!-- 绘画工具部分 -->
           <div class="toolbar-section">
-            <!-- 修改这部分代码 -->
-            <!-- 修改工具栏部分 -->
             <div class="tool-toggle" role="group" aria-label="绘制工具">
               <button id="toolPencilBtn" type="button" class="tool-btn active" data-tool="pencil" aria-pressed="true"
                 title="铅笔">
-                <svg class="tool-icon" viewBox="0 0 1028 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                <svg class="tool-icon" viewBox="0 0 1028 1024">
                   <path
                     d="M1018.319924 112.117535q4.093748 9.210934 6.652341 21.492179t2.558593 25.585928-5.117186 26.609365-16.374994 25.585928q-12.281245 12.281245-22.003898 21.492179t-16.886712 16.374994q-8.187497 8.187497-15.351557 14.32812l-191.382739-191.382739q12.281245-11.257808 29.167958-27.121083t28.144521-25.074209q14.32812-11.257808 29.679676-15.863275t30.191395-4.093748 28.656239 4.605467 24.050772 9.210934q21.492179 11.257808 47.589826 39.402329t40.425766 58.847634zM221.062416 611.554845q6.140623-6.140623 28.656239-29.167958t56.289041-56.80076l74.710909-74.710909 82.898406-82.898406 220.038979-220.038979 191.382739 192.406177-220.038979 220.038979-81.874969 82.898406q-40.937484 39.914047-73.687472 73.175753t-54.242167 54.753885-25.585928 24.562491q-10.234371 9.210934-23.539054 19.445305t-27.632802 16.374994q-14.32812 7.16406-41.960921 17.398431t-57.824197 19.957024-57.312478 16.886712-40.425766 9.210934q-27.632802 3.070311-36.843736-8.187497t-5.117186-37.867173q2.046874-14.32812 9.722653-41.449203t16.374994-56.289041 16.886712-53.730448 13.304682-33.773425q6.140623-14.32812 13.816401-26.097646t22.003898-26.097646z" />
                 </svg>
               </button>
               <button id="toolBucketBtn" type="button" class="tool-btn" data-tool="bucket" aria-pressed="false"
                 title="油漆桶">
-                <svg class="tool-icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                <svg class="tool-icon" viewBox="0 0 1024 1024">
                   <path
                     d="M462.272 163.904l316.736 316.8-361.984 361.984-316.8-316.736L462.272 163.904M417.024 118.656 54.912 480.704c-25.088 25.024-25.088 65.472 0 90.496l316.8 316.736c25.024 25.088 65.408 25.088 90.496 0l361.984-361.984c25.024-25.024 25.024-65.472 0-90.496L507.52 118.656C482.496 93.632 441.984 93.632 417.024 118.656L417.024 118.656zM54.912 571.2l316.8 316.736c25.024 25.088 65.408 25.088 90.496 0l361.984-361.984c12.48-12.48 18.816-28.864 18.752-45.248L54.912 480.704C29.888 505.664 29.888 546.176 54.912 571.2zM145.408 73.344c-12.48 12.544-12.48 32.768 0 45.248L439.616 412.8c12.48 12.48 32.768 12.48 45.248 0l0 0c12.48-12.48 12.48-32.768 0-45.248L190.656 73.344C178.176 60.864 157.952 60.864 145.408 73.344L145.408 73.344zM869.696 525.312c0 0-117.696 181.696-128 256-17.6 126.784 64 141.696 128 141.696s140.48-14.272 128-141.696C990.976 713.024 869.696 525.312 869.696 525.312z" />
                 </svg>
               </button>
               <button id="toolEyedropperBtn" type="button" class="tool-btn" data-tool="eyedropper" aria-pressed="false"
                 title="吸管">
-                <svg class="tool-icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                <svg class="tool-icon" viewBox="0 0 1024 1024">
                   <path
                     d="M768.341333 95.061333c-42.410667 0-85.290667 14.634667-116.010666 45.312l-182.656 182.698667-11.989334-12.032a43.178667 43.178667 0 0 0-30.677333-11.989333c-10.922667 0-22.357333 3.669333-30.677333 11.946666a43.904 43.904 0 0 0 0 61.397334l33.322666 33.28-289.28 289.365333c-4.693333 4.693333-7.253333 11.093333-9.386666 17.365333l-42.666667 128c-5.12 15.274667-2.090667 32.512 9.386667 43.946667l42.666666 42.666667c11.392 11.434667 28.629333 14.421333 43.946667 9.386666l128-42.666666c6.314667-2.133333 12.672-4.693333 17.365333-9.386667l289.322667-289.28 33.322667 33.28c16.64 16.682667 44.672 16.682667 61.354666 0 16.64-16.64 16.64-44.629333 0-61.354667l-12.032-11.946666 182.698667-182.656c61.44-61.44 61.44-170.538667 0-232.021334-30.72-30.72-73.6-45.312-116.010667-45.312z m-277.333333 372.010667l66.688 67.968-284.032 282.666667-89.344 30.677333-6.656-6.698667c9.813333-29.397333 22.357333-69.717333 29.354667-90.666666l283.989333-283.946667z" />
                 </svg>
@@ -82,23 +72,22 @@
             </div>
 
             <label class="inline-control">
-              <input type="checkbox" id="autoSnapToggle" />
+              <input type="checkbox" id="autoSnapToggle">
               <span>自动贴合底图颜色</span>
             </label>
 
             <label class="inline-control">
-              <input type="checkbox" id="showCodesToggle" />
+              <input type="checkbox" id="showCodesToggle">
               <span>显示色号</span>
             </label>
 
             <label class="inline-control zoom-control">
               <span>缩放</span>
-              <input type="range" id="zoomRange" min="4" max="80" step="1" value="10" />
+              <input type="range" id="zoomRange" min="4" max="80" step="1" value="10">
             </label>
           </div>
         </div>
 
-        <!-- 画布 -->
         <div id="canvasWrapper" class="canvas-wrapper">
           <div id="canvasStage" class="canvas-stage">
             <canvas id="baseCanvas"></canvas>
@@ -106,37 +95,31 @@
           </div>
         </div>
 
-        <!-- 全屏色卡 -->
         <div id="fullscreenPalette" class="fullscreen-palette" aria-hidden="true"></div>
 
-        <!-- 隐藏文件输入 -->
-        <input id="baseImageInput" type="file" accept="image/*" hidden />
-        <input id="referenceImageInput" type="file" accept="image/*" multiple hidden />
-        <input id="projectFileInput" type="file" accept=".pd,application/json" hidden />
+        <input id="baseImageInput" type="file" accept="image/*" hidden>
+        <input id="referenceImageInput" type="file" accept="image/*" multiple hidden>
+        <input id="projectFileInput" type="file" accept=".pd,application/json" hidden>
       </section>
 
-      <!-- 右侧控制区 -->
-      <aside class="side-pane">
-        <!-- 新建画布 -->
+      <aside class="side-pane" aria-label="控制面板">
         <section class="panel">
           <h2>新建画布</h2>
           <div class="form-row">
             <label for="widthInput">宽度 (像素)</label>
-            <input id="widthInput" type="number" min="1" max="256" value="32" />
+            <input id="widthInput" type="number" min="1" max="256" value="32">
           </div>
           <div class="form-row">
             <label for="heightInput">高度 (像素)</label>
-            <input id="heightInput" type="number" min="1" max="256" value="32" />
+            <input id="heightInput" type="number" min="1" max="256" value="32">
           </div>
           <button id="createCanvasBtn" type="button">新建画布</button>
           <div class="form-row">
-            <label for="canvasOpacityRange">画布背景透明度
-              <span id="canvasOpacityValue">90%</span></label>
-            <input id="canvasOpacityRange" type="range" min="0" max="100" step="5" value="90" />
+            <label for="canvasOpacityRange">画布背景透明度 <span id="canvasOpacityValue">90%</span></label>
+            <input id="canvasOpacityRange" type="range" min="0" max="100" step="5" value="90">
           </div>
         </section>
 
-        <!-- 色卡管理 -->
         <section class="panel">
           <h2>色卡</h2>
           <div class="form-row">
@@ -150,22 +133,19 @@
             <button id="loadDefaultPaletteBtn" type="button">加载内置 DMC</button>
             <button id="importPaletteBtn" type="button">导入色卡 JSON</button>
             <button id="deletePaletteBtn" type="button">删除当前色卡</button>
-            <input id="paletteFileInput" type="file" accept="application/json" hidden />
+            <input id="paletteFileInput" type="file" accept="application/json" hidden>
           </div>
 
           <div class="form-row">
             <label for="paletteFilter">筛选色号/颜色</label>
-            <input id="paletteFilter" type="search" placeholder="输入色号或关键字" />
+            <input id="paletteFilter" type="search" placeholder="输入色号或关键字">
           </div>
 
-          <div class="current-color" id="currentColorInfo">
-            当前色号：<span class="code">无</span>
-          </div>
+          <div class="current-color" id="currentColorInfo">当前色号：<span class="code">无</span></div>
 
           <div id="paletteContainer" class="palette-grid"></div>
         </section>
 
-        <!-- 底图设置 -->
         <section class="panel">
           <h2>底图设置</h2>
           <div class="form-row">
@@ -184,13 +164,11 @@
           </div>
 
           <div class="form-row base-scale-row">
-            <label for="baseScaleRange">底图缩放
-              <span id="baseScaleValue">100%</span></label>
-            <input id="baseScaleRange" type="range" min="0.1" max="8" step="0.01" value="1" disabled />
+            <label for="baseScaleRange">底图缩放 <span id="baseScaleValue">100%</span></label>
+            <input id="baseScaleRange" type="range" min="0.1" max="8" step="0.01" value="1" disabled>
           </div>
         </section>
 
-        <!-- 状态显示 -->
         <section class="panel">
           <h2>状态</h2>
           <ul class="status-list">
@@ -203,7 +181,6 @@
     </main>
   </div>
 
-  <!-- 参考图窗口 -->
   <div id="referenceWindow" class="reference-window" aria-hidden="true">
     <div id="referenceHeader" class="reference-header">
       <span class="reference-title">参考图</span>
@@ -219,38 +196,31 @@
     <div id="referenceResizer" class="reference-resizer" aria-hidden="true"></div>
   </div>
 
-  <!-- 说明书窗口 -->
   <div id="docsWindow" class="docs-window" aria-hidden="true" tabindex="-1">
     <div class="docs-header">
       <span class="docs-title">说明书</span>
       <button id="docsCloseBtn" type="button" aria-label="关闭说明书">✕</button>
     </div>
     <div class="docs-body">
-      <!-- 保留你原有说明书内容 -->
       <h1>拼豆像素画工具说明书</h1>
-
       <h2>🧑‍🎨 作者信息</h2>
       <p>由 <strong>闷香红烧鱼</strong> 制作。</p>
       <ul>
-        <li>Bilibili：<a href="https://space.bilibili.com/609170202" target="_blank">闷香红烧鱼</a></li>
-        <li>小红书：<a href="https://www.xiaohongshu.com/user/profile/65f420e30000000005008498" target="_blank">闷香红烧鱼</a>
-        </li>
+        <li>Bilibili：<a href="https://space.bilibili.com/609170202" target="_blank" rel="noopener">闷香红烧鱼</a></li>
+        <li>小红书：<a href="https://www.xiaohongshu.com/user/profile/65f420e30000000005008498" target="_blank"
+            rel="noopener">闷香红烧鱼</a></li>
       </ul>
       <p>本网页完全免费使用，希望能方便大家进行拼豆手工草图创作( •̀ ω •́ )✧</p>
       <p>可以收藏下来方便以后使用！</p>
-      <p>目前适用于电脑端，移动端会在未来做响应式<br />`(*>﹏<*)′ </p>
-
+      <p>目前适用于电脑端，移动端会在未来做响应式<br>`(*>﹏<*)′< /p>
           <hr>
-
           <h2>🪄 基础使用</h2>
           <ol>
             <li>创建画布。</li>
             <li>从色卡中选择颜色进行上色。</li>
             <li>完成后导出图片即可保存作品。</li>
           </ol>
-
           <hr>
-
           <h2>🖼 画布操作</h2>
           <ul>
             <li><strong>左键</strong>：绘制像素(铅笔和油漆桶操作相同)。</li>
@@ -259,24 +229,18 @@
             <li><strong>长按滚轮</strong>：拖动画布。</li>
             <li><strong>双击滚轮</strong>：重置画布视图。</li>
           </ul>
-
           <hr>
-
           <h2>🖱️ 吸管模式说明</h2>
           <ul>
             <li>在吸管工具模式下，<strong>左键点击</strong> 可从画布中选取像素颜色，用于当前绘图颜色。</li>
           </ul>
-
           <hr>
-
           <h2>🧩 底图与模板</h2>
           <ul>
             <li><strong>底图</strong>：会显示在画布底下，用于参考描绘。</li>
             <li><strong>模板图</strong>：会显示在独立的参考窗口中，可自由拖动和缩放。</li>
           </ul>
-
           <hr>
-
           <h2>🔧 底图操作</h2>
           <ol>
             <li>点击「<strong>编辑底图</strong>」按钮进入底图编辑模式。</li>
@@ -287,15 +251,12 @@
               </ul>
             </li>
           </ol>
-
           <hr>
-
           <h2>📁 导入与导出</h2>
           <ul>
             <li><strong>导出格式：</strong>
               <ul>
-                <li>图片：支持 <strong>PNG</strong>、<strong>JPEG (JPG)</strong>、<strong>PDF</strong>
-                </li>
+                <li>图片：支持 <strong>PNG</strong>、<strong>JPEG (JPG)</strong>、<strong>PDF</strong></li>
                 <li>工程文件：<strong>.pd</strong> 格式，可在浏览器中导入继续编辑或分享。</li>
               </ul>
             </li>
@@ -309,33 +270,26 @@
             </li>
             <li><strong>导入格式：</strong>
               <ul>
-                <li>支持导入 <code>.pd</code> </li>
+                <li>支持导入 <code>.pd</code></li>
               </ul>
             </li>
           </ul>
-
           <hr>
-
           <h2>🎨 色卡</h2>
           <ul>
             <li>内置了常用的拼豆色卡。</li>
             <li>也可以手动导入自定义色卡 JSON 文件，格式如下：</li>
           </ul>
-
-          <pre>
-文件名：色卡名.json
+          <pre>文件名：色卡名.json
 文件内容：
 {
   "A1": "RGB(2, 5, 7)",
   "A2": "RGB(10, 20, 255)",
   "颜色编号": "RGB(R, G, B)",
   ...
-}
-  </pre>
+}</pre>
           <p>键为颜色编号，值为 RGB 颜色值。</p>
-
           <hr>
-
           <h2>⌨️ 快捷键一览</h2>
           <ul>
             <li><strong>1</strong>：切换为铅笔工具</li>
@@ -348,19 +302,16 @@
             <li><strong>Z</strong>：撤回操作</li>
             <li><strong>X</strong>：回退操作</li>
           </ul>
-
           <hr>
-
           <h2>🪲 Bug 与反馈</h2>
           <p>如遇问题或功能建议，可在以下平台私信反馈：</p>
           <ul>
-            <li>Bilibili：<a href="https://space.bilibili.com/609170202" target="_blank">闷香红烧鱼</a></li>
-            <li>小红书：<a href="https://www.xiaohongshu.com/user/profile/65f420e30000000005008498"
-                target="_blank">闷香红烧鱼</a></li>
+            <li>Bilibili：<a href="https://space.bilibili.com/609170202" target="_blank" rel="noopener">闷香红烧鱼</a></li>
+            <li>小红书：<a href="https://www.xiaohongshu.com/user/profile/65f420e30000000005008498" target="_blank"
+                rel="noopener">闷香红烧鱼</a></li>
           </ul>
           <p>若出现严重 Bug，将及时修复并更新版本。</p>
     </div>
-
   </div>
 
   <div id="updateWindow" class="update-window" aria-hidden="true" tabindex="-1">
@@ -370,32 +321,38 @@
     </div>
     <div class="update-body">
       <h1>更新说明</h1>
+      <h2>🚀 更新日志 v1.3</h2>
+      <h3>⚙️ 优化性能</h3>
+      <ul>
+        <li>对整体代码进行了结构性优化与压缩，减少约 <strong>30%</strong> 的体积</li>
+        <li>提升运行效率，使网页在加载与操作时更加流畅稳定</li>
+      </ul>
+      <hr />
+      <hr />
       <h2>🚀 更新日志 v1.2</h2>
       <h3>📁 图片导出全面升级！</h3>
       <ul>
-        <li>导出格式新增支持：<strong>PNG</strong>、<strong>JPEG
-            (JPG)</strong>、<strong>PDF</strong>、<strong>.pd 工程文件</strong></li>
+        <li>导出格式新增支持：<strong>PNG</strong>、<strong>JPEG (JPG)</strong>、<strong>PDF</strong>、<strong>.pd 工程文件</strong>
+        </li>
         <li>导出图像可 <strong>自定义背景颜色</strong></li>
         <li>支持 <strong>自定义导出文件名</strong></li>
         <li>增加 <strong>导出预览功能</strong>：可在导出前先预览效果，再决定是否下载</li>
         <li>优化整体导出逻辑与使用体验</li>
       </ul>
-      <hr />
+      <hr>
       <h3>🎨 色卡栏优化</h3>
       <ul>
         <li>调整了色卡栏的布局与样式</li>
         <li>显示更加清晰、更加美观</li>
       </ul>
-      <hr />
-
+      <hr>
       <h3>🖱️ 新增吸管工具</h3>
       <ul>
         <li>新增「吸管」工具，可从画布上吸取颜色</li>
         <li>吸取的颜色会自动设置为当前绘图颜色</li>
         <li>可搭配快捷键高效使用</li>
       </ul>
-      <hr />
-
+      <hr>
       <h3>⌨️ 快捷键支持上线！</h3>
       <p>新增快捷键支持，操作更快速：</p>
       <ul>
@@ -410,7 +367,6 @@
         <li><strong>X</strong>：回退操作</li>
       </ul>
     </div>
-
   </div>
 
   <div id="exportWindow" class="export-window" aria-hidden="true" tabindex="-1">
@@ -437,45 +393,27 @@
         <div class="export-setting-group">
           <h3>导出选项</h3>
           <div class="radio-group">
-            <label class="radio-label">
-              <input type="radio" name="exportFormat" value="image/png" checked>
-              <span>PNG 格式</span>
-            </label>
-            <label class="radio-label">
-              <input type="radio" name="exportFormat" value="image/jpeg">
-              <span>JPEG 格式</span>
-            </label>
-            <label class="radio-label">
-              <input type="radio" name="exportFormat" value="application/pdf">
-              <span>PDF 格式</span>
-            </label>
-            <label class="radio-label">
-              <input type="radio" name="exportFormat" value="application/pd">
-              <span>PD 工程文件</span>
-            </label>
+            <label class="radio-label"><input type="radio" name="exportFormat" value="image/png" checked><span>PNG
+                格式</span></label>
+            <label class="radio-label"><input type="radio" name="exportFormat" value="image/jpeg"><span>JPEG
+                格式</span></label>
+            <label class="radio-label"><input type="radio" name="exportFormat" value="application/pdf"><span>PDF
+                格式</span></label>
+            <label class="radio-label"><input type="radio" name="exportFormat" value="application/pd"><span>PD
+                工程文件</span></label>
           </div>
         </div>
         <div class="export-setting-group">
           <h3>显示选项</h3>
           <div class="radio-group">
-            <label class="radio-label">
-              <input type="radio" name="includeCodes" value="true">
-              <span>包含色号</span>
-            </label>
-            <label class="radio-label">
-              <input type="radio" name="includeCodes" value="false" checked>
-              <span>不包含色号</span>
-            </label>
+            <label class="radio-label"><input type="radio" name="includeCodes" value="true"><span>包含色号</span></label>
+            <label class="radio-label"><input type="radio" name="includeCodes" value="false"
+                checked><span>不包含色号</span></label>
           </div>
           <div class="radio-group">
-            <label class="radio-label">
-              <input type="radio" name="includeAxes" value="true">
-              <span>包含坐标系</span>
-            </label>
-            <label class="radio-label">
-              <input type="radio" name="includeAxes" value="false" checked>
-              <span>不包含坐标系</span>
-            </label>
+            <label class="radio-label"><input type="radio" name="includeAxes" value="true"><span>包含坐标系</span></label>
+            <label class="radio-label"><input type="radio" name="includeAxes" value="false"
+                checked><span>不包含坐标系</span></label>
           </div>
         </div>
         <div class="export-setting-group">
@@ -485,19 +423,14 @@
             <input type="color" id="exportBackgroundColor" value="#ffffff">
           </div>
           <div class="radio-group">
-            <label class="radio-label">
-              <input type="radio" name="backgroundType" value="solid" checked>
-              <span>纯色背景</span>
-            </label>
-            <label class="radio-label">
-              <input type="radio" name="backgroundType" value="transparent">
-              <span>透明背景</span>
-            </label>
+            <label class="radio-label"><input type="radio" name="backgroundType" value="solid"
+                checked><span>纯色背景</span></label>
+            <label class="radio-label"><input type="radio" name="backgroundType"
+                value="transparent"><span>透明背景</span></label>
           </div>
         </div>
       </div>
     </div>
-
     <div class="export-footer">
       <button id="exportCancelBtn" type="button" class="secondary">取消</button>
       <button id="exportConfirmBtn" type="button" class="primary">确认导出</button>
@@ -505,7 +438,7 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script type="module" src="/pindou-draw/js/app.js"></script>
+  <script type="module" src="js/app.js"></script>
 </body>
 
 </html>
