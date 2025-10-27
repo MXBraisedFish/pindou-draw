@@ -50,5 +50,11 @@ export const state = {
     backgroundType: 'solid',
     backgroundColor: '#ffffff',
     filename: ''
+  },
+  selection: {
+    active: false,
+    mask: null,
+    bounds: null,
+    preview: null
   }
 };

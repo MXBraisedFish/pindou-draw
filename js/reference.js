@@ -1,6 +1,19 @@
 import { elements } from './elements.js';
 import { state } from './state.js';
 
+let fitBaseImageToCanvas, updateStatusBase, syncBaseControlsAvailability, applyBaseLayerPosition, updateBaseImageDisplay;
+
+try {
+  const baseImageModule = await import('./base-image.js');
+  fitBaseImageToCanvas = baseImageModule.fitBaseImageToCanvas;
+  updateStatusBase = baseImageModule.updateStatusBase;
+  syncBaseControlsAvailability = baseImageModule.syncBaseControlsAvailability;
+  applyBaseLayerPosition = baseImageModule.applyBaseLayerPosition;
+  updateBaseImageDisplay = baseImageModule.updateBaseImageDisplay;
+} catch (error) {
+  console.warn('底图模块导入失败，将使用备用方案:', error);
+}
+
 const MIN_WIDTH = 240, MIN_HEIGHT = 200, EDGE_MARGIN = 16, MINIMIZED_SIZE = 88;
 const ICONS = { ADD: '+', MINIMIZE: '-', RESTORE: '⁙', CLOSE: 'x' };
 
@@ -121,12 +134,29 @@ function renderReferenceImages() {
     image.loading = 'lazy';
     item.appendChild(image);
 
+    // 添加按钮容器
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.display = 'flex';
+    buttonContainer.style.gap = '0.5rem';
+    buttonContainer.style.marginTop = '0.5rem';
+
+    // 添加"作为底图"按钮
+    const setAsBaseBtn = document.createElement('button');
+    setAsBaseBtn.type = 'button';
+    setAsBaseBtn.textContent = '作为底图';
+    setAsBaseBtn.style.flex = '1';
+    setAsBaseBtn.addEventListener('click', () => setReferenceAsBaseImage(entry));
+
+    // 删除按钮
     const deleteBtn = document.createElement('button');
     deleteBtn.type = 'button';
-    deleteBtn.className = 'reference-delete';
     deleteBtn.textContent = '删除';
+    deleteBtn.style.flex = '1';
     deleteBtn.addEventListener('click', () => handleDeleteReference(entry.id));
-    item.appendChild(deleteBtn);
+
+    buttonContainer.appendChild(setAsBaseBtn);
+    buttonContainer.appendChild(deleteBtn);
+    item.appendChild(buttonContainer);
 
     fragment.appendChild(item);
   });
@@ -331,6 +361,69 @@ function measureImage(src) {
     img.onerror = () => resolve(null);
     img.src = src;
   });
+}
+
+// 在 reference.js 中添加以下函数
+function setReferenceAsBaseImage(entry) {
+
+  if (state.baseImage) {
+    if (!window.confirm('当前已有底图，是否替换？')) return;
+  }
+
+  const img = new Image();
+
+  img.onload = function () {
+    console.log('图片加载成功，尺寸:', img.width, 'x', img.height);
+
+    state.baseImage = img;
+    state.baseImageName = entry.name;
+    state.baseEditing = false;
+
+    console.log('state.baseImage 已设置:', !!state.baseImage);
+
+    // 检查必要的函数是否存在
+    const functions = {
+      'fitBaseImageToCanvas': typeof fitBaseImageToCanvas,
+      'updateStatusBase': typeof updateStatusBase,
+      'syncBaseControlsAvailability': typeof syncBaseControlsAvailability,
+      'applyBaseLayerPosition': typeof applyBaseLayerPosition,
+      'updateBaseImageDisplay': typeof updateBaseImageDisplay
+    };
+
+    // 调用底图相关的更新函数
+    try {
+      if (typeof fitBaseImageToCanvas === 'function') {
+        fitBaseImageToCanvas();
+      }
+      if (typeof updateStatusBase === 'function') {
+        updateStatusBase();
+      }
+      if (typeof syncBaseControlsAvailability === 'function') {
+        syncBaseControlsAvailability();
+      }
+      if (typeof applyBaseLayerPosition === 'function') {
+        applyBaseLayerPosition();
+      }
+      if (typeof updateBaseImageDisplay === 'function') {
+        updateBaseImageDisplay();
+      }
+    } catch (error) {
+      console.error('调用底图函数时出错:', error);
+    }
+
+    // 触发全屏状态更新
+    setTimeout(() => document.dispatchEvent(new CustomEvent('updateFullscreenOverlay')), 0);
+
+    // 可选：关闭参考图窗口
+    setReferenceWindowVisible(false);
+  };
+
+  img.onerror = function () {
+    console.error('图片加载失败:', entry.src);
+    window.alert('图片加载失败，请检查图片格式');
+  };
+
+  img.src = entry.src;
 }
 
 function clamp(value, min, max) { return Math.min(Math.max(value, min), max); }

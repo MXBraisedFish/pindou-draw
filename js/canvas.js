@@ -5,8 +5,14 @@ import { state } from './state.js';
 import { cellsEqual, clampAlpha, clampCellSize, computeAxisPadding, pickTextColor } from './utils.js';
 import { applyBaseScale, fitBaseImageToCanvas, getNearestColorFromBase, updateBaseImageDisplay, updateCanvasCursorState } from './base-image.js';
 import { updatePaletteSelection, updateCurrentColorInfo } from './palette.js';
+import { renderSelectionLayers } from './selection-layer.js';
+import { resetSelection, isCellSelected, addSelectionRect, subtractSelectionRect, invertSelection, clearSelection, shiftSelectionMask, cloneSelectionState, restoreSelectionState } from './selection.js';
 
 const MAX_HISTORY_SIZE = 50;
+
+function isCellEditable(x, y) {
+  return !state.selection.active || isCellSelected(x, y);
+}
 
 export function validateCanvasSize(width, height) {
   return Number.isFinite(width) && Number.isFinite(height) && width >= 1 && height >= 1 && width <= 2048 && height <= 2048;
@@ -31,16 +37,20 @@ export function createCanvas(width, height) {
   updateStatusSize();
   updateBaseImageDisplay();
 
+  resetSelection({ suppressRender: true });
+  renderSelectionLayers();
+
   state.history = [];
   state.historyIndex = -1;
   saveHistory();
 }
 
-function saveHistory() {
-  const currentState = JSON.stringify(state.grid);
-  const lastState = state.history.length > 0 ? JSON.stringify(state.history[state.historyIndex]) : null;
+export function saveHistory() {
+  const selectionSnapshot = cloneSelectionState();
+  const currentHash = computeHistoryHash(selectionSnapshot);
 
-  if (currentState === lastState) return;
+  const lastEntry = state.history.length > 0 ? state.history[state.historyIndex] : null;
+  if (lastEntry && lastEntry.hash === currentHash) return;
 
   if (state.historyIndex < state.history.length - 1) {
     state.history = state.history.slice(0, state.historyIndex + 1);
@@ -52,15 +62,18 @@ function saveHistory() {
   }
 
   const gridCopy = state.grid.map(row => [...row]);
-  state.history.push(gridCopy);
+  state.history.push({
+    grid: gridCopy,
+    selection: selectionSnapshot,
+    hash: currentHash
+  });
   state.historyIndex = state.history.length - 1;
 }
 
 export function redo() {
   if (state.historyIndex < state.history.length - 1) {
     state.historyIndex++;
-    state.grid = state.history[state.historyIndex].map(row => [...row]);
-    redrawCanvas();
+    applyHistoryEntry(state.history[state.historyIndex]);
     return true;
   }
   return false;
@@ -69,11 +82,37 @@ export function redo() {
 export function undo() {
   if (state.historyIndex > 0) {
     state.historyIndex--;
-    state.grid = state.history[state.historyIndex].map(row => [...row]);
-    redrawCanvas();
+    applyHistoryEntry(state.history[state.historyIndex]);
     return true;
   }
   return false;
+}
+
+function computeHistoryHash(selectionSnapshot) {
+  return JSON.stringify({
+    grid: serializeGrid(state.grid),
+    selection: selectionSnapshot
+  });
+}
+
+function serializeGrid(grid) {
+  return grid.map(row => row.map(cell => {
+    if (!cell) return null;
+    return [cell.code ?? null, cell.color ?? null];
+  }));
+}
+
+function applyHistoryEntry(entry) {
+  if (Array.isArray(entry)) {
+    state.grid = entry.map(row => [...row]);
+    restoreSelectionState(null, { suppressRender: true });
+  } else {
+    state.grid = entry.grid.map(row => [...row]);
+    restoreSelectionState(entry.selection, { suppressRender: true });
+  }
+
+  redrawCanvas();
+  renderSelectionLayers();
 }
 
 export function setCellSize(size) {
@@ -85,7 +124,7 @@ export function setCellSize(size) {
   resizeCanvas();
 }
 
-function resizeCanvas() {
+export function resizeCanvas() {
   if (!state.width || !state.height) return;
 
   state.axisPadding = computeAxisPadding(state.cellSize, state.width, state.height);
@@ -104,12 +143,29 @@ function resizeCanvas() {
 
   elements.stage && (elements.stage.style.width = `${pixelWidth}px`, elements.stage.style.height = `${pixelHeight}px`);
 
+  const layeredCanvases = [
+    elements.baseCanvas,
+    elements.canvas,
+    elements.selectionMaskCanvas,
+    elements.selectionContentCanvas,
+    elements.selectionOutlineCanvas
+  ].filter(Boolean);
+
+  layeredCanvases.forEach(canvas => {
+    canvas.width = pixelWidth;
+    canvas.height = pixelHeight;
+    canvas.style.width = `${pixelWidth}px`;
+    canvas.style.height = `${pixelHeight}px`;
+  });
+
+  renderSelectionLayers();
+
   updateStageTransform();
   updateBaseImageDisplay();
   redrawCanvas();
 }
 
-function updateStageTransform() {
+export function updateStageTransform() {
   elements.stage && (elements.stage.style.transform = `translate(${state.panX}px, ${state.panY}px)`);
 }
 
@@ -292,6 +348,94 @@ function isMiddleDoubleClick(timeStamp) {
   return false;
 }
 
+const selectionPointerState = {
+  mode: 'idle', // add | subtract | move | idle
+  pointerId: null,
+  startX: 0,
+  startY: 0,
+  currentX: 0,
+  currentY: 0,
+  offsetX: 0,
+  offsetY: 0
+};
+
+const selectionDoubleClickTime = {
+  left: 0,
+  right: 0
+};
+
+function getCanvasCoordinates(ev) {
+  if (!elements.canvas) return null;
+
+  const rect = elements.canvas.getBoundingClientRect();
+  const scaleX = elements.canvas.width / rect.width;
+  const scaleY = elements.canvas.height / rect.height;
+  const localX = (ev.clientX - rect.left) * scaleX - state.axisPadding.left;
+  const localY = (ev.clientY - rect.top) * scaleY - state.axisPadding.top;
+  const cellX = Math.floor(localX / state.cellSize);
+  const cellY = Math.floor(localY / state.cellSize);
+
+  if (!Number.isInteger(cellX) || !Number.isInteger(cellY) ||
+    cellX < 0 || cellY < 0 || cellX >= state.width || cellY >= state.height) {
+    return null;
+  }
+
+  return { cellX, cellY };
+}
+
+function updateSelectionPreview() {
+  let preview = null;
+
+  if (selectionPointerState.mode === 'add' || selectionPointerState.mode === 'subtract') {
+    const { startX, startY, currentX, currentY } = selectionPointerState;
+    preview = {
+      type: selectionPointerState.mode,
+      rect: {
+        x1: startX,
+        y1: startY,
+        x2: currentX,
+        y2: currentY
+      }
+    };
+  } else if (selectionPointerState.mode === 'move') {
+    preview = {
+      type: 'move',
+      offsetX: selectionPointerState.offsetX,
+      offsetY: selectionPointerState.offsetY
+    };
+  }
+
+  state.selection.preview = preview;
+  renderSelectionLayers();
+}
+
+function refreshSelectionOverlay() {
+  if (state.selection?.active) {
+    renderSelectionLayers();
+  }
+}
+
+function resetSelectionPointerState() {
+  selectionPointerState.mode = 'idle';
+  selectionPointerState.pointerId = null;
+  selectionPointerState.offsetX = 0;
+  selectionPointerState.offsetY = 0;
+  selectionPointerState.startX = selectionPointerState.startY = 0;
+  selectionPointerState.currentX = selectionPointerState.currentY = 0;
+  state.selection.preview = null;
+  renderSelectionLayers();
+}
+
+function isSelectionDoubleClick(button, timeStamp) {
+  const last = selectionDoubleClickTime[button] || 0;
+  if (timeStamp - last > 0 && timeStamp - last <= DOUBLE_CLICK_MS) {
+    selectionDoubleClickTime[button] = 0;
+    return true;
+  }
+  selectionDoubleClickTime[button] = timeStamp;
+  return false;
+}
+
 export function prepareCanvasInteractions() {
   let pointerState = null;
   if (!elements.canvas) return;
@@ -300,6 +444,8 @@ export function prepareCanvasInteractions() {
 
   elements.canvas.addEventListener('pointerdown', (ev) => {
     if (!state.width || !state.height) return;
+
+    if (!state.baseEditing && state.currentTool === 'selection' && handleSelectionPointerDown(ev)) return;
 
     if (ev.button === 1 && ev.pointerType === 'mouse') {
       if (isMiddleDoubleClick(ev.timeStamp)) {
@@ -311,8 +457,12 @@ export function prepareCanvasInteractions() {
     if (state.baseEditing && state.baseImage && ev.button === 0) {
       ev.preventDefault();
       pointerState = {
-        type: 'baseMove', pointerId: ev.pointerId, startX: ev.clientX, startY: ev.clientY,
-        originOffsetX: state.baseOffsetX, originOffsetY: state.baseOffsetY
+        type: 'baseMove',
+        pointerId: ev.pointerId,
+        startX: ev.clientX,
+        startY: ev.clientY,
+        originOffsetX: state.baseOffsetX,
+        originOffsetY: state.baseOffsetY
       };
       elements.canvas.setPointerCapture(ev.pointerId);
       elements.canvas.classList.add('is-base-dragging');
@@ -322,15 +472,19 @@ export function prepareCanvasInteractions() {
     if (ev.button === 1) {
       ev.preventDefault();
       pointerState = {
-        type: 'pan', pointerId: ev.pointerId, startX: ev.clientX, startY: ev.clientY,
-        originPanX: state.panX, originPanY: state.panY
+        type: 'pan',
+        pointerId: ev.pointerId,
+        startX: ev.clientX,
+        startY: ev.clientY,
+        originPanX: state.panX,
+        originPanY: state.panY
       };
       elements.canvas.setPointerCapture(ev.pointerId);
       elements.canvas.classList.add('is-panning');
       return;
     }
 
-    if (state.baseEditing) return;
+    if (state.baseEditing || state.currentTool === 'selection') return;
     if (ev.button !== 0 && ev.button !== 2) return;
 
     pointerState = { type: 'paint', pointerId: ev.pointerId, button: ev.button };
@@ -339,10 +493,25 @@ export function prepareCanvasInteractions() {
   });
 
   elements.canvas.addEventListener('pointermove', (ev) => {
+    if (selectionPointerState.mode !== 'idle' && selectionPointerState.pointerId === ev.pointerId) {
+      const coords = getCanvasCoordinates(ev);
+      if (coords) {
+        selectionPointerState.currentX = coords.cellX;
+        selectionPointerState.currentY = coords.cellY;
+        if (selectionPointerState.mode === 'move') {
+          selectionPointerState.offsetX = coords.cellX - selectionPointerState.startX;
+          selectionPointerState.offsetY = coords.cellY - selectionPointerState.startY;
+        }
+        updateSelectionPreview();
+      }
+      return;
+    }
+
     if (!pointerState || pointerState.pointerId !== ev.pointerId) return;
 
     if (pointerState.type === 'pan') {
-      const dx = ev.clientX - pointerState.startX, dy = ev.clientY - pointerState.startY;
+      const dx = ev.clientX - pointerState.startX;
+      const dy = ev.clientY - pointerState.startY;
       state.panX = pointerState.originPanX + dx;
       state.panY = pointerState.originPanY + dy;
       updateStageTransform();
@@ -351,7 +520,8 @@ export function prepareCanvasInteractions() {
 
     if (pointerState.type === 'baseMove') {
       const rect = elements.canvas.getBoundingClientRect();
-      const scaleX = elements.canvas.width / rect.width, scaleY = elements.canvas.height / rect.height;
+      const scaleX = elements.canvas.width / rect.width;
+      const scaleY = elements.canvas.height / rect.height;
       const dxCells = ((ev.clientX - pointerState.startX) * scaleX) / state.cellSize;
       const dyCells = ((ev.clientY - pointerState.startY) * scaleY) / state.cellSize;
       state.baseOffsetX = pointerState.originOffsetX + dxCells;
@@ -360,21 +530,129 @@ export function prepareCanvasInteractions() {
       return;
     }
 
-    if (pointerState.type === 'paint') paintAtPointer(ev, pointerState.button);
+    if (pointerState.type === 'paint') {
+      paintAtPointer(ev, pointerState.button);
+    }
   });
 
   const releasePointer = (ev) => {
+    if (handleSelectionPointerRelease(ev)) return;
+
     if (!pointerState || pointerState.pointerId !== ev.pointerId) return;
 
     if (pointerState.type === 'pan') elements.canvas.classList.remove('is-panning');
     if (pointerState.type === 'baseMove') elements.canvas.classList.remove('is-base-dragging');
 
     pointerState = null;
-    try { elements.canvas.releasePointerCapture(ev.pointerId); } catch (error) { }
+    try { elements.canvas.releasePointerCapture(ev.pointerId); } catch (_) { }
   };
 
   elements.canvas.addEventListener('pointerup', releasePointer);
   elements.canvas.addEventListener('pointercancel', releasePointer);
+}
+
+function handleSelectionPointerDown(ev) {
+  const coords = getCanvasCoordinates(ev);
+
+  if (ev.button === 0) {
+    if (isSelectionDoubleClick('left', ev.timeStamp)) {
+      state.selection.preview = null;
+      invertSelection();
+      saveHistory();
+      return true;
+    }
+    if (!coords) return true;
+    ev.preventDefault();
+    selectionPointerState.mode = 'add';
+    selectionPointerState.pointerId = ev.pointerId;
+    selectionPointerState.startX = selectionPointerState.currentX = coords.cellX;
+    selectionPointerState.startY = selectionPointerState.currentY = coords.cellY;
+    elements.canvas.setPointerCapture(ev.pointerId);
+    updateSelectionPreview();
+    return true;
+  }
+
+  if (ev.button === 2) {
+    ev.preventDefault();
+    if (isSelectionDoubleClick('right', ev.timeStamp)) {
+      state.selection.preview = null;
+      clearSelection();
+      saveHistory();
+      return true;
+    }
+    if (!coords) return true;
+    selectionPointerState.mode = 'subtract';
+    selectionPointerState.pointerId = ev.pointerId;
+    selectionPointerState.startX = selectionPointerState.currentX = coords.cellX;
+    selectionPointerState.startY = selectionPointerState.currentY = coords.cellY;
+    elements.canvas.setPointerCapture(ev.pointerId);
+    updateSelectionPreview();
+    return true;
+  }
+
+  if (ev.button === 1 && state.selection.active) {
+    if (!coords) return true;
+    ev.preventDefault();
+    selectionPointerState.mode = 'move';
+    selectionPointerState.pointerId = ev.pointerId;
+    selectionPointerState.startX = selectionPointerState.currentX = coords.cellX;
+    selectionPointerState.startY = selectionPointerState.currentY = coords.cellY;
+    selectionPointerState.offsetX = 0;
+    selectionPointerState.offsetY = 0;
+    elements.canvas.setPointerCapture(ev.pointerId);
+    updateSelectionPreview();
+    return true;
+  }
+
+  return false;
+}
+
+function handleSelectionPointerRelease(ev) {
+  if (selectionPointerState.mode === 'idle' || selectionPointerState.pointerId !== ev.pointerId) return false;
+
+  if (selectionPointerState.mode === 'add') {
+    const { startX, startY, currentX, currentY } = selectionPointerState;
+    addSelectionRect(startX, startY, currentX, currentY);
+    saveHistory();
+  } else if (selectionPointerState.mode === 'subtract') {
+    const { startX, startY, currentX, currentY } = selectionPointerState;
+    subtractSelectionRect(startX, startY, currentX, currentY);
+    saveHistory();
+  } else if (selectionPointerState.mode === 'move') {
+    const { offsetX, offsetY } = selectionPointerState;
+    if (offsetX || offsetY) commitSelectionMove(offsetX, offsetY);
+  }
+
+  try { elements.canvas.releasePointerCapture(ev.pointerId); } catch (_) { }
+  resetSelectionPointerState();
+  return true;
+}
+
+function commitSelectionMove(offsetX, offsetY) {
+  if (!state.selection?.mask) return;
+  const mask = state.selection.mask;
+  const movedCells = [];
+
+  for (let y = 0; y < state.height; y++) {
+    for (let x = 0; x < state.width; x++) {
+      if (!mask[y]?.[x]) continue;
+      movedCells.push({ x, y, cell: state.grid[y][x] });
+      state.grid[y][x] = null;
+    }
+  }
+
+  movedCells.forEach(({ x, y, cell }) => {
+    if (!cell) return;
+    const targetX = x + offsetX;
+    const targetY = y + offsetY;
+    if (targetX < 0 || targetX >= state.width || targetY < 0 || targetY >= state.height) return;
+    state.grid[targetY][targetX] = cell;
+  });
+
+  shiftSelectionMask(offsetX, offsetY);
+  redrawCanvas();
+  refreshSelectionOverlay();
+  saveHistory();
 }
 
 export function handleWheelEvent(ev) {
@@ -411,6 +689,8 @@ function paintAtPointer(ev, button) {
 
   if (!Number.isInteger(x) || !Number.isInteger(y) || x < 0 || y < 0 || x >= state.width || y >= state.height) return;
 
+  if (!isCellEditable(x, y)) return;
+
   if (state.currentTool === 'eyedropper' && button === 0) {
     const cell = state.grid[y][x];
     if (cell?.code) {
@@ -423,6 +703,7 @@ function paintAtPointer(ev, button) {
   }
 
   if (state.currentTool === 'bucket') {
+    if (!isCellEditable(x, y)) return;
     if (button === 0) {
       const colorEntry = resolvePaintColor(x, y);
       colorEntry && bucketFill(x, y, colorEntry);
@@ -435,12 +716,18 @@ function paintAtPointer(ev, button) {
   }
 
   if (button === 2) {
+    if (!isCellEditable(x, y)) return;
     if (state.grid[y][x]) {
-      saveHistory();
       state.grid[y][x] = null;
       redrawCanvas();
+      refreshSelectionOverlay();
+      saveHistory();
     }
     return;
+  }
+
+  function isCellEditable(x, y) {
+    return !state.selection.active || isCellSelected(x, y);
   }
 
   const colorEntry = resolvePaintColor(x, y);
@@ -448,24 +735,27 @@ function paintAtPointer(ev, button) {
 
   const cell = state.grid[y][x];
   if (!cell || cell.code !== colorEntry.code) {
-    saveHistory();
     state.grid[y][x] = colorEntry;
     redrawCanvas();
+    refreshSelectionOverlay();
+    saveHistory();
   }
 }
 
 function bucketFill(x, y, newCell) {
+  if (!isCellEditable(x, y)) return;
+
   const targetCell = state.grid[y][x];
   if (cellsEqual(targetCell, newCell)) return;
 
-  saveHistory();
-
+  const enforceSelection = state.selection.active;
   const queue = [[x, y]];
   const visited = new Set([`${x},${y}`]);
 
   while (queue.length) {
     const [cx, cy] = queue.shift();
     if (cx < 0 || cy < 0 || cx >= state.width || cy >= state.height) continue;
+    if (enforceSelection && !isCellSelected(cx, cy)) continue;
     if (!cellsEqual(state.grid[cy][cx], targetCell)) continue;
 
     state.grid[cy][cx] = newCell;
@@ -473,6 +763,7 @@ function bucketFill(x, y, newCell) {
     const neighbors = [[cx + 1, cy], [cx - 1, cy], [cx, cy + 1], [cx, cy - 1]];
     neighbors.forEach(([nx, ny]) => {
       if (nx < 0 || ny < 0 || nx >= state.width || ny >= state.height) return;
+      if (enforceSelection && !isCellSelected(nx, ny)) return;
       const key = `${nx},${ny}`;
       if (visited.has(key)) return;
       if (!cellsEqual(state.grid[ny][nx], targetCell)) return;
@@ -482,6 +773,8 @@ function bucketFill(x, y, newCell) {
   }
 
   redrawCanvas();
+  refreshSelectionOverlay();
+  saveHistory();
 }
 
 function resolvePaintColor(x, y) {
@@ -525,7 +818,8 @@ export function updateToolButtons() {
   const mapping = {
     pencil: elements.toolPencilBtn,
     bucket: elements.toolBucketBtn,
-    eyedropper: elements.toolEyedropperBtn
+    eyedropper: elements.toolEyedropperBtn,
+    selection: elements.toolSelectionBtn
   };
 
   Object.entries(mapping).forEach(([key, btn]) => {

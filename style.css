@@ -54,7 +54,7 @@ button {
   box-shadow: 0 2px 8px rgba(31, 31, 45, 0.08)
 }
 
-button:hover:not(:disabled) {
+button:hover:not(:disabled):not(.dropdown-item) {
   border-color: var(--accent);
   box-shadow: 0 4px 15px rgba(54, 82, 245, 0.2);
   transform: translateY(-1px)
@@ -1335,4 +1335,163 @@ body.canvas-fullscreen .canvas-wrapper {
   font-family: "PixelFont", "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
   backdrop-filter: blur(4px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3)
+}
+
+.reference-item button {
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.reference-item button:hover {
+  border-color: var(--accent);
+  background: rgba(54, 82, 245, 0.1);
+}
+
+/* 图像操作下拉菜单样式 */
+.image-operations-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 0.6rem;
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(31, 31, 45, 0.08);
+}
+
+.dropdown-toggle:hover {
+  border-color: var(--accent);
+  box-shadow: 0 4px 15px rgba(54, 82, 245, 0.15);
+  transform: translateY(-1px);
+}
+
+.dropdown-toggle[aria-expanded="true"] {
+  border-color: var(--accent);
+  background: rgba(54, 82, 245, 0.08);
+  color: var(--accent);
+}
+
+.dropdown-icon {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  transition: transform 0.3s ease;
+}
+
+.dropdown-toggle[aria-expanded="true"] .dropdown-icon {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 0.4rem;
+  min-width: 160px;
+  padding: 0.5rem;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow);
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  gap: 0.75rem;
+}
+
+.dropdown-menu[aria-hidden="false"] {
+  opacity: 1;
+  visibility: visible;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+.dropdown-item:hover {
+  background: rgba(54, 82, 245, 0.1);
+  color: var(--accent);
+}
+
+.menu-icon {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  flex-shrink: 0;
+}
+
+/* 全屏模式适配 */
+body.canvas-fullscreen .image-operations-dropdown {
+  z-index: 100;
+}
+
+body.canvas-fullscreen .dropdown-menu {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(54, 82, 245, 0.2);
+  box-shadow: 0 0.8rem 2.4rem rgba(31, 31, 45, 0.2);
+}
+
+/* 为全屏模式下的画布工具栏提供更高的z-index */
+body.canvas-fullscreen .canvas-toolbar {
+  z-index: 99;
+  position: relative;
+}
+
+#baseCanvas {
+  z-index: 0;
+}
+
+#drawingCanvas {
+  z-index: 1;
+}
+
+#selectionMaskCanvas,
+#selectionContentCanvas,
+#selectionOutlineCanvas {
+  pointer-events: none;
+  image-rendering: pixelated;
+  border-radius: 0.5rem;
+}
+
+#selectionMaskCanvas {
+  z-index: 2;
+  opacity: 0.45;
+  background: transparent;
+}
+
+#selectionContentCanvas {
+  z-index: 3;
+}
+
+#selectionOutlineCanvas {
+  z-index: 4;
 }
