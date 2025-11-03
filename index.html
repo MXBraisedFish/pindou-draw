@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-Hans">
 
 <head>
@@ -6,8 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="拼豆像素画工具 - 由闷香红烧鱼制作的免费拼豆手工草图创作工具">
   <title>拼豆像素画工具 - 免费在线拼豆草图制作</title>
-  <link rel="stylesheet" href="/pindou-draw/style.css">
-  <link rel="icon" type="image/png" sizes="16x16" href="/pindou-draw/icon/web_icon.png">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" sizes="16x16" href="icon/web_icon.png">
 </head>
 
 <body>
@@ -17,208 +17,139 @@
         <h1>拼豆像素画工具</h1>
         <p>由"闷香红烧鱼"制作，详细使用可看右侧说明书</p>
       </div>
-
-      <div class="header-right">
-        <button id="updateManualBtn" class="icon-btn" type="button" aria-label="更新手册" title="更新手册">
-          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <div class="header-right"><button id="updateManualBtn" class="icon-btn" type="button" aria-label="更新手册"
+          title="更新手册"><svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path
               d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          更新
-        </button>
-        <button id="docsToggleBtn" class="icon-btn" type="button" aria-pressed="false" aria-label="打开说明书" title="说明书">
-          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          </svg>更新</button><button id="docsToggleBtn" class="icon-btn" type="button" aria-pressed="false"
+          aria-label="打开说明书" title="说明书"><svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2">
             <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
-          </svg>
-          说明书
-        </button>
-      </div>
+          </svg>说明书</button></div>
     </header>
-
     <main class="app-main" role="main">
       <section class="canvas-pane" aria-label="画布区域">
         <div class="canvas-toolbar" role="toolbar" aria-label="绘图工具">
           <div class="toolbar-section">
             <button id="importBaseBtn" type="button">导入底图</button>
-            <button id="clearBaseBtn" type="button">移除底图</button>
+            <button id="clearBaseBtn" type="button">清除底图</button>
             <button id="exportBtn" type="button">导出</button>
+            <button id="importProjectBtn" type="button">导入 .pd</button>
             <button id="toggleFullscreenBtn" type="button">全屏绘制</button>
             <button id="toggleReferenceBtn" type="button" aria-pressed="false">参考图窗</button>
           </div>
-
           <div class="toolbar-section">
-            <div class="tool-toggle" role="group" aria-label="绘制工具">
-              <button id="toolPencilBtn" type="button" class="tool-btn active" data-tool="pencil" aria-pressed="true"
-                title="铅笔">
-                <svg class="tool-icon" viewBox="0 0 1028 1024">
+            <div class="tool-toggle" role="group" aria-label="绘制工具"><button id="toolPencilBtn" type="button"
+                class="tool-btn active" data-tool="pencil" aria-pressed="true" title="铅笔"><svg class="tool-icon"
+                  viewBox="0 0 1028 1024">
                   <path
                     d="M1018.319924 112.117535q4.093748 9.210934 6.652341 21.492179t2.558593 25.585928-5.117186 26.609365-16.374994 25.585928q-12.281245 12.281245-22.003898 21.492179t-16.886712 16.374994q-8.187497 8.187497-15.351557 14.32812l-191.382739-191.382739q12.281245-11.257808 29.167958-27.121083t28.144521-25.074209q14.32812-11.257808 29.679676-15.863275t30.191395-4.093748 28.656239 4.605467 24.050772 9.210934q21.492179 11.257808 47.589826 39.402329t40.425766 58.847634zM221.062416 611.554845q6.140623-6.140623 28.656239-29.167958t56.289041-56.80076l74.710909-74.710909 82.898406-82.898406 220.038979-220.038979 191.382739 192.406177-220.038979 220.038979-81.874969 82.898406q-40.937484 39.914047-73.687472 73.175753t-54.242167 54.753885-25.585928 24.562491q-10.234371 9.210934-23.539054 19.445305t-27.632802 16.374994q-14.32812 7.16406-41.960921 17.398431t-57.824197 19.957024-57.312478 16.886712-40.425766 9.210934q-27.632802 3.070311-36.843736-8.187497t-5.117186-37.867173q2.046874-14.32812 9.722653-41.449203t16.374994-56.289041 16.886712-53.730448 13.304682-33.773425q6.140623-14.32812 13.816401-26.097646t22.003898-26.097646z" />
-                </svg>
-              </button>
-              <button id="toolBucketBtn" type="button" class="tool-btn" data-tool="bucket" aria-pressed="false"
-                title="油漆桶">
-                <svg class="tool-icon" viewBox="0 0 1024 1024">
+                </svg></button><button id="toolBucketBtn" type="button" class="tool-btn" data-tool="bucket"
+                aria-pressed="false" title="油漆桶"><svg class="tool-icon" viewBox="0 0 1024 1024">
                   <path
                     d="M462.272 163.904l316.736 316.8-361.984 361.984-316.8-316.736L462.272 163.904M417.024 118.656 54.912 480.704c-25.088 25.024-25.088 65.472 0 90.496l316.8 316.736c25.024 25.088 65.408 25.088 90.496 0l361.984-361.984c25.024-25.024 25.024-65.472 0-90.496L507.52 118.656C482.496 93.632 441.984 93.632 417.024 118.656L417.024 118.656zM54.912 571.2l316.8 316.736c25.024 25.088 65.408 25.088 90.496 0l361.984-361.984c12.48-12.48 18.816-28.864 18.752-45.248L54.912 480.704C29.888 505.664 29.888 546.176 54.912 571.2zM145.408 73.344c-12.48 12.544-12.48 32.768 0 45.248L439.616 412.8c12.48 12.48 32.768 12.48 45.248 0l0 0c12.48-12.48 12.48-32.768 0-45.248L190.656 73.344C178.176 60.864 157.952 60.864 145.408 73.344L145.408 73.344zM869.696 525.312c0 0-117.696 181.696-128 256-17.6 126.784 64 141.696 128 141.696s140.48-14.272 128-141.696C990.976 713.024 869.696 525.312 869.696 525.312z" />
-                </svg>
-              </button>
-              <button id="toolEyedropperBtn" type="button" class="tool-btn" data-tool="eyedropper" aria-pressed="false"
-                title="吸管">
-                <svg class="tool-icon" viewBox="0 0 1024 1024">
+                </svg></button><button id="toolEyedropperBtn" type="button" class="tool-btn" data-tool="eyedropper"
+                aria-pressed="false" title="吸管"><svg class="tool-icon" viewBox="0 0 1024 1024">
                   <path
                     d="M768.341333 95.061333c-42.410667 0-85.290667 14.634667-116.010666 45.312l-182.656 182.698667-11.989334-12.032a43.178667 43.178667 0 0 0-30.677333-11.989333c-10.922667 0-22.357333 3.669333-30.677333 11.946666a43.904 43.904 0 0 0 0 61.397334l33.322666 33.28-289.28 289.365333c-4.693333 4.693333-7.253333 11.093333-9.386666 17.365333l-42.666667 128c-5.12 15.274667-2.090667 32.512 9.386667 43.946667l42.666666 42.666667c11.392 11.434667 28.629333 14.421333 43.946667 9.386666l128-42.666666c6.314667-2.133333 12.672-4.693333 17.365333-9.386667l289.322667-289.28 33.322667 33.28c16.64 16.682667 44.672 16.682667 61.354666 0 16.64-16.64 16.64-44.629333 0-61.354667l-12.032-11.946666 182.698667-182.656c61.44-61.44 61.44-170.538667 0-232.021334-30.72-30.72-73.6-45.312-116.010667-45.312z m-277.333333 372.010667l66.688 67.968-284.032 282.666667-89.344 30.677333-6.656-6.698667c9.813333-29.397333 22.357333-69.717333 29.354667-90.666666l283.989333-283.946667z" />
-                </svg>
-              </button>
-              <button id="toolSelectionBtn" type="button" class="tool-btn" data-tool="selection" aria-pressed="false"
-                title="��ѡ">
-                <svg class="tool-icon" viewBox="0 0 1024 1024">
+                </svg></button><button id="toolSelectionBtn" type="button" class="tool-btn" data-tool="selection"
+                aria-pressed="false" title="矩形选区"><svg class="tool-icon" viewBox="0 0 1024 1024">
                   <path
                     d="M385.479 902.599h83.74v41.415h-83.74zm-167.481 0h83.741v41.415h-83.741zm-104.448-20.708H72.135v62.123h62.123v-41.415h-20.708zM72.135 546.816h41.415V630.557H72.135zm0-334.962h41.415V295.594H72.135zm0 502.557h41.415v83.74H72.135zm0-335.076h41.415v83.74H72.135zm0-251.221h41.415V107.406h20.708V65.991H72.135zm480.939-62.123h83.74v41.415h-83.74zm167.481 0h83.74v41.415h-83.74zm-335.076 0h83.74v41.415h-83.74zm-167.481 0h83.741v41.415h-83.741zm670.037 0v41.415h20.708v20.708h41.415V65.991zm20.708 313.344h41.415v83.74h-41.415zm0-167.481h41.415v83.74h-41.415zm-169.984 425.415l70.087-54.272a25.6 25.6 0 0 0-2.731-32.654L451.47 359.424a25.6 25.6 0 0 0-28.331 1.707 25.6 25.6 0 0 0-7.054 20.139l95.915 391.168a24.977 24.977 0 0 0 12.516 13.767 25.28 25.28 0 0 0 18.432-2.958l70.087-54.272 151.552 195.698a18.286 18.286 0 0 0 27.42 3.527l87.609-67.812a24.12 24.12 0 0 0 3.414-27.42z" />
-                </svg>
-              </button>
-            </div>
-
-            <div class="image-operations-dropdown">
-              <button class="dropdown-toggle" type="button" aria-haspopup="true" aria-expanded="false" title="图像操作">
-                <svg class="dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                </svg></button></div>
+            <div class="image-operations-dropdown"><button class="dropdown-toggle" type="button" aria-haspopup="true"
+                aria-expanded="false" title="图像操作"><svg class="dropdown-icon" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2">
                   <path d="M6 9l6 6 6-6" />
-                </svg>
-                <span>图像操作</span>
-              </button>
-              <div class="dropdown-menu" role="menu">
-                <button id="flipHorizontalBtn" type="button" class="dropdown-item" role="menuitem" title="水平翻转">
-                  <svg class="tool-icon" viewBox="0 0 1024 1024">
+                </svg><span>图像操作</span></button>
+              <div class="dropdown-menu" role="menu"><button id="flipHorizontalBtn" type="button" class="dropdown-item"
+                  role="menuitem" title="水平翻转"><svg class="tool-icon" viewBox="0 0 1024 1024">
                     <path
                       d="M469.357714 170.642286V85.357714h85.284572v85.284572H469.357714z m0 173.568V256h85.284572v88.210286H469.357714z m0 423.789714V682.642286h85.284572V768H469.357714z m0 170.642286v-85.284572h85.284572v85.284572H469.357714z m405.284572-594.432L658.870857 512l215.771429 167.789714V344.210286z m-4.827429-77.312a42.642286 42.642286 0 0 1 68.827429 33.645714v422.912a42.642286 42.642286 0 0 1-68.827429 33.645714l-271.872-211.382857a42.642286 42.642286 0 0 1 0-67.364571l271.872-211.456zM365.129143 512l-215.771429-167.789714v335.579428L365.129143 512zM85.284571 300.617143c0-35.547429 40.813714-55.515429 68.827429-33.718857l271.872 211.382857c21.942857 17.115429 21.942857 50.322286 0 67.437714l-271.872 211.382857a42.642286 42.642286 0 0 1-68.827429-33.645714V300.544zM128 704v-384L384 512l-256 192z" />
-                  </svg>
-                  水平翻转
-                </button>
-                <button id="flipVerticalBtn" type="button" class="dropdown-item" role="menuitem" title="垂直翻转">
-                  <svg class="tool-icon" viewBox="0 0 1024 1024">
+                  </svg>水平翻转</button><button id="flipVerticalBtn" type="button" class="dropdown-item" role="menuitem"
+                  title="垂直翻转"><svg class="tool-icon" viewBox="0 0 1024 1024">
                     <path
                       d="M855.771429 468.114286h87.771428v87.771428h-87.771428zM680.228571 468.114286h87.771429v87.771428H680.228571zM256 468.114286h87.771429v87.771428H256zM87.771429 468.114286h87.771428v87.771428H87.771429zM760.685714 870.4c21.942857 29.257143 0 65.828571-36.571428 65.828571H299.885714c-36.571429 0-58.514286-43.885714-36.571428-65.828571l212.114285-270.628571c14.628571-21.942857 51.2-21.942857 65.828572 0l219.428571 270.628571zM724.114286 87.771429H299.885714c-36.571429 0-58.514286 43.885714-36.571428 65.828571l212.114285 270.628571c14.628571 21.942857 51.2 21.942857 65.828572 0l212.114286-270.628571c21.942857-29.257143 7.314286-65.828571-29.257143-65.828571zM512 365.714286L343.771429 146.285714h336.457142L512 365.714286z" />
-                  </svg>
-                  垂直翻转
-                </button>
-                <button id="rotateClockwiseBtn" type="button" class="dropdown-item" role="menuitem" title="顺时针旋转">
-                  <svg class="tool-icon" viewBox="0 0 1024 1024">
+                  </svg>垂直翻转</button><button id="rotateClockwiseBtn" type="button" class="dropdown-item" role="menuitem"
+                  title="顺时针旋转"><svg class="tool-icon" viewBox="0 0 1024 1024">
                     <path
                       d="M288 352v192h128v64h-128v64h192v-320h-192z m128 128h-64v-64h64v64zM544 352v320h192v-320h-192z m128 256h-64v-192h64v192zM957.44 531.84h1.344v-1.92l-1.344 1.92zM994.56 474.88l-35.84 55.04-1.28 1.92-35.84 55.04-60.16-119.04 32 1.92C872.32 277.76 709.76 128 512 128 300.16 128 128 300.16 128 512s172.16 384 384 384c140.16 0 263.04-75.52 329.6-188.16h1.856l0.704 0.704 53.056 31.296A446.4 446.4 0 0 1 512 960c-247.68 0-448-200.32-448-448s200.32-448 448-448c234.88 0 426.88 179.84 446.08 408.96l36.48 1.92z" />
-                  </svg>
-                  顺时针旋转
-                </button>
-                <button id="rotateCounterclockwiseBtn" type="button" class="dropdown-item" role="menuitem"
-                  title="逆时针旋转">
-                  <svg class="tool-icon" viewBox="0 0 1024 1024">
+                  </svg>顺时针旋转</button><button id="rotateCounterclockwiseBtn" type="button" class="dropdown-item"
+                  role="menuitem" title="逆时针旋转"><svg class="tool-icon" viewBox="0 0 1024 1024">
                     <path
                       d="M288 352v192h128v64h-128v64h192v-320h-192z m128 128h-64v-64h64v64zM544 352v320h192v-320h-192z m128 256h-64v-192h64v192zM957.44 531.84h1.344v-1.92l-1.344 1.92zM46.72 474.88l35.84 55.04 1.28 1.92 35.84 55.04 60.16-119.04-32 1.92C168.96 277.76 331.52 128 529.28 128c211.904 0 384 172.16 384 384s-172.096 384-384 384c-140.16 0-263.04-75.52-329.6-188.16h-1.92l-0.64 0.64-53.12 31.36A446.592 446.592 0 0 0 529.28 960c247.744 0 448-200.32 448-448s-200.256-448-448-448C294.4 64 102.4 243.84 83.2 472.96l-36.48 1.92z" />
-                  </svg>
-                  逆时针旋转
-                </button>
-              </div>
-            </div>
-
-            <label class="inline-control">
-              <input type="checkbox" id="autoSnapToggle">
-              <span>自动贴合底图颜色</span>
-            </label>
-
-            <label class="inline-control">
-              <input type="checkbox" id="showCodesToggle">
-              <span>显示色号</span>
-            </label>
-
-            <label class="inline-control zoom-control">
-              <span>缩放</span>
-              <input type="range" id="zoomRange" min="4" max="80" step="1" value="10">
-            </label>
+                  </svg>逆时针旋转</button></div>
+            </div><label class="inline-control"><input type="checkbox"
+                id="autoSnapToggle"><span>自动贴合底图颜色</span></label><label class="inline-control"><input type="checkbox"
+                id="showCodesToggle"><span>显示色号</span></label><label
+              class="inline-control zoom-control"><span>缩放</span><input type="range" id="zoomRange" min="4" max="80"
+                step="1" value="10"></label>
           </div>
         </div>
-
         <div id="canvasWrapper" class="canvas-wrapper">
-          <div id="canvasStage" class="canvas-stage">
-            <canvas id="baseCanvas"></canvas>
-            <canvas id="drawingCanvas"></canvas>
-            <canvas id="selectionMaskCanvas" aria-hidden="true"></canvas>
-            <canvas id="selectionContentCanvas" aria-hidden="true"></canvas>
-            <canvas id="selectionOutlineCanvas" aria-hidden="true"></canvas>
-          </div>
+          <div id="canvasStage" class="canvas-stage"><canvas id="baseCanvas"></canvas><canvas
+              id="drawingCanvas"></canvas><canvas id="selectionMaskCanvas" aria-hidden="true"></canvas><canvas
+              id="selectionContentCanvas" aria-hidden="true"></canvas><canvas id="selectionOutlineCanvas"
+              aria-hidden="true"></canvas></div>
         </div>
-
-        <div id="fullscreenPalette" class="fullscreen-palette" aria-hidden="true"></div>
-
-        <input id="baseImageInput" type="file" accept="image/*" hidden>
-        <input id="referenceImageInput" type="file" accept="image/*" multiple hidden>
-        <input id="projectFileInput" type="file" accept=".pd,application/json" hidden>
+        <div id="fullscreenPalette" class="fullscreen-palette" aria-hidden="true"></div><input id="baseImageInput"
+          type="file" accept="image/*" hidden><input id="referenceImageInput" type="file" accept="image/*" multiple
+          hidden><input id="projectFileInput" type="file" accept=".pd,application/json" hidden>
       </section>
-
       <aside class="side-pane" aria-label="控制面板">
         <section class="panel">
           <h2>新建画布</h2>
-          <div class="form-row">
-            <label for="widthInput">宽度 (像素)</label>
-            <input id="widthInput" type="number" min="1" max="256" value="32">
+          <div class="form-row"><label for="widthInput">宽度 (像素)</label><input id="widthInput" type="number" min="1"
+              max="256" value="32"></div>
+          <div class="form-row"><label for="heightInput">高度 (像素)</label><input id="heightInput" type="number" min="1"
+              max="256" value="32"></div>
+          <div class="form-row"><label for="resolutionInput">像素比例（1 : N）</label>
+            <div class="resolution-input-group"><span class="resolution-prefix">1 :</span><input id="resolutionInput"
+                type="number" min="4" max="80" step="1" value="10" inputmode="numeric"><span
+                class="resolution-suffix">像素</span></div>
           </div>
-          <div class="form-row">
-            <label for="heightInput">高度 (像素)</label>
-            <input id="heightInput" type="number" min="1" max="256" value="32">
-          </div>
-          <button id="createCanvasBtn" type="button">新建画布</button>
-          <div class="form-row">
-            <label for="canvasOpacityRange">画布背景透明度 <span id="canvasOpacityValue">90%</span></label>
-            <input id="canvasOpacityRange" type="range" min="0" max="100" step="5" value="90">
-          </div>
+          <div class="canvas-size-warning" id="canvasSizeWarning" role="status" aria-live="polite"></div>
+          <button id="createCanvasBtn" type="button">新建画布</button><button id="resizeCanvasBtn"
+            type="button">扩/裁画布</button>
+          <div class="form-row"><label for="canvasOpacityRange">画布背景透明度 <span
+                id="canvasOpacityValue">90%</span></label><input id="canvasOpacityRange" type="range" min="0" max="100"
+              step="1" value="90"></div>
         </section>
-
         <section class="panel">
           <h2>色卡</h2>
-          <div class="form-row">
-            <label for="paletteHistorySelect">已加载色卡</label>
-            <select id="paletteHistorySelect">
+          <div class="form-row"><label for="paletteHistorySelect">已加载色卡</label><select id="paletteHistorySelect">
               <option value="__none">请选择色卡</option>
-            </select>
-          </div>
-
+            </select></div>
           <div class="palette-actions">
             <button id="loadDefaultPaletteBtn" type="button">加载内置 DMC</button>
             <button id="importPaletteBtn" type="button">导入色卡 JSON</button>
+            <button id="colorManageBtn" type="button">颜色管理</button>
+            <button id="canvasHighlightBtn" type="button">颜色高亮</button>
             <button id="deletePaletteBtn" type="button">删除当前色卡</button>
             <input id="paletteFileInput" type="file" accept="application/json" hidden>
           </div>
-
-          <div class="form-row">
-            <label for="paletteFilter">筛选色号/颜色</label>
-            <input id="paletteFilter" type="search" placeholder="输入色号或关键字">
-          </div>
-
+          <div class="form-row"><label for="paletteFilter">筛选色号/颜色</label><input id="paletteFilter" type="search"
+              placeholder="输入色号或关键字"></div>
           <div class="current-color" id="currentColorInfo">当前色号：<span class="code">无</span></div>
-
           <div id="paletteContainer" class="palette-grid"></div>
         </section>
-
         <section class="panel">
           <h2>底图设置</h2>
-          <div class="form-row">
-            <label for="baseLayerSelect">底图图层</label>
-            <select id="baseLayerSelect" disabled>
+          <div class="form-row"><label for="baseLayerSelect">底图图层</label><select id="baseLayerSelect" disabled>
               <option value="under">底图在画布下</option>
               <option value="over">底图在画布上</option>
               <option value="hidden">隐藏底图</option>
-            </select>
-          </div>
-
-          <div class="base-tool-row">
-            <button id="toggleBaseEditBtn" type="button" disabled>底图编辑</button>
-            <button id="recenterBaseBtn" type="button" disabled>底图居中</button>
-            <button id="snapBaseToCanvasBtn" type="button" disabled>贴合画布</button>
-          </div>
-
-          <div class="form-row base-scale-row">
-            <label for="baseScaleRange">底图缩放 <span id="baseScaleValue">100%</span></label>
-            <input id="baseScaleRange" type="range" min="0.1" max="8" step="0.01" value="1" disabled>
+            </select></div>
+          <div class="base-tool-row"><button id="toggleBaseEditBtn" type="button" disabled>底图编辑</button><button
+              id="recenterBaseBtn" type="button" disabled>底图居中</button><button id="snapBaseToCanvasBtn" type="button"
+              disabled>贴合画布</button></div>
+          <div class="form-row base-scale-row"><label for="baseScaleRange">底图缩放 <span
+                id="baseScaleValue">100%</span></label>
+            <div class="base-scale-controls"><input id="baseScaleRange" type="range" min="0.01" max="2" step="0.01"
+                value="1" disabled><input id="baseScaleInput" type="number" min="0.01" max="2" step="0.01" value="1"
+                aria-label="底图缩放数值" disabled></div>
           </div>
         </section>
-
         <section class="panel">
           <h2>状态</h2>
           <ul class="status-list">
@@ -230,185 +161,29 @@
       </aside>
     </main>
   </div>
-
   <div id="referenceWindow" class="reference-window" aria-hidden="true">
-    <div id="referenceHeader" class="reference-header">
-      <span class="reference-title">参考图</span>
-      <div class="reference-actions">
-        <button id="referenceAddBtn" type="button" aria-label="添加参考图">+</button>
-        <button id="referenceMinimizeBtn" type="button" aria-label="最小化参考窗">-</button>
-        <button id="referenceCloseBtn" type="button" aria-label="关闭参考窗">X</button>
-      </div>
+    <div id="referenceHeader" class="reference-header"><span class="reference-title">参考图</span>
+      <div class="reference-actions"><button id="referenceAddBtn" type="button" aria-label="添加参考图">+</button><button
+          id="referenceMinimizeBtn" type="button" aria-label="最小化参考窗">-</button><button id="referenceCloseBtn"
+          type="button" aria-label="关闭参考窗">X</button></div>
     </div>
     <div class="reference-body">
       <div id="referenceList" class="reference-list"></div>
     </div>
     <div id="referenceResizer" class="reference-resizer" aria-hidden="true"></div>
   </div>
-
   <div id="docsWindow" class="docs-window" aria-hidden="true" tabindex="-1">
-    <div class="docs-header">
-      <span class="docs-title">说明书</span>
-      <button id="docsCloseBtn" type="button" aria-label="关闭说明书">✕</button>
-    </div>
+    <div class="docs-header"><span class="docs-title">说明书</span><button id="docsCloseBtn" type="button"
+        aria-label="关闭说明书">✕</button></div>
     <div class="docs-body">
-      <h1>拼豆像素画工具说明书</h1>
-      <h2>🧑‍🎨 作者信息</h2>
-      <p>由 <strong>闷香红烧鱼</strong> 制作。</p>
-      <ul>
-        <li>Bilibili：<a href="https://space.bilibili.com/609170202" target="_blank" rel="noopener">闷香红烧鱼</a></li>
-        <li>小红书：<a href="https://www.xiaohongshu.com/user/profile/65f420e30000000005008498" target="_blank"
-            rel="noopener">闷香红烧鱼</a></li>
-      </ul>
-      <p>本网页完全免费使用，希望能方便大家进行拼豆手工草图创作( •̀ ω •́ )✧</p>
-      <p>可以收藏下来方便以后使用！</p>
-      <p>目前适用于电脑端，移动端会在未来做响应式<br>φ(*￣0￣)</p>
-      <hr>
-      <h2>🪄 基础使用</h2>
-      <ol>
-        <li>创建画布。</li>
-        <li>从色卡中选择颜色进行上色。</li>
-        <li>完成后导出图片即可保存作品。</li>
-      </ol>
-      <hr>
-      <h2>🖼 画布操作</h2>
-      <ul>
-        <li><strong>左键</strong>：绘制像素(铅笔和油漆桶操作相同)。</li>
-        <li><strong>右键</strong>：擦除像素(铅笔和油漆桶操作相同)。</li>
-        <li><strong>双击滚轮</strong>：重置画布视图。</li>
-        <li><strong>滚轮滚动</strong>：放大 / 缩小画布。</li>
-        <li><strong>长按滚轮拖动</strong>：移动画布。</li>
-      </ul>
-      <hr>
-      <h2>🖱️ 吸管模式说明</h2>
-      <ul>
-        <li>在吸管工具模式下，<strong>左键点击</strong> 可从画布中选取像素颜色，用于当前绘图颜色。</li>
-      </ul>
-      <hr>
-      <h2>🧩 底图与模板</h2>
-      <ul>
-        <li><strong>底图</strong>：会显示在画布底下，用于参考描绘。</li>
-        <li><strong>模板图</strong>：会显示在独立的参考窗口中，可自由拖动和缩放。</li>
-      </ul>
-      <hr>
-      <h2>🔧 底图操作</h2>
-      <ol>
-        <li>点击「<strong>编辑底图</strong>」按钮进入底图编辑模式。</li>
-        <li>在该模式下：
-          <ul>
-            <li><strong>长按左键</strong> 可拖动底图位置。</li>
-            <li><strong>滚轮滚动</strong> 可缩放底图比例。</li>
-          </ul>
-        </li>
-      </ol>
-      <hr>
-      <h2>✂️ 选区操作</h2>
-      <p>可通过选区快速编辑指定区域，支持多种操作手势：</p>
-      <ul>
-        <li><strong>长按左键拖动</strong>：添加选区。</li>
-        <li><strong>双击左键</strong>：翻转当前选区。</li>
-        <li><strong>长按滚轮拖动</strong>：移动选区位置。</li>
-        <li><strong>长按右键拖动</strong>：删除选区。</li>
-        <li><strong>双击右键</strong>：清空全部选区。</li>
-      </ul>
-      <hr>
-      <h2>📁 导入与导出</h2>
-      <ul>
-        <li><strong>导出格式：</strong>
-          <ul>
-            <li>图片：支持 <strong>PNG</strong>、<strong>JPEG (JPG)</strong>、<strong>PDF</strong></li>
-            <li>工程文件：<strong>.pd</strong> 格式，可在浏览器中导入继续编辑或分享。</li>
-          </ul>
-        </li>
-        <li><strong>导出时可自定义：</strong>
-          <ul>
-            <li>背景颜色（透明或指定颜色）</li>
-            <li>是否显示色号提示</li>
-            <li>是否显示坐标信息</li>
-            <li>自定义文件名</li>
-          </ul>
-        </li>
-        <li><strong>导入格式：</strong>
-          <ul>
-            <li>支持导入 <code>.pd</code></li>
-          </ul>
-        </li>
-      </ul>
-      <hr>
-      <h2>🎨 色卡</h2>
-      <ul>
-        <li>内置了常用的拼豆色卡。</li>
-        <li>也可以手动导入自定义色卡 JSON 文件，格式如下：</li>
-      </ul>
-      <pre>文件名：色卡名.json
-文件内容：
-{
-  "A1": "RGB(2, 5, 7)",
-  "A2": "RGB(10, 20, 255)",
-  "颜色编号": "RGB(R, G, B)",
-  ...
-}</pre>
-      <p>键为颜色编号，值为 RGB 颜色值。</p>
-      <hr>
-      <h2>⌨️ 快捷键一览</h2>
-      <ul>
-        <li><strong>1</strong>：切换为铅笔工具</li>
-        <li><strong>2</strong>：切换为油漆桶工具</li>
-        <li><strong>3</strong>：切换为吸管工具</li>
-        <li><strong>4</strong>：切换选区工具</li>
-        <li><strong>A</strong>：开启 / 关闭全屏模式</li>
-        <li><strong>S</strong>：快速保存 PNG（无色号提示 / 无坐标）</li>
-        <li><strong>C</strong>：打开 / 关闭参考图选框</li>
-        <li><strong>Q</strong>：切换底图编辑模式</li>
-        <li><strong>Z</strong>：撤回操作</li>
-        <li><strong>X</strong>：回退操作</li>
-      </ul>
-      <hr>
-      <h2>🪲 Bug 与反馈</h2>
-      <p>如遇问题或功能建议，可在以下平台私信反馈：</p>
-      <ul>
-        <li>Bilibili：<a href="https://space.bilibili.com/609170202" target="_blank" rel="noopener">闷香红烧鱼</a></li>
-        <li>小红书：<a href="https://www.xiaohongshu.com/user/profile/65f420e30000000005008498" target="_blank"
-            rel="noopener">闷香红烧鱼</a></li>
-      </ul>
-      <p>若出现严重 Bug，将及时修复并更新版本。</p>
     </div>
   </div>
-
   <div id="updateWindow" class="update-window" aria-hidden="true" tabindex="-1">
-    <div class="update-header">
-      <span class="update-title">更新说明</span>
-      <button id="updateCloseBtn" type="button" aria-label="关闭更新说明">✕</button>
-    </div>
+    <div class="update-header"><span class="update-title">更新说明</span><button id="updateCloseBtn" type="button"
+        aria-label="关闭更新说明">✕</button></div>
     <div class="update-body">
-      <h1>更新说明</h1>
-      <p class="time">更新时间：2025.10.27</p>
-      <h2>🚀 更新说明 v1.4</h2>
-      <h3>🐛 修复问题</h3>
-      <ul>
-        <li>修复 <strong>撤回操作</strong> 导致颜色显示不正确的问题。</li>
-        <li>修复 <strong>铅笔</strong> 与 <strong>油漆桶</strong> 工具在部分情况下失效的 Bug。</li>
-        <li>修复 <strong>吸管工具</strong> 使用后可能造成程序卡死的问题。</li>
-      </ul>
-      <hr />
-      <h3>🆕 新增功能</h3>
-      <h4>✂️ 选区工具（快捷键：4）</h4>
-      <p>可通过选区快速编辑指定区域，支持多种操作手势：</p>
-      <ol>
-        <li><strong>长按左键拖动</strong>：添加选区。</li>
-        <li><strong>双击左键</strong>：翻转当前选区。</li>
-        <li><strong>长按滚轮拖动</strong>：移动选区位置。</li>
-        <li><strong>长按右键拖动</strong>：删除选区。</li>
-        <li><strong>双击右键</strong>：清空全部选区。</li>
-      </ol>
-      <h4>🖼️ 图像反向修改</h4>
-      <p>新增「<strong>图像操作</strong>」下拉菜单，可对图片进行 <strong>翻转</strong> 与 <strong>旋转</strong> 操作。</p>
-      <h4>🪞 参考图快捷载入</h4>
-
-      <p>现在支持将当前 <strong>参考图</strong> 一键载入为 <strong>底图</strong>，无需重复导入。</p>
     </div>
   </div>
-
   <div id="exportWindow" class="export-window" aria-hidden="true" tabindex="-1">
     <div class="export-header">
       <span class="export-title">导出设置</span>
@@ -433,27 +208,45 @@
         <div class="export-setting-group">
           <h3>导出选项</h3>
           <div class="radio-group">
-            <label class="radio-label"><input type="radio" name="exportFormat" value="image/png" checked><span>PNG
-                格式</span></label>
-            <label class="radio-label"><input type="radio" name="exportFormat" value="image/jpeg"><span>JPEG
-                格式</span></label>
-            <label class="radio-label"><input type="radio" name="exportFormat" value="application/pdf"><span>PDF
-                格式</span></label>
-            <label class="radio-label"><input type="radio" name="exportFormat" value="application/pd"><span>PD
-                工程文件</span></label>
+            <label class="radio-label">
+              <input type="radio" name="exportFormat" value="image/png" checked>
+              <span>PNG 格式</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="exportFormat" value="image/jpeg">
+              <span>JPEG 格式</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="exportFormat" value="application/pdf">
+              <span>PDF 格式</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="exportFormat" value="application/pd">
+              <span>PD 工程文件</span>
+            </label>
           </div>
         </div>
         <div class="export-setting-group">
           <h3>显示选项</h3>
           <div class="radio-group">
-            <label class="radio-label"><input type="radio" name="includeCodes" value="true"><span>包含色号</span></label>
-            <label class="radio-label"><input type="radio" name="includeCodes" value="false"
-                checked><span>不包含色号</span></label>
+            <label class="radio-label">
+              <input type="radio" name="includeCodes" value="true">
+              <span>包含色号</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="includeCodes" value="false" checked>
+              <span>不包含色号</span>
+            </label>
           </div>
           <div class="radio-group">
-            <label class="radio-label"><input type="radio" name="includeAxes" value="true"><span>包含坐标系</span></label>
-            <label class="radio-label"><input type="radio" name="includeAxes" value="false"
-                checked><span>不包含坐标系</span></label>
+            <label class="radio-label">
+              <input type="radio" name="includeAxes" value="true">
+              <span>包含坐标系</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="includeAxes" value="false" checked>
+              <span>不包含坐标系</span>
+            </label>
           </div>
         </div>
         <div class="export-setting-group">
@@ -463,11 +256,34 @@
             <input type="color" id="exportBackgroundColor" value="#ffffff">
           </div>
           <div class="radio-group">
-            <label class="radio-label"><input type="radio" name="backgroundType" value="solid"
-                checked><span>纯色背景</span></label>
-            <label class="radio-label"><input type="radio" name="backgroundType"
-                value="transparent"><span>透明背景</span></label>
+            <label class="radio-label">
+              <input type="radio" name="backgroundType" value="solid" checked>
+              <span>纯色背景</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="backgroundType" value="transparent">
+              <span>透明背景</span>
+            </label>
           </div>
+        </div>
+      </div>
+      <div class="export-highlight-panel">
+        <div class="export-setting-group">
+          <h3>颜色高亮</h3>
+          <div class="highlight-controls">
+            <button id="selectAllHighlightColors" type="button">全选</button>
+            <button id="deselectAllHighlightColors" type="button">全不选</button>
+          </div>
+          <div class="highlight-search">
+            <input type="search" id="highlightColorFilter" placeholder="搜索颜色代码...">
+          </div>
+          <div id="highlightColorList" class="highlight-color-list">
+            <div class="highlight-color-empty">正在加载颜色...</div>
+          </div>
+          <div class="highlight-actions">
+            <button id="exportAllHighlightColors" type="button" class="primary">导出所有颜色高亮图</button>
+          </div>
+          <div id="highlightMessage" class="highlight-message" role="status" aria-live="polite"></div>
         </div>
       </div>
     </div>
@@ -476,9 +292,109 @@
       <button id="exportConfirmBtn" type="button" class="primary">确认导出</button>
     </div>
   </div>
-
+  <div id="resizeCanvasOverlay" class="resize-overlay" aria-hidden="true">
+    <div class="resize-dialog" role="dialog" aria-modal="true" aria-labelledby="resizeCanvasTitle">
+      <header class="resize-header">
+        <h2 id="resizeCanvasTitle">编辑画布尺寸</h2><button id="resizeCloseBtn" type="button"
+          aria-label="关闭画布尺寸调整窗口">✕</button>
+      </header>
+      <div class="resize-body">
+        <div class="resize-mode-row" role="radiogroup" aria-label="调整模式"><button id="resizeModeExpandBtn" type="button"
+            class="resize-mode-btn active" data-mode="expand">扩图</button><button id="resizeModeCropBtn" type="button"
+            class="resize-mode-btn" data-mode="crop">切图</button></div>
+        <div class="resize-grid">
+          <div class="resize-grid-row resize-grid-row-top"><button type="button" class="resize-edit-btn"
+              data-side="top">编辑<span class="resize-edit-value" data-value-for="top">0 像素</span></button></div>
+          <div class="resize-grid-row resize-grid-row-middle"><button type="button" class="resize-edit-btn"
+              data-side="left">编辑<span class="resize-edit-value" data-value-for="left">0 像素</span></button>
+            <div class="resize-preview">
+              <div class="resize-preview-stage" id="resizePreviewStage">
+                <div class="resize-preview-wrapper" id="resizePreviewWrapper"><canvas id="resizePreviewDrawingCanvas"
+                    aria-hidden="true"></canvas></div>
+              </div>
+            </div><button type="button" class="resize-edit-btn" data-side="right">编辑<span class="resize-edit-value"
+                data-value-for="right">0 像素</span></button>
+          </div>
+          <div class="resize-grid-row resize-grid-row-bottom"><button type="button" class="resize-edit-btn"
+              data-side="bottom">编辑<span class="resize-edit-value" data-value-for="bottom">0 像素</span></button></div>
+        </div>
+        <div class="resize-size-summary"><span id="resizeCurrentSize" class="resize-size-label">当前尺寸：0 × 0</span><span
+            id="resizeResultSize" class="resize-size-label">调整后：0 × 0</span></div>
+        <div id="resizeMessage" class="resize-message" role="status" aria-live="polite"></div>
+      </div>
+      <footer class="resize-footer"><button id="resizeConfirmBtn" type="button" class="primary">确认</button><button
+          id="resizeCancelBtn" type="button" class="secondary">取消</button></footer>
+    </div>
+  </div>
+  <div id="colorManageWindow" class="color-manage-window" aria-hidden="true" tabindex="-1">
+    <div class="color-manage-header">
+      <span class="color-manage-title">颜色管理</span>
+      <button id="colorManageCloseBtn" type="button" aria-label="关闭颜色管理">✕</button>
+    </div>
+    <div class="color-manage-body">
+      <div class="color-manage-controls">
+        <button id="selectAllColorsBtn" type="button">全选</button>
+        <button id="deselectAllColorsBtn" type="button">全不选</button>
+        <span class="color-count" id="enabledColorCount">已启用: 0/0</span>
+      </div>
+      <div id="colorManageList" class="color-manage-list">
+        <div class="color-manage-empty">正在加载颜色...</div>
+      </div>
+      <div id="colorManageMessage" class="color-manage-message" role="status" aria-live="polite"></div>
+    </div>
+    <div class="color-manage-footer">
+      <button id="colorManageCancelBtn" type="button" class="secondary">取消</button>
+      <button id="colorManageConfirmBtn" type="button" class="primary">确认</button>
+    </div>
+  </div>
+  <div id="canvasHighlightWindow" class="canvas-highlight-window" aria-hidden="true" tabindex="-1">
+    <div class="canvas-highlight-header">
+      <span class="canvas-highlight-title">颜色高亮</span>
+      <button id="canvasHighlightCloseBtn" type="button" aria-label="关闭颜色高亮窗口">✕</button>
+    </div>
+    <div class="canvas-highlight-body">
+      <div class="canvas-highlight-controls">
+        <button id="canvasHighlightSelectAll" type="button">全选</button>
+        <button id="canvasHighlightDeselectAll" type="button">全不选</button>
+      </div>
+      <div class="highlight-search">
+        <input type="search" id="canvasHighlightFilter" placeholder="搜索颜色代码...">
+      </div>
+      <div id="canvasHighlightList" class="highlight-color-list">
+        <div class="highlight-color-empty">正在加载颜色...</div>
+      </div>
+      <div class="canvas-highlight-replace">
+        <label for="canvasHighlightReplaceSelect">将高亮颜色替换为</label>
+        <div class="canvas-highlight-replace-row">
+          <select id="canvasHighlightReplaceSelect"></select>
+          <button id="canvasHighlightApplyReplace" type="button" class="primary">一键替换</button>
+        </div>
+        <div id="canvasHighlightMessage" class="highlight-message" role="status" aria-live="polite"></div>
+      </div>
+    </div>
+  </div>
+  <div id="paletteSwitchOverlay" class="palette-switch-overlay" aria-hidden="true">
+    <div class="palette-switch-dialog" role="dialog" aria-modal="true" aria-labelledby="paletteSwitchTitle">
+      <div class="palette-switch-header">
+        <span class="palette-switch-title" id="paletteSwitchTitle">切换色卡</span>
+        <button id="paletteSwitchCloseBtn" type="button" aria-label="关闭色卡切换提示">✕</button>
+      </div>
+      <div class="palette-switch-body">
+        <p class="palette-switch-summary">切换色卡会影响当前画布的颜色，请选择处理方式。</p>
+        <p class="palette-switch-target">目标色卡：<span id="paletteSwitchName">未命名</span></p>
+      </div>
+      <div class="palette-switch-actions">
+        <button id="paletteSwitchCancelBtn" type="button" class="secondary">取消</button>
+        <button id="paletteSwitchConvertBtn" type="button" class="primary">转换颜色</button>
+        <button id="paletteSwitchResetBtn" type="button" class="danger">新建画布</button>
+      </div>
+    </div>
+  </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script type="module" src="/pindou-draw/js/app.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script type="module" src="js/app.js"></script>
 </body>
 
 </html>
+
+

@@ -1,5 +1,4 @@
 import { AXIS_STYLE, BASE_SCALE_LIMITS, SIZE_LIMITS } from './constants.js';
-
 export function computeAxisPadding(cellSize, widthCells, heightCells) {
   const fontSize = Math.max(AXIS_STYLE.minFont, Math.floor(cellSize * 0.35));
   const tickLength = Math.max(AXIS_STYLE.minTick, Math.floor(fontSize * 0.5));
@@ -20,19 +19,15 @@ export function computeAxisPadding(cellSize, widthCells, heightCells) {
     right: Math.max(horizontalPaddingX, Math.round(cellSize * 1.2))
   };
 }
-
 export function clampCellSize(size) {
   return Math.max(SIZE_LIMITS.minCell, Math.min(SIZE_LIMITS.maxCell, Math.round(size)));
 }
-
 export function clampBaseScale(scale) {
   return Math.max(BASE_SCALE_LIMITS.min, Math.min(BASE_SCALE_LIMITS.max, scale));
 }
-
 export function clampAlpha(alpha) {
   return Number.isFinite(alpha) ? Math.max(0, Math.min(1, alpha)) : 0;
 }
-
 export function parseColor(value) {
   if (typeof value === 'string') {
     const rgbMatch = value.match(/rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/i);
@@ -41,7 +36,6 @@ export function parseColor(value) {
       g: clampChannel(Number(rgbMatch[2])),
       b: clampChannel(Number(rgbMatch[3]))
     };
-
     const hexMatch = value.trim().match(/^#?([0-9a-f]{6})$/i);
     if (hexMatch) {
       const num = parseInt(hexMatch[1], 16);
@@ -53,13 +47,11 @@ export function parseColor(value) {
     }
     return null;
   }
-
   if (Array.isArray(value) && value.length >= 3) return {
     r: clampChannel(Number(value[0])),
     g: clampChannel(Number(value[1])),
     b: clampChannel(Number(value[2]))
   };
-
   if (value && typeof value === 'object') {
     const r = channelFromObject(value, ['r', 'red', 'R']);
     const g = channelFromObject(value, ['g', 'green', 'G']);
@@ -72,7 +64,6 @@ export function parseColor(value) {
 
   return null;
 }
-
 export function channelFromObject(obj, keys) {
   for (const key of keys) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
@@ -82,22 +73,18 @@ export function channelFromObject(obj, keys) {
   }
   return null;
 }
-
 export function clampChannel(channel) {
   return Number.isFinite(channel) ? Math.max(0, Math.min(255, Math.round(channel))) : 0;
 }
-
 export function pickTextColor({ r, g, b }) {
   const lum = 0.2126 * (r / 255) + 0.7152 * (g / 255) + 0.0722 * (b / 255);
   return lum > 0.55 ? '#1f1f1f' : '#ffffff';
 }
-
 export function cellsEqual(a, b) {
   if (!a && !b) return true;
   if (!a || !b) return false;
   return a.code === b.code;
 }
-
 export function hasLocalStorage() {
   try {
     const testKey = '__pixel-palette-test';

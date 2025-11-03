@@ -1,10 +1,15 @@
 import { elements } from './elements.js';
 import { state } from './state.js';
 import { renderFullscreenPalette, updateFullscreenPaletteSelection } from './palette.js';
+import { updateFullscreenOverlayState } from './app/fullscreen-overlay.js';
 
 function getFullscreenState() {
-  return !!(document.fullscreenElement || document.webkitFullscreenElement ||
-    document.mozFullScreenElement || document.msFullscreenElement);
+  return Boolean(
+    document.fullscreenElement ||
+    document.webkitFullscreenElement ||
+    document.mozFullScreenElement ||
+    document.msFullscreenElement
+  );
 }
 
 export function toggleFullscreen() {
@@ -12,15 +17,25 @@ export function toggleFullscreen() {
   const element = document.documentElement;
 
   if (!isCurrentlyFullscreen) {
-    if (element.requestFullscreen) element.requestFullscreen().catch(err => console.error('Error enabling fullscreen:', err));
-    else if (element.webkitRequestFullscreen) element.webkitRequestFullscreen();
-    else if (element.mozRequestFullScreen) element.mozRequestFullScreen();
-    else if (element.msRequestFullscreen) element.msRequestFullscreen();
+    if (element.requestFullscreen) {
+      element.requestFullscreen().catch((error) => console.error('Error enabling fullscreen:', error));
+    } else if (element.webkitRequestFullscreen) {
+      element.webkitRequestFullscreen();
+    } else if (element.mozRequestFullScreen) {
+      element.mozRequestFullScreen();
+    } else if (element.msRequestFullscreen) {
+      element.msRequestFullscreen();
+    }
   } else {
-    if (document.exitFullscreen) document.exitFullscreen().catch(err => console.error('Error exiting fullscreen:', err));
-    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-    else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
-    else if (document.msExitFullscreen) document.msExitFullscreen();
+    if (document.exitFullscreen) {
+      document.exitFullscreen().catch((error) => console.error('Error exiting fullscreen:', error));
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    } else if (document.mozCancelFullScreen) {
+      document.mozCancelFullScreen();
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen();
+    }
   }
 }
 
@@ -31,7 +46,9 @@ export function updateFullscreenState() {
   state.isFullscreen = isNowFullscreen;
   document.body.classList.toggle('canvas-fullscreen', state.isFullscreen);
 
-  elements.toggleFullscreenBtn && (elements.toggleFullscreenBtn.textContent = state.isFullscreen ? '退出全屏' : '全屏显示');
+  if (elements.toggleFullscreenBtn) {
+    elements.toggleFullscreenBtn.textContent = state.isFullscreen ? '\u9000\u51fa\u5168\u5c4f' : '\u5168\u5c4f\u663e\u793a';
+  }
 
   if (elements.fullscreenPalette) {
     elements.fullscreenPalette.setAttribute('aria-hidden', state.isFullscreen ? 'false' : 'true');
@@ -41,16 +58,12 @@ export function updateFullscreenState() {
     }
   }
 
-  setTimeout(() => {
-    typeof updateFullscreenOverlayState === 'function'
-      ? updateFullscreenOverlayState()
-      : document.dispatchEvent(new CustomEvent('updateFullscreenOverlay'));
-  }, 50);
+  setTimeout(updateFullscreenOverlayState, 50);
 }
 
 function initializeFullscreenListeners() {
   const events = ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'];
-  events.forEach(event => document.addEventListener(event, updateFullscreenState));
+  events.forEach((event) => document.addEventListener(event, updateFullscreenState));
   setTimeout(updateFullscreenState, 100);
 }
 

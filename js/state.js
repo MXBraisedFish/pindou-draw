@@ -1,10 +1,10 @@
 export const hiddenBaseCanvas = document.createElement('canvas');
 export const hiddenBaseCtx = hiddenBaseCanvas.getContext('2d');
-
 export const state = {
   width: 0,
   height: 0,
   defaultCellSize: 10,
+  pixelRatio: 10,
   cellSize: 10,
   grid: [],
   palette: {},
