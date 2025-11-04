@@ -440,10 +440,13 @@
     <hr class="whr" />
   </warn>
   <script>
-    warnBlock = document.querySelector(".T")
+    warnBlock = document.querySelector(".T");
     setTimeout(() => {
-      warnBlock.style.top = "-500px"
-    }, 5500)
+      warnBlock.style.top = "-500px";
+      setTimeout(() => {
+        warnBlock.style.display = "none";
+      }, 1500);
+    }, 5100);
   </script>
 </body>
 
