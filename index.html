@@ -390,11 +390,68 @@
       </div>
     </div>
   </div>
+  <warn class="T">
+    <h2>网页重构警告：<h2>
+        <p>最近一段时间会对整个网页的布局进行重构！</p>
+        <p>重构后的网页操作会很有大变化，因此在这里为大家做一个提醒。</p>
+        <p>但请放心最后的结果一定令大家满意。</p>
+        <p>工作预计在1-2周时间完成。</p>
+  </warn>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script type="module" src="/pindou-draw/js/app.js"></script>
+  <!-- 警告信息，做好布局重构后删除 -->
+  <style>
+    .T {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 20px;
+      margin: auto;
+      display: inline-block;
+      width: 300px;
+      border: 1px solid #d8dbe5;
+      border-radius: 10px;
+      background-color: #ffffff;
+      box-shadow: 0 2px 8px rgba(31, 31, 45, 0.08);
+      transition: all 0.5s;
+    }
+
+    p {
+      margin: 5px;
+    }
+
+    .big {
+      color: red;
+      font-weight: 700;
+    }
+
+    .whr {
+      width: 95%;
+      animation: shrinkWidth 5s forwards linear;
+    }
+
+    @keyframes shrinkWidth {
+      from {
+        width: 95%;
+      }
+
+      to {
+        width: 0px;
+      }
+    }
+  </style>
+  <warn class="T">
+    <p class="big">网页重构警告：</p>
+    <p class="small">接下来2-3周时间为网站换上新装，操作会有些新变化，还请期待！</p>
+    <hr class="whr" />
+  </warn>
+  <script>
+    warnBlock = document.querySelector(".T")
+    setTimeout(() => {
+      warnBlock.style.top = "-100px"
+    }, 5500)
+  </script>
 </body>
 
 </html>
-
-
