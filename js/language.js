@@ -473,6 +473,7 @@ export const TEXT = {
       '<li><strong>1</strong>：切换为铅笔工具</li>',
       '<li><strong>2</strong>：切换为油漆桶工具</li>',
       '<li><strong>3</strong>：切换为吸管工具</li>',
+      '<li><strong>4</strong>：切换为框选工具</li>',
       '<li><strong>A</strong>：开启 / 关闭全屏模式</li>',
       '<li><strong>S</strong>：快速保存 PNG（无色号提示 / 无坐标）</li>',
       '<li><strong>C</strong>：打开 / 关闭参考图选框</li>',
