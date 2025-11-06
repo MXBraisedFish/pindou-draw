@@ -435,6 +435,7 @@ export const TEXT = {
       '<li><strong>滚轮滚动</strong> 可缩放底图比例。</li>',
       '</ul>',
       '</li>',
+      '</ol>',
       '<hr>',
       '<h2>🧱 框选工具操作</h2>',
       '<ol>',
