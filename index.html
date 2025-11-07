@@ -415,13 +415,13 @@
     }
 
     .big {
-      color: red;
+      color: rgb(41, 229, 250);
       font-weight: 700;
     }
 
     .whr {
       width: 95%;
-      animation: shrinkWidth 5s forwards linear;
+      animation: shrinkWidth 7s forwards linear;
     }
 
     @keyframes shrinkWidth {
@@ -435,8 +435,13 @@
     }
   </style>
   <warn class="T">
-    <p class="big">网页重构警告：</p>
-    <p class="small">接下来2-3周时间为网站换上新装，操作会有些新变化，还请期待！</p>
+    <p class="big">感谢大家的热情支持！</p>
+    <p>在连续肝了四天后，UI的重构已经完成。</p>
+    <p>目前正在添加新功能，包括但不限于：</p>
+    <p>自动生成草图</p>
+    <p>多草图拼合</p>
+    <p>……</p>
+    <p>预计在下周就可以上线，敬请期待！</p>
     <hr class="whr" />
   </warn>
   <script>
@@ -446,7 +451,7 @@
       setTimeout(() => {
         warnBlock.style.display = "none";
       }, 1500);
-    }, 5100);
+    }, 7000);
   </script>
 </body>
 
