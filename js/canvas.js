@@ -1,4 +1,4 @@
-﻿import { AXIS_STYLE, DOUBLE_CLICK_MS } from './constants.js';
+﻿import { AXIS_STYLE, DOUBLE_CLICK_MS, SIZE_LIMITS, CANVAS_SIZE_LIMIT, MAX_SAFE_CANVAS_DIMENSION } from './constants.js';
 import { elements } from './elements.js';
 import { state } from './state.js';
 import { cellsEqual, clampAlpha, clampCellSize, computeAxisPadding, pickTextColor } from './utils.js';
@@ -7,39 +7,73 @@ import { updatePaletteSelection, updateCurrentColorInfo, isColorEnabled } from '
 import { renderSelectionLayers } from './selection-layer.js';
 import { resetSelection, isCellSelected, addSelectionRect, subtractSelectionRect, invertSelection, clearSelection, shiftSelectionMask, cloneSelectionState, restoreSelectionState } from './selection.js';
 import { TEXT } from './language.js';
+import { renderAxisLabels, renderGridLines } from './grid-overlay.js';
+import { computeSymmetryTargets, getSymmetryMode } from './symmetry.js';
 const MAX_HISTORY_SIZE = 50;
+const CREATED_AT_FORMATTER = typeof Intl !== 'undefined'
+  ? new Intl.DateTimeFormat('zh-Hans', { dateStyle: 'medium', timeStyle: 'short' })
+  : null;
+let globalMiddleResetBound = false;
+const DISPLAY_MODE_ANIMATION_MS = 300;
+const COLOR_TRANSITION_MODES = new Set(['standard', 'light', 'temperature', 'special', 'night']);
+const TRANSITIONAL_COLOR_TYPES = new Set(['light', 'temperatrue']);
+const DISPLAY_MODE_HINTS = {
+  night: '画布光效：夜光模式',
+  temperature: '画布光效：温变预览',
+  light: '画布光效：光变预览',
+  special: '画布光效：多效联动'
+};
+let displayModeAnimation = null;
+const LARGE_CANVAS_AREA = 512 * 512;
+const LARGE_CANVAS_ZOOM_FACTOR = 1.5;
+let spacePanModifierActive = false;
+let spacePanBindingInitialized = false;
 export function validateCanvasSize(width, height) {
-  return Number.isFinite(width) && Number.isFinite(height) && width >= 1 && height >= 1 && width <= 2048 && height <= 2048;
+  return Number.isFinite(width) && Number.isFinite(height) && width >= 1 && height >= 1 && width <= CANVAS_SIZE_LIMIT && height <= CANVAS_SIZE_LIMIT;
 }
 export function createCanvas(width, height, options = {}) {
   state.width = width;
   state.height = height;
   state.grid = Array.from({ length: height }, () => Array.from({ length: width }, () => null));
   state.panX = state.panY = 0;
+  const providedCreatedAt = options?.createdAt ?? null;
+  const parsedCreatedAt = providedCreatedAt ? new Date(providedCreatedAt) : new Date();
+  state.createdAt = Number.isNaN(parsedCreatedAt.getTime()) ? new Date() : parsedCreatedAt;
   const explicitCellSize = Number.isFinite(options?.cellSize) ? options.cellSize : null;
   const rawRequestedSize = explicitCellSize ?? Number(elements.zoomRange?.value);
-  const initialSize = clampCellSize(Number.isFinite(rawRequestedSize) && rawRequestedSize > 0 ? rawRequestedSize : state.defaultCellSize);
-  state.cellSize = initialSize;
-  state.defaultCellSize = initialSize;
+  const initialRaw = Number.isFinite(rawRequestedSize) && rawRequestedSize > 0 ? rawRequestedSize : state.defaultCellSize;
+  const clampedInitialSize = clampCellSize(initialRaw);
+  const maxCellSize = resolveMaxCellSize();
+  const initialRequested = Math.min(clampedInitialSize, maxCellSize);
+  const { safeCellSize, cssScale } = computeZoomTargets(initialRequested, maxCellSize);
+  state.cellSize = safeCellSize;
+  state.defaultCellSize = safeCellSize;
+  state.zoomValue = initialRequested;
+  state.zoomScale = cssScale;
   if (Number.isFinite(explicitCellSize)) {
-    state.pixelRatio = initialSize;
+    state.pixelRatio = initialRequested;
   }
   else if (!Number.isFinite(state.pixelRatio) || state.pixelRatio <= 0) {
-    state.pixelRatio = initialSize;
+    state.pixelRatio = initialRequested;
   }
-  elements.zoomRange && (elements.zoomRange.value = String(initialSize));
+  applyDynamicZoomLimit();
+  elements.zoomRange && (elements.zoomRange.value = String(state.zoomValue));
   elements.resolutionInput && (elements.resolutionInput.value = String(state.pixelRatio));
   state.baseImage && fitBaseImageToCanvas();
   resizeCanvas();
   updateStageTransform();
   redrawCanvas();
   updateStatusSize();
+  updateStatusCreated();
   updateBaseImageDisplay();
   resetSelection({ suppressRender: true });
   resetSelectionPointerState();
   state.history = [];
   state.historyIndex = -1;
   saveHistory();
+  updateZoomIndicator();
+  updateStatusCreated();
+  updateCanvasOpacityLabel();
 }
 function cloneGrid(grid) {
   if (!Array.isArray(grid)) return [];
@@ -117,28 +151,56 @@ export function undo() {
     return true;
   } return false;
 }
+
 export function setCellSize(size) {
-  const clamped = clampCellSize(size);
-  if (clamped === state.cellSize) return;
-  state.cellSize = clamped;
-  elements.zoomRange && (elements.zoomRange.value = String(clamped));
-  resizeCanvas();
+  const maxCellSize = resolveMaxCellSize();
+  syncZoomRangeBounds(maxCellSize);
+  const target = Number.isFinite(size) ? size : state.zoomValue;
+  const requestedSize = Math.min(clampCellSize(target), maxCellSize);
+  const { safeCellSize, cssScale } = computeZoomTargets(requestedSize, maxCellSize);
+  const previousCellSize = state.cellSize;
+  state.zoomValue = requestedSize;
+  state.zoomScale = cssScale;
+  elements.zoomRange && (elements.zoomRange.value = String(requestedSize));
+  if (safeCellSize !== previousCellSize) {
+    state.cellSize = safeCellSize;
+    resizeCanvas();
+  } else {
+    applyZoomTransform();
+  }
+  updateZoomIndicator(requestedSize);
 }
+
+function applyZoomTransform() {
+  const scale = Number.isFinite(state.zoomScale) && state.zoomScale > 0 ? state.zoomScale : 1;
+  if (!elements.canvasViewport) return;
+  elements.canvasViewport.style.transform = `scale(${scale})`;
+}
+
 export function resizeCanvas() {
   if (!state.width || !state.height) return;
+  applyDynamicZoomLimit();
   state.axisPadding = computeAxisPadding(state.cellSize, state.width, state.height);
   const contentWidth = state.width * state.cellSize, contentHeight = state.height * state.cellSize;
   const pixelWidth = contentWidth + state.axisPadding.left + state.axisPadding.right;
   const pixelHeight = contentHeight + state.axisPadding.top + state.axisPadding.bottom;
-  const layeredCanvases = [elements.baseCanvas, elements.canvas, elements.selectionMaskCanvas, elements.selectionContentCanvas, elements.selectionOutlineCanvas].filter(Boolean);
+  const layeredCanvases = [elements.baseCanvas, elements.canvas, elements.gridCanvas, elements.selectionMaskCanvas, elements.selectionContentCanvas, elements.selectionOutlineCanvas].filter(Boolean);
   layeredCanvases.forEach((canvas) => {
     canvas.width = pixelWidth;
     canvas.height = pixelHeight;
     canvas.style.width = `${pixelWidth}px`;
     canvas.style.height = `${pixelHeight}px`;
   });
-  elements.stage && (elements.stage.style.width = `${pixelWidth}px`, elements.stage.style.height = `${pixelHeight}px`);
+  if (elements.canvasViewport) {
+    elements.canvasViewport.style.width = `${pixelWidth}px`;
+    elements.canvasViewport.style.height = `${pixelHeight}px`;
+  }
+  if (elements.stage) {
+    elements.stage.style.width = `${pixelWidth}px`;
+    elements.stage.style.height = `${pixelHeight}px`;
+  }
   renderSelectionLayers();
+  applyZoomTransform();
   updateStageTransform();
   updateBaseImageDisplay();
   redrawCanvas();
@@ -147,26 +209,30 @@ export function updateStageTransform() {
   elements.stage && (elements.stage.style.transform = `translate(${state.panX}px, ${state.panY}px)`);
 }
 function resetView() {
-  state.cellSize = clampCellSize(state.defaultCellSize);
-  elements.zoomRange && (elements.zoomRange.value = String(state.cellSize));
+  const baseSize = clampCellSize(state.defaultCellSize);
+  state.zoomValue = baseSize;
+  applyZoomTransform();
+  elements.zoomRange && (elements.zoomRange.value = String(baseSize));
   state.panX = state.panY = 0;
-  resizeCanvas();
+  updateStageTransform();
+  updateZoomIndicator();
 }
 export function redrawCanvas() {
   const { ctx, canvas } = elements;
   if (!ctx || !canvas) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   if (!state.width || !state.height) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    typeof document !== 'undefined' && document.dispatchEvent(new CustomEvent('grid:updated'));
+    renderGridLayer();
     return;
   }
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
   const bgAlpha = clampAlpha(state.backgroundOpacity);
   if (bgAlpha > 0) {
     ctx.fillStyle = `rgba(255,255,255,${bgAlpha})`;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-  } const padding = state.axisPadding;
-  const originX = padding.left, originY = padding.top;
+  }
+  const padding = state.axisPadding;
+  const originX = padding.left;
+  const originY = padding.top;
   const cellSize = state.cellSize;
   ctx.save();
   ctx.translate(originX, originY);
@@ -176,96 +242,122 @@ export function redrawCanvas() {
   for (let y = 0; y < state.height; y++) {
     for (let x = 0; x < state.width; x++) {
       const cell = state.grid[y][x];
-      const px = x * cellSize, py = y * cellSize;
-      if (cell) {
-        ctx.fillStyle = cell.color;
-        ctx.fillRect(px, py, cellSize, cellSize);
-        if (state.showCodes) {
-          ctx.fillStyle = pickTextColor(cell.rgb);
-          ctx.fillText(cell.code, px + cellSize / 2, py + cellSize / 2);
-        }
-      }
+      const px = x * cellSize;
+      const py = y * cellSize;
+      if (!cell) continue;
+      const fillColor = resolveCellFill(cell);
+      if (!fillColor) continue;
+      drawCell(ctx, cell, px, py, cellSize, fillColor);
     }
-  } ctx.restore();
-  ctx.save();
-  ctx.translate(originX, originY);
-  ctx.strokeStyle = 'rgba(0, 0, 0, 0.12)';
-  ctx.lineWidth = 1;
-  for (let gx = 0; gx <= state.width; gx++) {
-    const x = gx * cellSize + 0.5;
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, state.height * cellSize);
-    ctx.stroke();
-  }
-  for (let gy = 0; gy <= state.height; gy++) {
-    const y = gy * cellSize + 0.5;
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(state.width * cellSize, y);
-    ctx.stroke();
-  } ctx.restore();
-  drawAxisLabels();
-}
-function drawAxisLabels() {
-  if (!state.width || !state.height || !elements.ctx) return;
-  const padding = state.axisPadding;
-  const cellSize = state.cellSize;
-  const originX = padding.left, originY = padding.top;
-  renderAxisLabels(elements.ctx, { originX, originY, cellSize, widthCells: state.width, heightCells: state.height, textColor: 'rgba(0,0,0,0.65)', tickColor: 'rgba(0,0,0,0.3)' });
-}
-export function renderAxisLabels(ctx, options = {}) {
-  const { originX = 0, originY = 0, cellSize = 10, widthCells = 0, heightCells = 0, textColor = 'rgba(0,0,0,0.65)', tickColor = 'rgba(0,0,0,0.3)', fontSize = Math.max(AXIS_STYLE.minFont, Math.floor(cellSize * 0.4)), tickLength = Math.max(AXIS_STYLE.minTick, Math.floor(fontSize * 0.6)), gap = Math.max(AXIS_STYLE.minGap, Math.floor(fontSize * 0.3)) } = options;
-  if (!ctx) return;
-  ctx.save();
-  ctx.font = `${fontSize}px ${AXIS_STYLE.fontFamily}`;
-  ctx.fillStyle = textColor;
-  ctx.strokeStyle = tickColor;
-  ctx.lineWidth = 1;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'bottom';
-  const topY = originY - gap - tickLength;
-  for (let x = 0; x < widthCells; x++) {
-    const centerX = originX + x * cellSize + cellSize / 2;
-    ctx.beginPath();
-    ctx.moveTo(centerX, originY - 0.5);
-    ctx.lineTo(centerX, originY - tickLength - 0.5);
-    ctx.stroke();
-    ctx.fillText(String(x + 1), centerX, topY);
-  } ctx.textAlign = 'right';
-  ctx.textBaseline = 'middle';
-  const leftX = originX - gap;
-  for (let y = 0; y < heightCells; y++) {
-    const centerY = originY + y * cellSize + cellSize / 2;
-    ctx.beginPath();
-    ctx.moveTo(originX - 0.5, centerY);
-    ctx.lineTo(originX - tickLength - 0.5, centerY);
-    ctx.stroke();
-    ctx.fillText(String(y + 1), leftX, centerY);
-  } ctx.textAlign = 'center';
-  ctx.textBaseline = 'top';
-  const bottomY = originY + heightCells * cellSize + gap + tickLength;
-  for (let x = 0; x < widthCells; x++) {
-    const centerX = originX + x * cellSize + cellSize / 2;
-    ctx.beginPath();
-    ctx.moveTo(centerX, originY + heightCells * cellSize + 0.5);
-    ctx.lineTo(centerX, originY + heightCells * cellSize + tickLength + 0.5);
-    ctx.stroke();
-    ctx.fillText(String(x + 1), centerX, bottomY);
-  } ctx.textAlign = 'left';
-  ctx.textBaseline = 'middle';
-  const rightEdge = originX + widthCells * cellSize + 0.5;
-  const rightLabelX = rightEdge + tickLength + gap;
-  for (let y = 0; y < heightCells; y++) {
-    const centerY = originY + y * cellSize + cellSize / 2;
-    ctx.beginPath();
-    ctx.moveTo(rightEdge, centerY);
-    ctx.lineTo(rightEdge + tickLength, centerY);
-    ctx.stroke();
-    ctx.fillText(String(y + 1), rightLabelX, centerY);
   }
   ctx.restore();
+  renderGridLayer();
+}
+
+export function renderGridLayer() {
+  const { gridCtx, gridCanvas } = elements;
+  if (!gridCtx || !gridCanvas) return;
+  gridCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
+  if (!state.width || !state.height) {
+    typeof document !== 'undefined' && document.dispatchEvent(new CustomEvent('grid:updated'));
+    return;
+  }
+  const padding = state.axisPadding;
+  const originX = padding.left;
+  const originY = padding.top;
+  const cellSize = state.cellSize;
+  gridCtx.save();
+  gridCtx.imageSmoothingEnabled = false;
+  renderGridLines(gridCtx, {
+    originX,
+    originY,
+    cellSize,
+    widthCells: state.width,
+    heightCells: state.height,
+    gridOptions: state.gridOverlay
+  });
+  const axisAlpha = clampAlpha(state.axisOpacity ?? 1);
+  if (axisAlpha > 0) {
+    const textColor = `rgba(0,0,0,${0.65 * axisAlpha})`;
+    const tickColor = `rgba(0,0,0,${0.3 * axisAlpha})`;
+    renderAxisLabels(gridCtx, {
+      originX,
+      originY,
+      cellSize,
+      widthCells: state.width,
+      heightCells: state.height,
+      textColor,
+      tickColor
+    });
+  }
+  drawSymmetryGuides(gridCtx, originX, originY, cellSize);
+  gridCtx.restore();
   typeof document !== 'undefined' && document.dispatchEvent(new CustomEvent('grid:updated'));
+}
+
+function drawSymmetryGuides(ctx, originX, originY, cellSize) {
+  if (!ctx || !state.width || !state.height) return;
+  const mode = typeof getSymmetryMode === 'function' ? getSymmetryMode() : state.symmetryMode;
+  if (!mode || mode === 'none') return;
+  const widthPx = state.width * cellSize;
+  const heightPx = state.height * cellSize;
+  ctx.save();
+  ctx.strokeStyle = 'rgba(32, 142, 255, 0.65)';
+  ctx.lineWidth = Math.max(1, cellSize * 0.08);
+  ctx.setLineDash([Math.max(6, cellSize * 0.9), Math.max(3, cellSize * 0.6)]);
+  ctx.lineCap = 'round';
+
+  const drawVertical = () => {
+    const axisX = originX + widthPx / 2;
+    ctx.beginPath();
+    ctx.moveTo(axisX, originY);
+    ctx.lineTo(axisX, originY + heightPx);
+    ctx.stroke();
+  };
+  const drawHorizontal = () => {
+    const axisY = originY + heightPx / 2;
+    ctx.beginPath();
+    ctx.moveTo(originX, axisY);
+    ctx.lineTo(originX + widthPx, axisY);
+    ctx.stroke();
+  };
+  const drawDiagonalTLBR = () => {
+    ctx.beginPath();
+    ctx.moveTo(originX, originY);
+    ctx.lineTo(originX + widthPx, originY + heightPx);
+    ctx.stroke();
+  };
+  const drawDiagonalTRBL = () => {
+    ctx.beginPath();
+    ctx.moveTo(originX + widthPx, originY);
+    ctx.lineTo(originX, originY + heightPx);
+    ctx.stroke();
+  };
+
+  const drawCenterMarker = () => {
+    const centerX = originX + widthPx / 2;
+    const centerY = originY + heightPx / 2;
+    const radius = Math.max(4, cellSize * 0.65);
+    ctx.save();
+    ctx.fillStyle = 'rgba(32, 142, 255, 0.85)';
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  };
+
+  const includeVertical = mode === 'vertical' || mode === 'cross' || mode === 'octagonal';
+  const includeHorizontal = mode === 'horizontal' || mode === 'cross' || mode === 'octagonal';
+  const includeDiag45 = mode === 'diagonal-45' || mode === 'diagonal-cross' || mode === 'octagonal';
+  const includeDiag135 = mode === 'diagonal-135' || mode === 'diagonal-cross' || mode === 'octagonal';
+  const includeCenter = mode === 'center';
+
+  if (includeVertical) drawVertical();
+  if (includeHorizontal) drawHorizontal();
+  if (includeDiag45) drawDiagonalTLBR();
+  if (includeDiag135) drawDiagonalTRBL();
+  if (includeCenter) drawCenterMarker();
+  ctx.restore();
 }
 function isMiddleDoubleClick(timeStamp) {
   const diff = timeStamp - state.lastMiddleClickTime;
@@ -274,7 +366,25 @@ function isMiddleDoubleClick(timeStamp) {
     return true;
   } state.lastMiddleClickTime = timeStamp;
   return false;
-} const selectionPointerState = { mode: 'idle', pointerId: null, startX: 0, startY: 0, currentX: 0, currentY: 0, offsetX: 0, offsetY: 0 };
+}
+
+function ensureGlobalMiddleResetHandler() {
+  if (globalMiddleResetBound || typeof window === 'undefined') return;
+  const handlePointerDown = (ev) => {
+    if (ev.button !== 1) return;
+    if (ev.pointerType && ev.pointerType !== 'mouse') return;
+    if (!state.width || !state.height) return;
+    if (elements.canvas?.contains(ev.target)) return;
+    if (isMiddleDoubleClick(ev.timeStamp)) {
+      ev.preventDefault();
+      resetView();
+    }
+  };
+  window.addEventListener('pointerdown', handlePointerDown);
+  globalMiddleResetBound = true;
+}
+
+const selectionPointerState = { mode: 'idle', pointerId: null, startX: 0, startY: 0, currentX: 0, currentY: 0, offsetX: 0, offsetY: 0 };
 const selectionDoubleClickTime = { left: 0, right: 0 };
 function getCanvasCoordinates(ev) {
   if (!elements.canvas) return null;
@@ -314,6 +424,51 @@ function resetSelectionPointerState() {
   state.selection.preview = null;
   renderSelectionLayers();
 }
+function resolveMaxCellSize() {
+  if (!state.width || !state.height) return SIZE_LIMITS.maxCell;
+  const area = state.width * state.height;
+  if (area >= LARGE_CANVAS_AREA) {
+    const base = state.defaultCellSize || SIZE_LIMITS.minCell;
+    const scaled = Math.round(base * LARGE_CANVAS_ZOOM_FACTOR);
+    return Math.max(SIZE_LIMITS.minCell, Math.min(SIZE_LIMITS.maxCell, scaled));
+  }
+  return SIZE_LIMITS.maxCell;
+}
+
+function computeCanvasDimensionCap() {
+  if (!state.width || !state.height) return SIZE_LIMITS.maxCell;
+  const widthLimit = Math.max(1, Math.floor(MAX_SAFE_CANVAS_DIMENSION / Math.max(state.width, 1)));
+  const heightLimit = Math.max(1, Math.floor(MAX_SAFE_CANVAS_DIMENSION / Math.max(state.height, 1)));
+  const dimensionLimit = Math.max(SIZE_LIMITS.minCell, Math.min(widthLimit, heightLimit));
+  return Math.min(SIZE_LIMITS.maxCell, dimensionLimit);
+}
+
+function computeZoomTargets(requestedSize, maxCellSize) {
+  const safeCap = Math.min(maxCellSize, computeCanvasDimensionCap());
+  const safeCellSize = Math.max(SIZE_LIMITS.minCell, Math.min(safeCap, requestedSize));
+  const cssScale = safeCellSize > 0 ? requestedSize / safeCellSize : 1;
+  return { safeCellSize, cssScale };
+}
+function syncZoomRangeBounds(maxCellSize) {
+  if (!elements.zoomRange) return;
+  elements.zoomRange.min = String(SIZE_LIMITS.minCell);
+  elements.zoomRange.max = String(maxCellSize);
+}
+function applyDynamicZoomLimit() {
+  const maxCellSize = resolveMaxCellSize();
+  syncZoomRangeBounds(maxCellSize);
+  if (state.zoomValue > maxCellSize) {
+    state.zoomValue = maxCellSize;
+    if (elements.zoomRange) {
+      elements.zoomRange.value = String(maxCellSize);
+    }
+    const { safeCellSize, cssScale } = computeZoomTargets(maxCellSize, maxCellSize);
+    state.cellSize = safeCellSize;
+    state.zoomScale = cssScale;
+    updateZoomIndicator(maxCellSize);
+  }
+  return maxCellSize;
+}
 function isSelectionDoubleClick(button, timeStamp) {
   const last = selectionDoubleClickTime[button] || 0;
   if (timeStamp - last > 0 && timeStamp - last <= DOUBLE_CLICK_MS) {
@@ -325,6 +480,8 @@ function isSelectionDoubleClick(button, timeStamp) {
 export function prepareCanvasInteractions() {
   let pointerState = null;
   if (!elements.canvas) return;
+  ensureGlobalMiddleResetHandler();
+  ensureSpacePanBinding();
   elements.canvas.addEventListener('contextmenu', (ev) => ev.preventDefault());
   elements.canvas.addEventListener('pointerdown', (ev) => {
     if (!state.width || !state.height) return;
@@ -334,19 +491,23 @@ export function prepareCanvasInteractions() {
         resetView();
         return;
       }
-    } if (state.baseEditing && state.baseImage && ev.button === 0) {
+    }
+    const isSpacePan = ev.button === 0 && spacePanModifierActive;
+    if (state.baseEditing && state.baseImage && ev.button === 0) {
       ev.preventDefault();
       pointerState = { type: 'baseMove', pointerId: ev.pointerId, startX: ev.clientX, startY: ev.clientY, originOffsetX: state.baseOffsetX, originOffsetY: state.baseOffsetY };
       elements.canvas.setPointerCapture(ev.pointerId);
       elements.canvas.classList.add('is-base-dragging');
       return;
-    } if (ev.button === 1) {
+    }
+    if (ev.button === 1 || isSpacePan) {
       ev.preventDefault();
       pointerState = { type: 'pan', pointerId: ev.pointerId, startX: ev.clientX, startY: ev.clientY, originPanX: state.panX, originPanY: state.panY };
       elements.canvas.setPointerCapture(ev.pointerId);
       elements.canvas.classList.add('is-panning');
       return;
-    } if (state.baseEditing || state.currentTool === 'selection') return;
+    }
+    if (state.baseEditing || state.currentTool === 'selection') return;
     if (ev.button !== 0 && ev.button !== 2) return;
     pointerState = { type: 'paint', pointerId: ev.pointerId, button: ev.button };
     elements.canvas.setPointerCapture(ev.pointerId);
@@ -496,8 +657,8 @@ export function handleWheelEvent(ev) {
     applyBaseScale(state.baseScale * factor, pointerCellX, pointerCellY);
     return;
   } const factor = ev.deltaY < 0 ? 1.1 : 0.9;
-  const newSize = clampCellSize(state.cellSize * factor);
-  if (newSize === state.cellSize) return;
+  const newSize = clampCellSize(state.zoomValue * factor);
+  if (newSize === state.zoomValue) return;
   setCellSize(newSize);
 }
 function paintAtPointer(ev, button) {
@@ -517,30 +678,50 @@ function paintAtPointer(ev, button) {
       setTool(state.previousTool && state.previousTool !== 'eyedropper' ? state.previousTool : 'pencil');
       return;
     }
-  } if (state.currentTool === 'bucket') {
+  }
+  if (state.currentTool === 'bucket') {
     if (!isCellEditable(x, y)) return;
     if (button === 0) {
       const colorEntry = resolvePaintColor(x, y);
       colorEntry && bucketFill(x, y, colorEntry);
       return;
-    } if (button === 2) {
+    }
+    if (button === 2) {
       bucketFill(x, y, null);
       return;
     }
-  } if (button === 2) {
-    if (!isCellEditable(x, y)) return;
-    if (state.grid[y][x]) {
-      state.grid[y][x] = null;
+  }
+  const targets = computeSymmetryTargets(x, y);
+  if (!targets.length) return;
+  if (button === 2) {
+    let cleared = false;
+    targets.forEach(({ x: tx, y: ty }) => {
+      if (!isCellEditable(tx, ty)) return;
+      if (state.grid[ty][tx]) {
+        state.grid[ty][tx] = null;
+        cleared = true;
+      }
+    });
+    if (cleared) {
       redrawCanvas();
       refreshSelectionOverlay();
       saveHistory();
-    } return;
-  } if (!isCellEditable(x, y)) return;
+    }
+    return;
+  }
+  if (button !== 0) return;
   const colorEntry = resolvePaintColor(x, y);
   if (!colorEntry) return;
-  const cell = state.grid[y][x];
-  if (!cell || cell.code !== colorEntry.code) {
-    state.grid[y][x] = colorEntry;
+  let painted = false;
+  targets.forEach(({ x: tx, y: ty }) => {
+    if (!isCellEditable(tx, ty)) return;
+    const cell = state.grid[ty][tx];
+    if (!cell || cell.code !== colorEntry.code) {
+      state.grid[ty][tx] = colorEntry;
+      painted = true;
+    }
+  });
+  if (painted) {
     redrawCanvas();
     refreshSelectionOverlay();
     saveHistory();
@@ -587,15 +768,248 @@ function resolvePaintColor(x, y) {
     return state.palette[firstEnabled];
   } return null;
 }
-export function updateCanvasOpacityLabel() {
-  if (!elements.canvasOpacityValue) return;
-  const percent = Math.round(clampAlpha(state.backgroundOpacity) * 100);
-  elements.canvasOpacityValue.textContent = `${percent}%`;
+
+function resolveCellFill(cell) {
+  const color = resolveCellColor(cell);
+  if (!color) return null;
+  const finalAlpha = clampAlpha(color.alpha);
+  if (finalAlpha >= 1) {
+    return `rgb(${color.r}, ${color.g}, ${color.b})`;
+  }
+  return `rgba(${color.r}, ${color.g}, ${color.b}, ${finalAlpha})`;
 }
+
+function resolveCellColor(cell) {
+  if (!cell?.rgb) return null;
+  const animation = getDisplayModeAnimationState();
+  if (animation) {
+    const fromColor = resolveCellColorForMode(cell, animation.fromMode);
+    const toColor = resolveCellColorForMode(cell, animation.toMode);
+    return interpolateCellColor(fromColor, toColor, animation.progress);
+  }
+  return resolveCellColorForMode(cell, state.displayMode ?? 'standard');
+}
+
+function resolveCellColorForMode(cell, mode) {
+  const type = cell.type ?? 'normal';
+  const baseAlpha = Number.isFinite(cell.alpha) ? cell.alpha : 1;
+  let r = cell.rgb?.r ?? 0;
+  let g = cell.rgb?.g ?? 0;
+  let b = cell.rgb?.b ?? 0;
+  let alpha = baseAlpha;
+  if (TRANSITIONAL_COLOR_TYPES.has(type) && cell.transition) {
+    const stage = getSpecialColorStage(type, mode);
+    const source = stage === 'activated' ? cell.transition.to : cell.transition.from;
+    if (source?.rgb) {
+      ({ r, g, b } = source.rgb);
+      alpha = Number.isFinite(source.alpha) ? source.alpha : alpha;
+    }
+  }
+  if (mode === 'night' && type !== 'glow') {
+    ({ r, g, b } = applyNightTone(r, g, b));
+  }
+  return { r, g, b, alpha };
+}
+
+function getSpecialColorStage(type, mode) {
+  if (type === 'light') {
+    return mode === 'light' || mode === 'special' ? 'activated' : 'base';
+  }
+  if (type === 'temperatrue') {
+    return mode === 'temperature' || mode === 'special' ? 'activated' : 'base';
+  }
+  return 'base';
+}
+
+function interpolateCellColor(fromColor, toColor, progress) {
+  const start = fromColor || toColor;
+  const end = toColor || fromColor;
+  if (!start || !end) return start || end;
+  const t = Math.min(1, Math.max(0, progress ?? 0));
+  const r = Math.round(start.r + (end.r - start.r) * t);
+  const g = Math.round(start.g + (end.g - start.g) * t);
+  const b = Math.round(start.b + (end.b - start.b) * t);
+  const alpha = start.alpha + (end.alpha - start.alpha) * t;
+  return { r, g, b, alpha };
+}
+
+function getDisplayModeAnimationState() {
+  if (!displayModeAnimation) return null;
+  if (!shouldAnimateDisplayMode(displayModeAnimation.fromMode, displayModeAnimation.toMode)) {
+    return null;
+  }
+  return displayModeAnimation;
+}
+
+function shouldAnimateDisplayMode(fromMode, toMode) {
+  if (fromMode === toMode) return false;
+  return COLOR_TRANSITION_MODES.has(fromMode) || COLOR_TRANSITION_MODES.has(toMode);
+}
+
+function startDisplayModeAnimation(fromMode, toMode) {
+  cancelDisplayModeAnimation();
+  if (typeof window === 'undefined') {
+    redrawCanvas();
+    return;
+  }
+  const startTime = window.performance?.now?.() ?? Date.now();
+  const step = (timestamp) => {
+    if (!displayModeAnimation) return;
+    const elapsed = timestamp - displayModeAnimation.startTime;
+    const progress = Math.min(1, DISPLAY_MODE_ANIMATION_MS > 0 ? elapsed / DISPLAY_MODE_ANIMATION_MS : 1);
+    displayModeAnimation.progress = progress;
+    redrawCanvas();
+    if (progress < 1) {
+      displayModeAnimation.raf = window.requestAnimationFrame(step);
+    } else {
+      cancelDisplayModeAnimation();
+      redrawCanvas();
+    }
+  };
+  displayModeAnimation = { fromMode, toMode, startTime, progress: 0, raf: window.requestAnimationFrame(step) };
+}
+
+function cancelDisplayModeAnimation() {
+  if (displayModeAnimation?.raf && typeof window !== 'undefined') {
+    window.cancelAnimationFrame(displayModeAnimation.raf);
+  }
+  displayModeAnimation = null;
+}
+
+function drawCell(ctx, cell, px, py, cellSize, fillColor) {
+  if (state.pixelShape === 'circle') {
+    const lineWidth = Math.max(1, cellSize * 0.25);
+    const radius = Math.max(1, (cellSize - lineWidth) / 2);
+    ctx.strokeStyle = fillColor;
+    ctx.lineWidth = lineWidth;
+    ctx.beginPath();
+    ctx.arc(px + cellSize / 2, py + cellSize / 2, radius, 0, Math.PI * 2);
+    ctx.stroke();
+    if (cell.type === 'pearlescent') {
+      applyPearlescentGloss(ctx, px, py, cellSize, true);
+    }
+  } else {
+    ctx.fillStyle = fillColor;
+    ctx.fillRect(px, py, cellSize, cellSize);
+    if (cell.type === 'pearlescent') {
+      applyPearlescentGloss(ctx, px, py, cellSize, false);
+    }
+  }
+  if (state.showCodes) {
+    ctx.fillStyle = resolveCellLabelColor(cell);
+    ctx.fillText(cell.code, px + cellSize / 2, py + cellSize / 2);
+  }
+}
+
+function resolveCellLabelColor(cell) {
+  if (state.pixelShape === 'circle') {
+    return state.displayMode === 'night' ? '#ffffff' : '#1f1f1f';
+  }
+  return pickTextColor(cell?.rgb ?? { r: 0, g: 0, b: 0 });
+}
+
+function applyNightTone(r, g, b) {
+  const factor = 0.4;
+  return {
+    r: Math.floor(r * factor),
+    g: Math.floor(g * factor),
+    b: Math.floor(b * factor)
+  };
+}
+
+function applyPearlescentGloss(ctx, px, py, size, isCircle) {
+  if (isCircle) {
+    const gradient = ctx.createLinearGradient(px, py, px + size, py + size);
+    gradient.addColorStop(0, 'rgba(255,255,255,0.85)');
+    gradient.addColorStop(0.6, 'rgba(255,255,255,0.15)');
+    gradient.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.save();
+    ctx.lineWidth = Math.max(1, size * 0.18);
+    ctx.strokeStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(px + size / 2, py + size / 2, size / 2 - ctx.lineWidth / 2, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+    return;
+  }
+  ctx.save();
+  const gradient = ctx.createLinearGradient(px, py, px + size, py + size);
+  gradient.addColorStop(0, 'rgba(255,255,255,0.65)');
+  gradient.addColorStop(0.4, 'rgba(255,255,255,0.25)');
+  gradient.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(px, py, size, size);
+  ctx.restore();
+}
+export function updateCanvasOpacityLabel() {
+  const alpha = clampAlpha(state.backgroundOpacity);
+  const percent = Math.round(alpha * 100);
+  if (elements.canvasOpacityValue) {
+    elements.canvasOpacityValue.textContent = `${percent}%`;
+  }
+}
+
 function updateStatusSize() {
   if (!elements.statusSize) return;
   elements.statusSize.textContent = state.width && state.height ? `${state.width} × ${state.height}` : TEXT.status.canvasNotCreated;
 }
+
+export function updateStatusCreated() {
+  if (!elements.statusCreated) return;
+  const date = state.createdAt instanceof Date
+    ? state.createdAt
+    : (state.createdAt ? new Date(state.createdAt) : null);
+  if (!date || Number.isNaN(date.getTime())) {
+    elements.statusCreated.textContent = TEXT.status.canvasNotCreated;
+    return;
+  }
+  try {
+    elements.statusCreated.textContent = CREATED_AT_FORMATTER
+      ? CREATED_AT_FORMATTER.format(date)
+      : date.toLocaleString();
+  } catch (error) {
+    elements.statusCreated.textContent = date.toLocaleString();
+  }
+}
+
+export function updateZoomIndicator(customSize = state.zoomValue) {
+  if (!elements.zoomValue) return;
+  const size = Number.isFinite(customSize) && customSize > 0 ? customSize : state.zoomValue;
+  const base = state.defaultCellSize || size || 1;
+  const percent = Math.round((size / base) * 100);
+  elements.zoomValue.textContent = `${percent}%`;
+}
+export function setDisplayMode(mode) {
+  const nextMode = typeof mode === 'string' && mode ? mode : 'standard';
+  const previousMode = state.displayMode ?? 'standard';
+  if (previousMode === nextMode) return;
+  state.displayMode = nextMode;
+  updateDisplayModeToast(nextMode);
+  if (shouldAnimateDisplayMode(previousMode, nextMode)) {
+    startDisplayModeAnimation(previousMode, nextMode);
+  } else {
+    cancelDisplayModeAnimation();
+    redrawCanvas();
+  }
+}
+
+function updateDisplayModeToast(mode = state.displayMode ?? 'standard') {
+  const toast = elements.displayModeToast;
+  if (!toast) return;
+  const normalized = typeof mode === 'string' && mode ? mode : 'standard';
+  const label = DISPLAY_MODE_HINTS[normalized] || '画布光效：标准/白昼';
+  const shouldShow = Boolean(label !== '画布光效：标准/白昼');
+  if (shouldShow) {
+    toast.textContent = label;
+    toast.dataset.mode = normalized;
+  } else {
+    toast.textContent = '画布光效：标准/白昼';
+    toast.removeAttribute('data-mode');
+  }
+  toast.classList.toggle('is-visible', shouldShow);
+  toast.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
+}
+
 export function setTool(tool) {
   if (state.currentTool === tool) return;
   if (state.currentTool !== 'eyedropper') state.previousTool = state.currentTool;
@@ -604,12 +1018,13 @@ export function setTool(tool) {
   updateCanvasCursorState();
 }
 export function updateToolButtons() {
-  if (!elements.toolPencilBtn || !elements.toolBucketBtn || !elements.toolEyedropperBtn || !elements.toolSelectionBtn) return;
-  const mapping = { pencil: elements.toolPencilBtn, bucket: elements.toolBucketBtn, eyedropper: elements.toolEyedropperBtn, selection: elements.toolSelectionBtn };
-  Object.entries(mapping).forEach(([key, btn]) => {
-    const active = state.currentTool === key;
-    btn.classList.toggle('active', active);
-    btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+  if (!elements.toolButtons?.length) return;
+  elements.toolButtons.forEach((button) => {
+    const tool = button.dataset.tool;
+    if (!tool) return;
+    const isCurrent = state.currentTool === tool;
+    button.classList.toggle('tool-button--selected', isCurrent);
+    button.setAttribute('aria-pressed', isCurrent ? 'true' : 'false');
   });
 }
 export function isCanvasDirty() {
@@ -625,3 +1040,50 @@ export function clearDrawingGrid() {
     state.grid[y]?.fill(null);
   } redrawCanvas();
 }
+
+function ensureSpacePanBinding() {
+  if (spacePanBindingInitialized) return;
+  spacePanBindingInitialized = true;
+  document.addEventListener('keydown', handleSpacePanKeyDown, true);
+  document.addEventListener('keyup', handleSpacePanKeyUp, true);
+  window.addEventListener('blur', resetSpacePanModifier);
+}
+
+function handleSpacePanKeyDown(event) {
+  if (event.code !== 'Space' && event.key !== ' ') return;
+  if (shouldIgnoreSpacePanTarget(event.target)) return;
+  if (!spacePanModifierActive) {
+    event.preventDefault();
+    setSpacePanModifier(true);
+  } else {
+    event.preventDefault();
+  }
+}
+
+function handleSpacePanKeyUp(event) {
+  if (event.code !== 'Space' && event.key !== ' ') return;
+  setSpacePanModifier(false);
+}
+
+function resetSpacePanModifier() {
+  setSpacePanModifier(false);
+}
+
+function setSpacePanModifier(state) {
+  spacePanModifierActive = Boolean(state);
+  if (!elements.canvas) return;
+  elements.canvas.classList.toggle('pan-modifier', spacePanModifierActive);
+}
+
+function shouldIgnoreSpacePanTarget(target) {
+  if (!target) return false;
+  const tagName = target.tagName || '';
+  if (/^(input|textarea|select)$/i.test(tagName)) return true;
+  return Boolean(target.isContentEditable);
+}
+
+if (typeof window !== 'undefined') {
+  updateDisplayModeToast();
+}
+
+

@@ -1,26 +1,27 @@
-import { state } from './state.js';
-import { renderExportCanvas } from './exporter.js';
+﻿import { state } from './state.js';
+import { renderExportCanvas, resolveExportCellStage, resolveExportColorForCode, drawExportPixel, computeExportInfoScale } from './exporter.js';
 import { computeAxisPadding } from './utils.js';
 import { EXPORT_SCALE } from './constants.js';
+import { renderAxisLabels, renderGridLines } from './grid-overlay.js';
 import { computeHighlightRegions, drawHighlightRegionOutline } from './highlight-outline.js';
 import { getUsedColors } from './color-usage-cache.js';
 import { TEXT } from './language.js';
 
-const PIXEL_FONT_FAMILY = '"PixelFont", "Segoe UI", "Microsoft YaHei", sans-serif';
-const AXIS_STYLE = {
-    minFont: 12,
-    minTick: 6,
-    minGap: 6,
-    fontFamily: PIXEL_FONT_FAMILY
-};
+const PIXEL_FONT_FAMILY = '"Segoe UI", "Microsoft YaHei", "SimHei", "Arial", sans-serif';
+const FALLBACK_RGB = { r: 0, g: 0, b: 0 };
 
 class ExportHighlightManager {
     constructor() {
         this.selectedColors = new Set();
         this.usedColors = [];
         this.isInitialized = false;
-        this.cellSize = EXPORT_SCALE; // 使用导出倍率作为高亮绘制的默认像素尺寸
+        this.cellSize = EXPORT_SCALE;
         this.currentFilterText = '';
+        this.listContainer = null;
+        this.filterDebounceTimer = null;
+        this.renderJob = null;
+        this.selectedCountEl = null;
+        this.totalCountEl = null;
     }
 
     initialize() {
@@ -32,7 +33,10 @@ class ExportHighlightManager {
 
     bindEvents() {
         const colorList = document.getElementById('highlightColorList');
-        this.listContainer = colorList;
+        this.listContainer = colorList?.querySelector('.highlight-list-content') ?? colorList;
+        this.selectedCountEl = document.getElementById('highlightSelectedCount');
+        this.totalCountEl = document.getElementById('highlightTotalCount');
+
         colorList?.addEventListener('click', (event) => {
             const item = event.target.closest('.highlight-color-item');
             if (item) this.toggleColorSelection(item.dataset.code);
@@ -65,6 +69,7 @@ class ExportHighlightManager {
         this.usedColors = this.collectUsedColors();
         this.clearFilterDebounce();
         this.renderColorList(this.currentFilterText);
+        this.updateSelectionSummary();
     }
 
     collectUsedColors() {
@@ -72,7 +77,7 @@ class ExportHighlightManager {
     }
 
     renderColorList(filterText = this.currentFilterText) {
-        const container = this.listContainer ?? document.getElementById('highlightColorList');
+        const container = this.listContainer ?? document.getElementById('highlightColorList')?.querySelector('.highlight-list-content');
         if (!container) return;
 
         const rawInput = typeof filterText === 'string' ? filterText.trim() : '';
@@ -84,14 +89,20 @@ class ExportHighlightManager {
             : this.usedColors;
 
         this.cancelPendingRender();
+        const colorOptions = this.getExportColorOptions();
+
+        const selectedStateLabel = TEXT.highlight.stateSelected ?? '��ѡ';
+        const unselectedStateLabel = TEXT.highlight.stateUnselected ?? 'δѡ';
 
         if (!filteredColors.length) {
-            container.innerHTML = `<div class="highlight-color-empty">${TEXT.highlight.noMatch}</div>`;
+            container.innerHTML = `<div class="highlight-empty">${TEXT.highlight.noMatch}</div>`;
+            this.updateSelectionSummary();
             return;
         }
 
         container.innerHTML = '';
 
+        const treatAsFullSelection = this.isAllColorsSelected(this.selectedColors);
         let index = 0;
         const chunkSize = 160;
         const renderChunk = () => {
@@ -100,22 +111,28 @@ class ExportHighlightManager {
             for (; index < end; index += 1) {
                 const color = filteredColors[index];
                 if (!color) continue;
-                const item = document.createElement('div');
-                item.className = 'highlight-color-item';
+                const stage = resolveExportColorForCode(color.code, color, colorOptions);
+                const swatchColor = stage?.color ?? color.color;
+                const isSelected = !treatAsFullSelection && this.selectedColors.has(color.code);
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'highlight-color-item export-highlight-color-item';
+                if (isSelected) item.classList.add('is-selected');
                 item.dataset.code = color.code;
-
-                if (this.selectedColors.has(color.code)) {
-                    item.classList.add('selected');
-                }
+                item.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+                const stateLabel = isSelected ? selectedStateLabel : unselectedStateLabel;
 
                 item.innerHTML = `
-        <div class="highlight-color-checkbox ${this.selectedColors.has(color.code) ? 'checked' : ''}"></div>
-        <div class="highlight-color-swatch" style="background: ${color.color}"></div>
-        <div class="highlight-color-info">
-          <div class="highlight-color-code">${color.code}</div>
-          <div class="highlight-color-count">${TEXT.highlight.colorCount(color.count)}</div>
-        </div>
-      `;
+            <div class="highlight-color-cell">
+                <span class="highlight-color-swatch" style="background: ${swatchColor}"></span>
+            </div>
+            <div class="highlight-color-code" title="${color.code}">${color.code}</div>
+            <div class="highlight-color-count" title="${TEXT.highlight.colorCount?.(color.count) ?? ''}">${color.count.toLocaleString()}</div>
+            <div class="highlight-color-select" title="${stateLabel}">
+                <span class="highlight-select-icon ${isSelected ? 'is-selected' : ''}" aria-hidden="true"></span>
+                <span class="sr-only">${stateLabel}</span>
+            </div>
+        `;
 
                 fragment.appendChild(item);
             }
@@ -130,6 +147,7 @@ class ExportHighlightManager {
         };
 
         renderChunk();
+        this.updateSelectionSummary();
     }
 
     toggleColorSelection(colorCode) {
@@ -142,6 +160,7 @@ class ExportHighlightManager {
         }
 
         this.renderColorList(this.currentFilterText);
+        this.updateSelectionSummary();
         this.updatePreview();
         this.updateFormatRestrictions();
         document.dispatchEvent(new CustomEvent('highlightColorsChanged'));
@@ -150,6 +169,7 @@ class ExportHighlightManager {
     selectAllColors() {
         this.usedColors.forEach((color) => this.selectedColors.add(color.code));
         this.renderColorList(this.currentFilterText);
+        this.updateSelectionSummary();
         this.updatePreview();
         this.updateFormatRestrictions();
         document.dispatchEvent(new CustomEvent('highlightColorsChanged'));
@@ -158,6 +178,7 @@ class ExportHighlightManager {
     deselectAllColors() {
         this.selectedColors.clear();
         this.renderColorList(this.currentFilterText);
+        this.updateSelectionSummary();
         this.updatePreview();
         this.updateFormatRestrictions();
         document.dispatchEvent(new CustomEvent('highlightColorsChanged'));
@@ -190,6 +211,15 @@ class ExportHighlightManager {
         this.filterDebounceTimer = null;
     }
 
+    updateSelectionSummary() {
+        if (this.selectedCountEl) {
+            this.selectedCountEl.textContent = String(this.selectedColors.size);
+        }
+        if (this.totalCountEl) {
+            this.totalCountEl.textContent = String(this.usedColors.length);
+        }
+    }
+
     updatePreview() {
         if (typeof window.updateExportPreview === 'function') {
             window.updateExportPreview();
@@ -197,7 +227,7 @@ class ExportHighlightManager {
     }
 
     handleFormatChange(format) {
-        if (this.selectedColors.size > 0 && !this.isFormatSupported(format)) {
+        if (this.hasHighlight() && !this.isFormatSupported(format)) {
             this.showMessage(TEXT.highlight.formatUnsupported, 'error');
             return;
         }
@@ -207,7 +237,7 @@ class ExportHighlightManager {
 
     updateFormatRestrictions() {
         const formatRadios = document.querySelectorAll('input[name="exportFormat"]');
-        const hasHighlight = this.selectedColors.size > 0;
+        const hasHighlight = this.hasHighlight();
 
         formatRadios.forEach((radio) => {
             if (hasHighlight && !this.isFormatSupported(radio.value)) {
@@ -249,27 +279,37 @@ class ExportHighlightManager {
         }, 3000);
     }
 
-    async exportAllHighlightedImages() {
-        if (this.usedColors.length === 0) {
-            this.showMessage(TEXT.highlight.noExportableColors, 'error');
+    async exportAllHighlightedImages(options = {}) {
+        return this.exportColorCollection(this.usedColors, {
+            archiveSuffix: 'color-highlights',
+            successMessage: TEXT.highlight.exportFinished,
+            ...options
+        });
+    }
+
+    async exportColorCollection(colors, options = {}) {
+        const { archiveSuffix, successMessage, silent = false } = options;
+
+        if (!colors.length) {
+            if (!silent) this.showMessage(TEXT.highlight.noExportableColors, 'error');
             return;
         }
 
         if (!window.JSZip) {
-            this.showMessage(TEXT.highlight.zipMissing, 'error');
+            if (!silent) this.showMessage(TEXT.highlight.zipMissing, 'error');
             return;
         }
 
-        this.showProgress(TEXT.highlight.progressGenerating, this.usedColors.length);
+        this.showProgress(TEXT.highlight.progressGenerating, colors.length);
 
         try {
             const zip = new JSZip();
             const baseFilename = document.getElementById('exportFilename')?.value || TEXT.highlight.defaultFilename;
             const settings = this.getExportSettings();
 
-            for (let i = 0; i < this.usedColors.length; i += 1) {
-                const color = this.usedColors[i];
-                this.updateProgress(i + 1, this.usedColors.length, TEXT.highlight.progressExportingColor(color.code));
+            for (let i = 0; i < colors.length; i += 1) {
+                const color = colors[i];
+                this.updateProgress(i + 1, colors.length, TEXT.highlight.progressExportingColor(color.code));
 
                 const canvas = await this.renderSingleColorHighlight(color.code, settings);
                 const blob = await this.canvasToBlob(canvas, settings.format);
@@ -277,24 +317,32 @@ class ExportHighlightManager {
                 zip.file(filename, blob);
             }
 
-            this.updateProgress(this.usedColors.length, this.usedColors.length, TEXT.highlight.progressAllDone);
+            this.updateProgress(colors.length, colors.length, TEXT.highlight.progressAllDone);
             const zipBlob = await zip.generateAsync({ type: 'blob' });
-            this.downloadZip(zipBlob, `${baseFilename}-color-highlights.zip`);
-            this.showMessage(TEXT.highlight.exportFinished, 'info');
+            const archiveName = `${baseFilename}-${archiveSuffix || 'color-highlights'}.zip`;
+            this.downloadZip(zipBlob, archiveName);
+            if (!silent && successMessage) {
+                this.showMessage(successMessage, 'info');
+            }
         } catch (error) {
             console.error(TEXT.highlight.exportErrorConsole, error);
-            this.showMessage(TEXT.highlight.exportErrorMessage(error?.message ?? ''), 'error');
+            if (!silent) {
+                this.showMessage(TEXT.highlight.exportErrorMessage(error?.message ?? ''), 'error');
+            }
+            throw error;
         } finally {
             this.hideProgress();
         }
     }
 
     getExportSettings() {
-        const includeCodes = document.querySelector('input[name="includeCodes"]:checked')?.value === 'true';
-        const includeAxes = document.querySelector('input[name="includeAxes"]:checked')?.value === 'true';
+        const includeCodes = Boolean(document.querySelector('input[name="includeCodes"]')?.checked);
+        const includeAxes = Boolean(document.querySelector('input[name="includeAxes"]')?.checked);
+        const includeLightColors = document.querySelector('input[name="includeLightColors"]')?.checked !== false;
+        const includeTemperatureColors = document.querySelector('input[name="includeTemperatureColors"]')?.checked !== false;
         const format = document.querySelector('input[name="exportFormat"]:checked')?.value || 'image/png';
         const backgroundType = document.querySelector('input[name="backgroundType"]:checked')?.value;
-        const pickedColor = document.getElementById('exportBackgroundColor')?.value || '#ffffff';
+        const pickedColor = (document.getElementById('exportBackgroundColor')?.value || '#ffffff').toUpperCase();
         const useTransparent = backgroundType === 'transparent';
 
         const backgroundColor = format === 'image/jpeg' && useTransparent
@@ -308,9 +356,19 @@ class ExportHighlightManager {
         return {
             includeCodes,
             includeAxes,
+            includeLightColors,
+            includeTemperatureColors,
             backgroundType: format === 'image/jpeg' && useTransparent ? 'solid' : backgroundType,
             backgroundColor,
             format
+        };
+    }
+
+    getExportColorOptions() {
+        const settings = state.exportSettings || {};
+        return {
+            includeLightColors: settings.includeLightColors !== false,
+            includeTemperatureColors: settings.includeTemperatureColors !== false
         };
     }
 
@@ -327,20 +385,31 @@ class ExportHighlightManager {
         const {
             includeCodes = false,
             includeAxes = false,
+            includeLightColors = true,
+            includeTemperatureColors = true,
             backgroundColor = '#ffffff'
         } = options;
 
-        this.updateUsedColors();
-
         const ctx = canvas.getContext('2d');
+        const colorOptions = { includeLightColors, includeTemperatureColors };
         const allColorsSelected = this.isAllColorsSelected(selectedColors);
 
         if (selectedColors.size === 0 || allColorsSelected) {
-            renderExportCanvas(canvas, { includeCodes, includeAxes, backgroundColor });
+            renderExportCanvas(canvas, {
+                includeCodes,
+                includeAxes,
+                includeLightColors,
+                includeTemperatureColors,
+                backgroundColor,
+                hasHighlight: false
+            });
             return canvas;
         }
 
+        const stageCache = Array.from({ length: state.height }, () => Array(state.width));
         const factor = this.cellSize;
+        const layoutScale = computeExportInfoScale(state.width, state.height);
+        const spacingScale = Math.min(layoutScale, 3.2);
         const axisPadding = includeAxes
             ? computeAxisPadding(factor, state.width, state.height)
             : { top: 0, right: 0, bottom: 0, left: 0 };
@@ -349,31 +418,38 @@ class ExportHighlightManager {
         const drawingWidth = contentWidth + axisPadding.left + axisPadding.right;
         const drawingHeight = contentHeight + axisPadding.top + axisPadding.bottom;
 
-        const pagePaddingX = Math.max(40, Math.round(factor * 0.8));
-        const pagePaddingY = Math.max(40, Math.round(factor * 0.8));
-        const headingFont = Math.max(28, Math.round(factor * 0.65));
-        const headingGap = Math.max(16, Math.round(factor * 0.32));
-        const sectionGap = Math.max(28, Math.round(factor * 0.56));
-        const totalFont = Math.max(24, Math.round(factor * 0.55));
-        const sectionTitleFont = Math.max(26, Math.round(factor * 0.6));
-        const paletteFont = Math.max(24, Math.round(factor * 0.55));
+        const pagePaddingX = Math.max(40, Math.round(factor * 0.8 * spacingScale));
+        const pagePaddingY = Math.max(40, Math.round(factor * 0.8 * spacingScale));
+        const headingFont = Math.max(28, Math.round(factor * 0.65 * layoutScale));
+        const headingGap = Math.max(16, Math.round(factor * 0.32 * spacingScale));
+        const sectionGap = Math.max(28, Math.round(factor * 0.56 * spacingScale));
+        const totalFont = Math.max(24, Math.round(factor * 0.55 * layoutScale));
+        const sectionTitleFont = Math.max(26, Math.round(factor * 0.6 * layoutScale));
+        const paletteFont = Math.max(24, Math.round(factor * 0.55 * layoutScale));
         const selectedUsedColors = this.collectSelectedUsedColors(selectedColors);
         const totalSelectedCells = selectedUsedColors.reduce((sum, entry) => sum + entry.count, 0);
-        const swatchGapX = Math.max(28, Math.round(factor * 0.56));
-        const swatchGapY = Math.max(32, Math.round(factor * 0.64));
-        const swatchTextGap = Math.max(14, Math.round(factor * 0.28));
-        const swatchLabelFont = Math.max(22, Math.round(factor * 0.5));
-        const swatchCountFont = Math.max(20, Math.round(factor * 0.46));
-        const swatchWidth = Math.max(96, Math.round(factor * 1.9));
-        const swatchHeight = Math.max(64, Math.round(factor * 1.28));
+        const displaySelectedColors = selectedUsedColors.map((entry) => {
+            const stage = resolveExportColorForCode(entry.code, entry, colorOptions);
+            return {
+                ...entry,
+                color: stage?.color ?? entry.color
+            };
+        });
+        const swatchGapX = Math.max(28, Math.round(factor * 0.56 * spacingScale));
+        const swatchGapY = Math.max(32, Math.round(factor * 0.64 * spacingScale));
+        const swatchTextGap = Math.max(14, Math.round(factor * 0.28 * layoutScale));
+        const swatchLabelFont = Math.max(22, Math.round(factor * 0.5 * layoutScale));
+        const swatchCountFont = Math.max(20, Math.round(factor * 0.46 * layoutScale));
+        const swatchWidth = Math.max(96, Math.round(factor * 1.6 * spacingScale));
+        const swatchHeight = Math.max(64, Math.round(factor * 1.2 * spacingScale));
         const availableWidth = drawingWidth;
         const maxColumns = Math.max(1, Math.floor((availableWidth + swatchGapX) / (swatchWidth + swatchGapX)));
-        const columns = selectedUsedColors.length
-            ? Math.min(selectedUsedColors.length, Math.max(1, maxColumns))
+        const columns = displaySelectedColors.length
+            ? Math.min(displaySelectedColors.length, Math.max(1, maxColumns))
             : 1;
-        const rows = selectedUsedColors.length ? Math.ceil(selectedUsedColors.length / columns) : 1;
+        const rows = displaySelectedColors.length ? Math.ceil(displaySelectedColors.length / columns) : 1;
         const itemHeight = swatchLabelFont + swatchTextGap + swatchHeight + swatchTextGap + swatchCountFont;
-        const swatchAreaHeight = selectedUsedColors.length
+        const swatchAreaHeight = displaySelectedColors.length
             ? rows * itemHeight + (rows - 1) * swatchGapY
             : swatchHeight + swatchLabelFont;
 
@@ -406,7 +482,9 @@ class ExportHighlightManager {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         ctx.font = `${headingFont}px ${PIXEL_FONT_FAMILY}`;
-        ctx.fillText(TEXT.highlight.canvasTitle, centerX, cursorY);
+        const exportFilename = (state.exportSettings?.filename || 'pixel-art').trim() || 'pixel-art';
+        const titleSuffix = selectedColors?.size ? '-高亮图' : '';
+        ctx.fillText(`${exportFilename}${titleSuffix}`, centerX, cursorY);
 
         cursorY += headingFont + headingGap;
 
@@ -420,10 +498,12 @@ class ExportHighlightManager {
             for (let x = 0; x < state.width; x += 1) {
                 const cell = state.grid[y][x];
                 if (!cell) continue;
+                const stage = resolveExportCellStage(cell, colorOptions);
+                if (!stage) continue;
                 const pixelX = originX + x * factor;
                 const pixelY = originY + y * factor;
-                ctx.fillStyle = cell.color;
-                ctx.fillRect(pixelX, pixelY, factor, factor);
+                drawExportPixel(ctx, cell, stage, pixelX, pixelY, factor, backgroundColor);
+                stageCache[y][x] = stage;
             }
         }
 
@@ -443,10 +523,11 @@ class ExportHighlightManager {
             for (let x = 0; x < state.width; x += 1) {
                 const cell = state.grid[y][x];
                 if (!cell || !selectedColors.has(cell.code)) continue;
+                const stage = stageCache[y][x] ?? resolveExportCellStage(cell, colorOptions);
+                if (!stage) continue;
                 const pixelX = originX + x * factor;
                 const pixelY = originY + y * factor;
-                ctx.fillStyle = cell.color;
-                ctx.fillRect(pixelX, pixelY, factor, factor);
+                drawExportPixel(ctx, cell, stage, pixelX, pixelY, factor, backgroundColor);
             }
         }
 
@@ -455,9 +536,11 @@ class ExportHighlightManager {
                 for (let x = 0; x < state.width; x += 1) {
                     const cell = state.grid[y][x];
                     if (!cell || !selectedColors.has(cell.code)) continue;
+                    const stage = stageCache[y][x] ?? resolveExportCellStage(cell, colorOptions);
+                    if (!stage) continue;
                     const pixelX = originX + x * factor;
                     const pixelY = originY + y * factor;
-                    this.renderColorCode(ctx, cell, pixelX, pixelY, factor);
+                    this.renderColorCode(ctx, cell, stage, pixelX, pixelY, factor);
                 }
             }
         }
@@ -472,7 +555,21 @@ class ExportHighlightManager {
         });
 
         if (includeAxes) {
-            this.renderAxisLabels(ctx, {
+            const thinWidth = Math.max(1, Math.round(factor * 0.02));
+            const boldWidth = Math.max(thinWidth + 1, Math.round(factor * 0.08));
+            renderGridLines(ctx, {
+                originX,
+                originY,
+                cellSize: factor,
+                widthCells: state.width,
+                heightCells: state.height,
+                thinColor: 'rgba(0,0,0,0.18)',
+                boldColor: 'rgba(0,0,0,0.45)',
+                thinLineWidth: thinWidth,
+                boldLineWidth: boldWidth,
+                gridOptions: state.gridOverlay
+            });
+            renderAxisLabels(ctx, {
                 originX,
                 originY,
                 cellSize: factor,
@@ -500,12 +597,12 @@ class ExportHighlightManager {
         cursorY += sectionTitleFont + headingGap;
 
         const swatchAreaTop = cursorY;
-        const swatchContentWidth = selectedUsedColors.length
+        const swatchContentWidth = displaySelectedColors.length
             ? columns * swatchWidth + (columns - 1) * swatchGapX
             : swatchWidth;
         const swatchStartX = pagePaddingX + (availableWidth - swatchContentWidth) / 2;
 
-        if (!selectedUsedColors.length) {
+        if (!displaySelectedColors.length) {
             ctx.save();
             ctx.font = `${swatchCountFont}px ${PIXEL_FONT_FAMILY}`;
             ctx.fillStyle = '#6f7285';
@@ -514,7 +611,7 @@ class ExportHighlightManager {
             ctx.restore();
         } else {
             ctx.textBaseline = 'top';
-            selectedUsedColors.forEach((entry, index) => {
+            displaySelectedColors.forEach((entry, index) => {
                 const columnIndex = index % columns;
                 const rowIndex = Math.floor(index / columns);
                 const itemLeft = swatchStartX + columnIndex * (swatchWidth + swatchGapX);
@@ -562,15 +659,13 @@ class ExportHighlightManager {
     isAllColorsSelected(selectedColors) {
         if (selectedColors.size === 0) return false;
 
-        const currentUsedColors = this.collectUsedColors();
-        if (currentUsedColors.length === 0) return false;
-        if (selectedColors.size !== currentUsedColors.length) return false;
+        const referenceColors = this.usedColors?.length ? this.usedColors : this.collectUsedColors();
+        if (referenceColors.length === 0) return false;
+        if (selectedColors.size !== referenceColors.length) return false;
 
-        for (const color of currentUsedColors) {
+        for (const color of referenceColors) {
             if (!selectedColors.has(color.code)) return false;
         }
-
-        return true;
     }
 
     collectSelectedUsedColors(selectedColors) {
@@ -622,98 +717,6 @@ class ExportHighlightManager {
         ctx.closePath();
     }
 
-    renderAxisLabels(ctx, options = {}) {
-        const {
-            originX = 0,
-            originY = 0,
-            cellSize = 10,
-            widthCells = 0,
-            heightCells = 0,
-            textColor = 'rgba(0,0,0,0.65)',
-            tickColor = 'rgba(0,0,0,0.3)',
-            fontSize = 12,
-            tickLength = 6,
-            gap = 6
-        } = options;
-
-        if (!ctx) return;
-
-        ctx.save();
-        ctx.font = `${fontSize}px ${AXIS_STYLE.fontFamily}`;
-        ctx.fillStyle = textColor;
-        ctx.strokeStyle = tickColor;
-        ctx.lineWidth = 1;
-
-        ctx.strokeStyle = 'rgba(0, 0, 0, 0.12)';
-        ctx.lineWidth = Math.max(1, Math.round(cellSize * 0.02));
-
-        for (let gx = 0; gx <= widthCells; gx += 1) {
-            const x = gx * cellSize + 0.5;
-            ctx.beginPath();
-            ctx.moveTo(originX + x - 0.5, originY);
-            ctx.lineTo(originX + x - 0.5, originY + heightCells * cellSize);
-            ctx.stroke();
-        }
-
-        for (let gy = 0; gy <= heightCells; gy += 1) {
-            const y = gy * cellSize + 0.5;
-            ctx.beginPath();
-            ctx.moveTo(originX, originY + y - 0.5);
-            ctx.lineTo(originX + widthCells * cellSize, originY + y - 0.5);
-            ctx.stroke();
-        }
-
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'bottom';
-        const topY = originY - gap - tickLength;
-        for (let x = 0; x < widthCells; x += 1) {
-            const centerX = originX + x * cellSize + cellSize / 2;
-            ctx.beginPath();
-            ctx.moveTo(centerX, originY - 0.5);
-            ctx.lineTo(centerX, originY - tickLength - 0.5);
-            ctx.stroke();
-            ctx.fillText(String(x + 1), centerX, topY);
-        }
-
-        ctx.textAlign = 'right';
-        ctx.textBaseline = 'middle';
-        const leftX = originX - gap;
-        for (let y = 0; y < heightCells; y += 1) {
-            const centerY = originY + y * cellSize + cellSize / 2;
-            ctx.beginPath();
-            ctx.moveTo(originX - 0.5, centerY);
-            ctx.lineTo(originX - tickLength - 0.5, centerY);
-            ctx.stroke();
-            ctx.fillText(String(y + 1), leftX, centerY);
-        }
-
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
-        const bottomY = originY + heightCells * cellSize + gap + tickLength;
-        for (let x = 0; x < widthCells; x += 1) {
-            const centerX = originX + x * cellSize + cellSize / 2;
-            ctx.beginPath();
-            ctx.moveTo(centerX, originY + heightCells * cellSize + 0.5);
-            ctx.lineTo(centerX, originY + heightCells * cellSize + tickLength + 0.5);
-            ctx.stroke();
-            ctx.fillText(String(x + 1), centerX, bottomY);
-        }
-
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-        const rightEdge = originX + widthCells * cellSize + 0.5;
-        const rightLabelX = rightEdge + tickLength + gap;
-        for (let y = 0; y < heightCells; y += 1) {
-            const centerY = originY + y * cellSize + cellSize / 2;
-            ctx.beginPath();
-            ctx.moveTo(rightEdge, centerY);
-            ctx.lineTo(rightEdge + tickLength, centerY);
-            ctx.stroke();
-            ctx.fillText(String(y + 1), rightLabelX, centerY);
-        }
-
-        ctx.restore();
-    }
 
     createHighlightMask(selectedColors) {
         const mask = Array.from({ length: state.height }, () =>
@@ -730,17 +733,19 @@ class ExportHighlightManager {
         return mask;
     }
 
-    renderColorCode(ctx, cell, pixelX, pixelY, cellSize) {
+    renderColorCode(ctx, cell, stage, pixelX, pixelY, cellSize) {
         const fontSize = Math.max(10, Math.floor(cellSize * 0.3));
         ctx.font = `${fontSize}px ${PIXEL_FONT_FAMILY}`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillStyle = this.getContrastColor(cell.rgb);
+        const rgb = stage?.rgb ?? cell.rgb ?? FALLBACK_RGB;
+        ctx.fillStyle = this.getContrastColor(rgb);
         ctx.fillText(cell.code, pixelX + cellSize / 2, pixelY + cellSize / 2);
     }
 
     getContrastColor(rgb) {
-        const brightness = (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
+        const source = rgb ?? FALLBACK_RGB;
+        const brightness = (source.r * 299 + source.g * 587 + source.b * 114) / 1000;
         return brightness > 128 ? '#000000' : '#ffffff';
     }
 
@@ -822,7 +827,7 @@ class ExportHighlightManager {
     }
 
     hasHighlight() {
-        return this.selectedColors.size > 0;
+        return this.selectedColors.size > 0 && !this.isAllColorsSelected(this.selectedColors);
     }
 
     drawCheckerboard(ctx, width, height) {
@@ -841,3 +846,7 @@ class ExportHighlightManager {
 }
 
 export const exportHighlightManager = new ExportHighlightManager();
+
+
+
+

@@ -12,6 +12,9 @@ export function renderSelectionLayers() {
   const hasSelection = Boolean(selection?.active);
   const hasPreview = Boolean(preview);
   const highlightActive = !hasSelection && !hasPreview && canvasHighlightManager?.shouldRenderHighlight?.();
+  if (elements.gridCanvas) {
+    elements.gridCanvas.classList.toggle('is-above-highlight', Boolean(highlightActive));
+  }
   if (!hasSelection && !hasPreview && !highlightActive) {
     clearSelectionLayers();
     return;

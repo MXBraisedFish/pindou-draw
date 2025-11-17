@@ -1,8 +1,8 @@
 ﻿import { BASE_SCALE_LIMITS } from './constants.js';
-import { elements, fullscreenBaseEditBtn } from './elements.js';
+import { elements } from './elements.js';
 import { hiddenBaseCanvas, hiddenBaseCtx, state } from './state.js';
 import { clampBaseScale } from './utils.js';
-import { findNearestEnabledColor } from './palette.js';
+import { findNearestEnabledColor, findNearestEnabledNormalColor } from './palette.js';
 import { TEXT } from './language.js';
 const BASE_ANCHORS = [{ id: 'center', label: TEXT.base.anchors.center, apply: recenterBaseImage }, { id: 'top-left', label: TEXT.base.anchors.topLeft, apply: () => setBasePosition(0, 0) }, { id: 'top-right', label: TEXT.base.anchors.topRight, apply: () => setBasePosition(state.width - getDrawWidth(), 0) }, { id: 'bottom-left', label: TEXT.base.anchors.bottomLeft, apply: () => setBasePosition(0, state.height - getDrawHeight()) }, { id: 'bottom-right', label: TEXT.base.anchors.bottomRight, apply: () => setBasePosition(state.width - getDrawWidth(), state.height - getDrawHeight()) }];
 let baseAnchorIndex = 0;
@@ -17,9 +17,6 @@ function setBasePosition(x, y) {
   state.baseOffsetY = y;
   updateBaseImageDisplay();
 }
-function syncFullscreenEditButton() {
-  fullscreenBaseEditBtn && (fullscreenBaseEditBtn.disabled = !state.baseImage);
-}
 export function formatBaseScaleValue(value) {
   const numeric = Number.isFinite(value) ? value : 1;
   return (Math.round(numeric * 100) / 100).toString();
@@ -32,6 +29,7 @@ function refreshAnchorButtonLabel() {
   elements.snapBaseToCanvasBtn.setAttribute('aria-label', TEXT.base.locateAria(label));
 }
 export function updateStatusBase() {
+  if (!elements.statusBase) return;
   elements.statusBase.textContent = state.baseImageName || TEXT.base.notLoaded;
 }
 export function getNearestColorFromBase(x, y) {
@@ -41,7 +39,7 @@ export function getNearestColorFromBase(x, y) {
   return findNearestPaletteColor(data[index], data[index + 1], data[index + 2]);
 }
 function findNearestPaletteColor(r, g, b) {
-  return findNearestEnabledColor(r, g, b);
+  return findNearestEnabledNormalColor(r, g, b) ?? findNearestEnabledColor(r, g, b);
 }
 export function applyBaseScale(targetScale, anchorCellX, anchorCellY) {
   if (!state.baseImage) return false;
@@ -81,7 +79,7 @@ export function clearBaseImage() {
   applyBaseLayerPosition();
   disableBaseControls();
   updateBaseScaleControls();
-  setTimeout(() => document.dispatchEvent(new CustomEvent('updateFullscreenOverlay')), 0);
+
 }
 export function updateBaseImageDisplay() {
   if (!elements.baseCtx || !state.baseImage || !state.width || !state.height) {
@@ -124,7 +122,7 @@ export function handleBaseImageChange(ev) {
       enableBaseControls();
       initializeBaseAnchorButton();
       updateBaseImageDisplay();
-      setTimeout(() => document.dispatchEvent(new CustomEvent('updateFullscreenOverlay')), 0);
+
     };
     img.src = reader.result;
   };
@@ -162,14 +160,7 @@ export function updateBaseEditButton() {
   const label = state.baseEditing ? exitLabel : enterLabel;
   elements.toggleBaseEditBtn.textContent = label;
   elements.toggleBaseEditBtn.setAttribute('aria-pressed', state.baseEditing ? 'true' : 'false');
-  elements.toggleBaseEditBtn.disabled = !state.baseImage;
-  if (fullscreenBaseEditBtn) {
-    fullscreenBaseEditBtn.textContent = state.baseEditing ? TEXT.base.exitEdit : TEXT.base.enterEdit;
-    fullscreenBaseEditBtn.setAttribute('aria-pressed', state.baseEditing ? 'true' : 'false');
-    fullscreenBaseEditBtn.classList.toggle('is-editing', state.baseEditing);
-  }
-  updateBaseScaleControls();
-  syncFullscreenEditButton();
+  elements.toggleBaseEditBtn.disabled = !state.baseImage; updateBaseScaleControls();
 }
 function updateBaseScaleControls() {
   const clamped = clampBaseScale(state.baseScale);
@@ -203,7 +194,6 @@ export function syncBaseControlsAvailability() {
   updateBaseEditButton();
   updateCanvasCursorState();
   hasBase ? enableBaseControls() : disableBaseControls();
-  syncFullscreenEditButton();
 }
 export function applyBaseLayerPosition() {
   if (!elements.baseCanvas || !elements.canvas) return;
@@ -243,7 +233,6 @@ export function initializeBaseScaleRange() {
     elements.statusBase.textContent = TEXT.base.notLoaded;
   }
   initializeBaseAnchorButton();
-  syncFullscreenEditButton();
 }
 export function recenterBaseImage() {
   if (!state.baseImage || !state.width || !state.height) return;
@@ -253,14 +242,12 @@ export function recenterBaseImage() {
   updateBaseImageDisplay();
   baseAnchorIndex = 0;
   refreshAnchorButtonLabel();
-  syncFullscreenEditButton();
 }
 export function cycleBaseAnchor() {
   if (!state.baseImage) return;
   baseAnchorIndex = (baseAnchorIndex + 1) % BASE_ANCHORS.length;
   BASE_ANCHORS[baseAnchorIndex].apply();
   refreshAnchorButtonLabel();
-  syncFullscreenEditButton();
 }
 export function snapBaseToCanvas() {
   cycleBaseAnchor();
@@ -268,18 +255,15 @@ export function snapBaseToCanvas() {
 export function initializeBaseAnchorButton() {
   baseAnchorIndex = 0;
   refreshAnchorButtonLabel();
-  syncFullscreenEditButton();
 }
 export function enableBaseControls() {
   elements.recenterBaseBtn?.removeAttribute('disabled');
   elements.snapBaseToCanvasBtn?.removeAttribute('disabled');
   refreshAnchorButtonLabel();
-  syncFullscreenEditButton();
 }
 export function disableBaseControls() {
   elements.recenterBaseBtn?.setAttribute('disabled', 'true');
   elements.snapBaseToCanvasBtn?.setAttribute('disabled', 'true');
   baseAnchorIndex = 0;
   refreshAnchorButtonLabel();
-  syncFullscreenEditButton();
 }

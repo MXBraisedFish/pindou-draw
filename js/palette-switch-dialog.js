@@ -13,6 +13,8 @@ class PaletteSwitchDialog {
     this.convertBtn = elements.paletteSwitchConvertBtn;
     this.resetBtn = elements.paletteSwitchResetBtn;
     this.nameEl = elements.paletteSwitchName;
+    this.warningEl = elements.paletteSwitchWarning;
+    this.summaryEl = elements.paletteSwitchSummary;
     this.resolve = null;
     this.previousActiveElement = null;
 
@@ -36,10 +38,18 @@ class PaletteSwitchDialog {
       return Promise.resolve('cancel');
     }
 
-    const { paletteName = '目标色卡', hasDrawing = false } = options;
+    const { paletteName = '目标色卡', hasDrawing = false, fromPaletteName = '', hasSpecialColors = false } = options;
 
     this.nameEl && (this.nameEl.textContent = paletteName);
-
+    if (this.summaryEl) {
+      const fromLabel = (fromPaletteName || '当前色卡').trim() || '当前色卡';
+      this.summaryEl.textContent = `将从「${fromLabel}」切换到「${paletteName}」`;
+    }
+    if (this.warningEl) {
+      const base = '颜色转换可能会导致颜色数据丢失！';
+      const specialNote = hasSpecialColors ? '特殊色将会被清除而非转换！' : '';
+      this.warningEl.textContent = specialNote ? `${base}\n${specialNote}` : base;
+    }
     if (this.convertBtn) {
       this.convertBtn.disabled = !hasDrawing;
       this.convertBtn.setAttribute('aria-disabled', hasDrawing ? 'false' : 'true');

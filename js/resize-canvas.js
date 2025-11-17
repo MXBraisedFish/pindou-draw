@@ -1,12 +1,15 @@
-import { elements } from './elements.js';
+﻿import { elements } from './elements.js';
 import { state } from './state.js';
 import { saveHistory, resizeCanvas, validateCanvasSize } from './canvas.js';
 import { resetSelection } from './selection.js';
 import { renderSelectionLayers } from './selection-layer.js';
 const SIDE_LABELS = { top: '上', right: '右', bottom: '下', left: '左' };
+const SIDE_TOOLTIP_ADD = { top: '向上扩展', right: '向右扩展', bottom: '向下扩展', left: '向左扩展' };
+const SIDE_TOOLTIP_SUB = { top: '向上裁剪', right: '向右裁剪', bottom: '向下裁剪', left: '向左裁剪' };
 const resizeState = { mode: 'expand', values: { top: 0, right: 0, bottom: 0, left: 0 }, isOpen: false };
 let escapeListener = null;
 const editValueMap = new Map();
+const edgeInputs = new Map();
 let previewFrameHandle = null;
 let pendingPreviewResult = null;
 const PREVIEW_CONFIG = { cellSize: 12, padding: 24, axisBand: 28, backgroundLight: '#f8f9ff', backgroundDark: '#ebeefb', gridColor: 'rgba(0,0,0,0.12)', axisColor: 'rgba(0,0,0,0.3)', labelColor: 'rgba(0,0,0,0.7)', fontFamily: '"Segoe UI", "Microsoft YaHei", system-ui, sans-serif' };
@@ -16,19 +19,73 @@ export function initializeResizeCanvas() {
     const side = el.dataset.valueFor;
     if (side) editValueMap.set(side, el);
   });
+  buildEdgeControls();
   elements.resizeCanvasBtn.addEventListener('click', handleOpenRequest);
   elements.resizeCancelBtn?.addEventListener('click', closeOverlay);
   elements.resizeCloseBtn?.addEventListener('click', closeOverlay);
   elements.resizeConfirmBtn?.addEventListener('click', commitResize);
   elements.resizeModeExpandBtn?.addEventListener('click', () => setMode('expand'));
   elements.resizeModeCropBtn?.addEventListener('click', () => setMode('crop'));
-  elements.resizeEditButtons?.forEach?.((btn) => {
-    btn.addEventListener('click', () => handleEditButton(btn.dataset.side));
-  });
   elements.resizeCanvasOverlay.addEventListener('click', (ev) => {
     if (ev.target === elements.resizeCanvasOverlay) {
       closeOverlay();
     }
+  });
+  updateEditButtonTooltips();
+}
+function buildEdgeControls() {
+  if (!elements.resizeCanvasOverlay) return;
+  const cards = elements.resizeCanvasOverlay.querySelectorAll('.resize-edge-card');
+  cards.forEach((card) => {
+    const button = card.querySelector('.resize-edit-btn');
+    if (!button) return;
+    const side = button.dataset.side;
+    if (!side) return;
+    let control = card.querySelector('.resize-edge-control');
+    if (!control) {
+      control = document.createElement('div');
+      control.className = 'resize-edge-control';
+      const steps = [-1, 'input', 1];
+      steps.forEach((step) => {
+        if (step === 'input') {
+          const input = document.createElement('input');
+          input.type = 'number';
+          input.min = '0';
+          input.step = '1';
+          input.className = 'resize-value-input';
+          input.dataset.side = side;
+          control.appendChild(input);
+        } else {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'resize-step-btn';
+          btn.dataset.side = side;
+          btn.dataset.step = String(step);
+          btn.textContent = step > 0 ? '+1' : '-1';
+          control.appendChild(btn);
+        }
+      });
+      const valueHint = card.querySelector('.resize-edit-value');
+      if (valueHint) {
+        card.insertBefore(control, valueHint);
+      } else {
+        card.appendChild(control);
+      }
+    }
+    const input = control.querySelector('input');
+    if (!input) return;
+    edgeInputs.set(side, input);
+    input.value = String(resizeState.values[side] || 0);
+    input.addEventListener('input', () => handleInputChange(side, input.value));
+    input.addEventListener('change', () => handleInputChange(side, input.value));
+    control.querySelectorAll('.resize-step-btn').forEach((btn) => {
+      btn.addEventListener('click', (event) => {
+        const baseStep = Number(btn.dataset.step) || 0;
+        const multiplier = event.shiftKey ? 10 : 1;
+        adjustValue(side, baseStep * multiplier);
+      });
+    });
+    button.addEventListener('click', () => handleEditButton(side));
   });
 }
 function handleOpenRequest() {
@@ -81,20 +138,34 @@ function setMode(newMode) {
   elements.resizeModeCropBtn?.classList.toggle('active', newMode === 'crop');
   elements.resizeModeExpandBtn?.setAttribute('aria-pressed', newMode === 'expand' ? 'true' : 'false');
   elements.resizeModeCropBtn?.setAttribute('aria-pressed', newMode === 'crop' ? 'true' : 'false');
+  updateEditButtonTooltips();
   updateUI();
 }
 function handleEditButton(side) {
-  if (!side || !(side in resizeState.values)) return;
-  const current = resizeState.values[side];
-  const promptMessage = `请输入需要在${SIDE_LABELS[side]}侧${resizeState.mode === 'expand' ? '增加' : '裁剪'}的像素数量 (可输入 0)：`;
-  const result = window.prompt(promptMessage, String(current));
-  if (result === null) return;
-  const value = Number(result);
-  if (!Number.isInteger(value) || value < 0) {
-    window.alert('请输入不小于 0 的整数。');
-    return;
+  const input = edgeInputs.get(side);
+  if (!input) return;
+  input.focus();
+  if (typeof input.select === 'function') {
+    input.select();
   }
-  resizeState.values[side] = value;
+}
+function handleInputChange(side, rawValue) {
+  if (!side || !(side in resizeState.values)) return;
+  const value = Number(rawValue);
+  if (!Number.isFinite(value)) return;
+  const safe = Math.max(0, Math.round(value));
+  if (resizeState.values[side] === safe) return;
+  resizeState.values[side] = safe;
+  updateUI();
+}
+function adjustValue(side, delta) {
+  if (!side || !(side in resizeState.values)) return;
+  const next = Math.max(0, (resizeState.values[side] ?? 0) + Number(delta || 0));
+  resizeState.values[side] = next;
+  const input = edgeInputs.get(side);
+  if (input) {
+    input.value = String(next);
+  }
   updateUI();
 }
 function updateUI() {
@@ -107,8 +178,28 @@ function updateUI() {
 function updateValueLabels() {
   editValueMap.forEach((el, side) => {
     const value = resizeState.values[side] ?? 0;
-    el.textContent = `${value}
-像素`;
+    el.textContent = `${value} 格`;
+    const input = edgeInputs.get(side);
+    if (input && input.value !== String(value)) {
+      input.value = String(value);
+    }
+  });
+}
+function updateEditButtonTooltips() {
+  const action = resizeState.mode === 'expand' ? '扩图' : '裁图';
+  let SIDE_TOOLTIP_PREFIX
+  if (action === '鎵╁浘') {
+    SIDE_TOOLTIP_PREFIX = SIDE_TOOLTIP_ADD;
+  } else {
+    SIDE_TOOLTIP_PREFIX = SIDE_TOOLTIP_SUB;
+  }
+  elements.resizeEditButtons?.forEach?.((btn) => {
+    const side = btn.dataset.side;
+    const prefix = side ? SIDE_TOOLTIP_PREFIX[side] : null;
+    if (!prefix) return;
+    const text = `${prefix}${action}`;
+    btn.title = text;
+    btn.setAttribute('aria-label', text);
   });
 }
 function updateModeMessage(result = computeResultSize()) {
@@ -116,44 +207,40 @@ function updateModeMessage(result = computeResultSize()) {
   elements.resizeMessage.textContent = '';
   elements.resizeMessage.classList.remove('error', 'warning');
   if (!state.width || !state.height) {
-    elements.resizeMessage.textContent = '当前无画布可调整。';
+    elements.resizeMessage.textContent = '当前暂无可编辑画布';
     elements.resizeMessage.classList.add('error');
     return;
   }
-  const { width: previewWidth, height: previewHeight, valid }
-    = result;
+  const { width: previewWidth, height: previewHeight, valid } = result;
   if (!valid) {
-    elements.resizeMessage.textContent = '调整值导致画布尺寸无效，请检查输入。';
+    elements.resizeMessage.textContent = '输入值导致画布尺寸无效，请重新输入。';
     elements.resizeMessage.classList.add('error');
     return;
   }
   if (!validateCanvasSize(previewWidth, previewHeight)) {
-    elements.resizeMessage.textContent = '调整后尺寸需在 1 - 2048 像素之间。';
+    elements.resizeMessage.textContent = '画布尺寸需在 1 - 1024 格之间。';
     elements.resizeMessage.classList.add('error');
     return;
   }
   if (resizeState.mode === 'crop' && willCropRemovePixels()) {
-    elements.resizeMessage.textContent = '裁剪区域包含像素，确认后这些像素将被删除。';
+    elements.resizeMessage.textContent = '裁剪会删除画布边缘的像素，请谨慎操作。';
     elements.resizeMessage.classList.add('warning');
-  }
-  else {
-    elements.resizeMessage.textContent = resizeState.mode === 'expand' ? '将在画布四周添加空白区域。' : '将从所选方向裁剪画布。';
+  } else {
+    elements.resizeMessage.textContent = resizeState.mode === 'expand'
+      ? '本次扩展会向画布四周添加空白区域。'
+      : '本次裁剪会移除画布边缘的指定区域。';
   }
 }
 function updateSizeSummary(result = computeResultSize()) {
   if (elements.resizeCurrentSize) {
-    elements.resizeCurrentSize.textContent = `当前尺寸：${state.width}
-× ${state.height}`;
+    elements.resizeCurrentSize.textContent = `当前尺寸：${state.width} × ${state.height}`;
   }
-  const { width: previewWidth, height: previewHeight, valid }
-    = result;
+  const { width: previewWidth, height: previewHeight, valid } = result;
   if (elements.resizeResultSize) {
     if (!valid) {
-      elements.resizeResultSize.textContent = '调整后：—';
-    }
-    else {
-      elements.resizeResultSize.textContent = `调整后：${previewWidth}
-× ${previewHeight}`;
+      elements.resizeResultSize.textContent = '目标尺寸：-- × --';
+    } else {
+      elements.resizeResultSize.textContent = `目标尺寸：${previewWidth} × ${previewHeight}`;
     }
   }
   const confirmDisabled = !valid || !validateCanvasSize(previewWidth, previewHeight);
@@ -218,30 +305,40 @@ function renderPreview(result = computeResultSize()) {
   let scale = Math.min(availableWidth / layout.canvasWidth, availableHeight / layout.canvasHeight);
   if (!Number.isFinite(scale) || scale <= 0) {
     scale = 1;
-  }
-  else {
+  } else {
     scale = Math.min(scale, 16);
   }
-  const displayWidth = Math.max(layout.canvasWidth * scale, 1);
-  const displayHeight = Math.max(layout.canvasHeight * scale, 1);
-  wrapper.style.width = `${displayWidth}px`;
-  wrapper.style.height = `${displayHeight}px`;
-  wrapper.style.maxWidth = '100%';
-  wrapper.style.maxHeight = '100%';
-  drawingCanvas.style.width = '100%';
-  drawingCanvas.style.height = '100%';
+
+  const displayWidth = Math.max(Math.round(layout.canvasWidth * scale), 1);
+  const displayHeight = Math.max(Math.round(layout.canvasHeight * scale), 1);
+  wrapper.style.width = '100%';
+  wrapper.style.height = '100%';
+  if (stage) {
+    stage.style.width = '100%';
+    stage.style.height = '100%';
+  }
+  drawingCanvas.style.width = `${displayWidth}px`;
+  drawingCanvas.style.height = `${displayHeight}px`;
+  drawingCanvas.style.maxWidth = '100%';
+  drawingCanvas.style.maxHeight = '100%';
 }
 function clearPreview() {
   const wrapper = elements.resizePreviewWrapper;
   const drawingCanvas = elements.resizePreviewDrawingCanvas;
+  const stage = elements.resizePreviewStage;
   if (previewFrameHandle) {
     cancelAnimationFrame(previewFrameHandle);
     previewFrameHandle = null;
   }
   pendingPreviewResult = null;
   if (wrapper) {
-    wrapper.style.width = '0px';
-    wrapper.style.height = '0px';
+    wrapper.style.width = '100%';
+    wrapper.style.height = '100%';
+    wrapper.style.aspectRatio = '1 / 1';
+  }
+  if (stage) {
+    stage.style.width = '100%';
+    stage.style.height = '100%';
   }
   if (drawingCanvas) {
     drawingCanvas.width = 0;
@@ -424,30 +521,37 @@ function commitResize() {
     return;
   }
   if (resizeState.mode === 'crop' && willCropRemovePixels()) {
-    const confirmed = window.confirm('裁剪区域包含像素，继续操作将删除这些像素。是否确认？');
-    if (!confirmed) return;
+    if (resizeState.mode === 'crop' && willCropRemovePixels()) {
+      const confirmed = window.confirm('裁剪将删除画布边缘的像素，确定继续吗？');
+    }
+    if (resizeState.mode === 'expand') {
+      applyExpand(newWidth, newHeight);
+    }
+    else {
+      applyCrop(newWidth, newHeight);
+    }
+    resetSelection({ suppressRender: true });
+    renderSelectionLayers();
+    resizeCanvas();
+    updateStatusSizeLabel();
+    saveHistory();
+    closeOverlay();
   }
-  saveHistory();
-  if (resizeState.mode === 'expand') {
-    applyExpand(newWidth, newHeight);
-  }
-  else {
-    applyCrop(newWidth, newHeight);
-  }
-  resetSelection({ suppressRender: true });
-  renderSelectionLayers();
-  resizeCanvas();
-  updateStatusSizeLabel();
-  saveHistory();
-  closeOverlay();
 }
 function applyExpand(newWidth, newHeight) {
   const { top, right, bottom, left }
     = resizeState.values;
   const newGrid = Array.from({ length: newHeight }, () => Array.from({ length: newWidth }, () => null));
-  for (let y = 0; y < state.height; y++) {
-    for (let x = 0; x < state.width; x++) {
-      newGrid[y + top][x + left] = state.grid[y][x];
+  const offsetX = left;
+  const offsetY = top;
+  const copyHeight = Math.min(state.height, newHeight - bottom);
+  const copyWidth = Math.min(state.width, newWidth - left - right);
+  for (let y = 0; y < copyHeight; y++) {
+    const sourceRow = state.grid[y];
+    const targetRow = newGrid[y + offsetY];
+    if (!Array.isArray(sourceRow) || !Array.isArray(targetRow)) continue;
+    for (let x = 0; x < copyWidth; x++) {
+      targetRow[x + offsetX] = sourceRow[x];
     }
   }
   state.grid = newGrid;
@@ -460,11 +564,18 @@ function applyCrop(newWidth, newHeight) {
   const { top, right, bottom, left }
     = resizeState.values;
   const newGrid = Array.from({ length: newHeight }, () => Array.from({ length: newWidth }, () => null));
-  for (let y = 0; y < newHeight; y++) {
-    for (let x = 0;
-      x < newWidth;
-      x++) {
-      newGrid[y][x] = state.grid[y + top][x + left];
+  const startY = top;
+  const endY = state.height - bottom;
+  const startX = left;
+  const endX = state.width - right;
+  let targetY = 0;
+  for (let y = startY; y < endY; y++, targetY++) {
+    const sourceRow = state.grid[y];
+    const targetRow = newGrid[targetY];
+    if (!Array.isArray(sourceRow) || !Array.isArray(targetRow)) continue;
+    let targetX = 0;
+    for (let x = startX; x < endX; x++, targetX++) {
+      targetRow[targetX] = sourceRow[x];
     }
   }
   state.grid = newGrid;
@@ -478,22 +589,30 @@ function willCropRemovePixels() {
   const { top, right, bottom, left }
     = resizeState.values;
   if (top + bottom >= state.height || left + right >= state.width) return false;
-  const yStart = top;
-  const yEnd = state.height - bottom;
-  const xStart = left;
-  const xEnd = state.width - right;
-  for (let y = 0; y < state.height; y++) {
-    for (let x = 0; x < state.width; x++) {
-      const withinBounds = y >= yStart && y < yEnd && x >= xStart && x < xEnd;
-      if (!withinBounds && state.grid[y]?.[x]) {
-        return true;
-      }
+  for (let y = 0; y < top; y++) {
+    const row = state.grid[y];
+    if (row?.some?.((cell) => Boolean(cell))) return true;
+  }
+  for (let y = state.height - bottom; y < state.height; y++) {
+    const row = state.grid[y];
+    if (row?.some?.((cell) => Boolean(cell))) return true;
+  }
+  const middleStart = Math.max(top, 0);
+  const middleEnd = Math.max(state.height - bottom, middleStart);
+  for (let y = middleStart; y < middleEnd; y++) {
+    const row = state.grid[y];
+    if (!Array.isArray(row)) continue;
+    for (let x = 0; x < left; x++) {
+      if (row[x]) return true;
+    }
+    for (let x = state.width - right; x < state.width; x++) {
+      if (row[x]) return true;
     }
   }
   return false;
 }
 function updateStatusSizeLabel() {
   if (!elements.statusSize) return;
-  elements.statusSize.textContent = state.width && state.height ? `${state.width}
-× ${state.height}` : '未创建';
+  if (!elements.statusSize) return;
+  elements.statusSize.textContent = state.width && state.height ? `${state.width} × ${state.height}` : '未创建';
 }

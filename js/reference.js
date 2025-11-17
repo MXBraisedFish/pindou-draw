@@ -1,6 +1,12 @@
-import { elements } from './elements.js';
+﻿import { elements } from './elements.js';
 import { state } from './state.js';
+import { registerFloatingWindow } from './floating-window-stack.js';
+import { computeRightToolbarAnchor } from './toolbar-anchor.js';
 let fitBaseImageToCanvas, updateStatusBase, syncBaseControlsAvailability, applyBaseLayerPosition, updateBaseImageDisplay;
+let pointerMoveHandler = null;
+let pointerUpHandler = null;
+let pointerCancelHandler = null;
+let _rafPending = false;
 try {
   const baseImageModule = await import('./base-image.js');
   fitBaseImageToCanvas = baseImageModule.fitBaseImageToCanvas;
@@ -11,16 +17,35 @@ try {
 } catch (error) {
   console.warn('底图模块导入失败，将使用备用方案:', error);
 } const MIN_WIDTH = 240, MIN_HEIGHT = 200, EDGE_MARGIN = 16, MINIMIZED_SIZE = 88;
-const ICONS = { ADD: '+', MINIMIZE: '-', RESTORE: '⁙', CLOSE: 'x' };
-let referenceIdSeed = 0, activePointer = null;
+const ICONS = { ADD: '+', MINIMIZE: '-', RESTORE: '↩', CLOSE: 'x' };
+let referenceIdSeed = 0, activePointer = null, referenceWindowStackHandle = null;
 export function initializeReferenceFeature() {
   if (!elements.referenceWindow) return;
-  const events = [[elements.referenceAddBtn, 'click', handleAddButtonClick], [elements.referenceImageInput, 'change', handleReferenceImageSelection], [elements.referenceCloseBtn, 'click', () => setReferenceWindowVisible(false)], [elements.referenceMinimizeBtn, 'click', () => setReferenceWindowMinimized(!state.referenceWindowMinimized)], [elements.referenceHeader, 'pointerdown', handleHeaderPointerDown], [elements.referenceResizer, 'pointerdown', handleResizerPointerDown], [elements.referenceWindow, 'pointerdown', handleWindowPointerDown]];
+
+  referenceWindowStackHandle = registerFloatingWindow(elements.referenceWindow);
+
+  const events = [
+    [elements.referenceAddBtn, 'click', handleAddButtonClick],
+    [elements.referenceImageInput, 'change', handleReferenceImageSelection],
+    [elements.referenceCloseBtn, 'click', () => setReferenceWindowVisible(false)],
+    [elements.referenceMinimizeBtn, 'click', () => setReferenceWindowMinimized(!state.referenceWindowMinimized)],
+    [elements.referenceHeader, 'pointerdown', handleHeaderPointerDown],
+    [elements.referenceResizer, 'pointerdown', handleResizerPointerDown],
+    [elements.referenceWindow, 'pointerdown', handleWindowPointerDown]
+  ];
+
   events.forEach(([element, event, handler]) => element?.addEventListener(event, handler));
   window.addEventListener('resize', handleViewportResize);
+
+  
   initializeReferenceRect();
   renderReferenceImages();
   syncReferenceWindowState();
+
+  
+  if (elements.referenceAddBtn && state.referenceWindowMinimized) {
+    elements.referenceAddBtn.style.display = 'none';
+  }
 }
 export function toggleReferenceWindow(force) {
   const next = typeof force === 'boolean' ? force : !state.referenceWindowVisible;
@@ -28,14 +53,35 @@ export function toggleReferenceWindow(force) {
 }
 export function setReferenceWindowVisible(visible) {
   state.referenceWindowVisible = Boolean(visible);
-  !visible && setReferenceWindowMinimized(false);
+  if (visible) {
+    referenceWindowStackHandle?.bringToFront();
+  } else {
+    setReferenceWindowMinimized(false);
+  }
   syncReferenceWindowState();
 }
 function setReferenceWindowMinimized(flag) {
   const next = Boolean(flag);
   if (state.referenceWindowMinimized === next) return;
-  if (next) state.referenceWindowPrevRect = { ...state.referenceWindowRect };
-  else if (state.referenceWindowPrevRect) state.referenceWindowRect = { ...state.referenceWindowPrevRect };
+
+  if (next) {
+    
+    state.referenceWindowPrevRect = { ...state.referenceWindowRect };
+    
+    state.referenceWindowRect.width = MINIMIZED_SIZE;
+    state.referenceWindowRect.height = MINIMIZED_SIZE;
+  } else {
+    
+    if (state.referenceWindowPrevRect) {
+      state.referenceWindowRect = { ...state.referenceWindowPrevRect };
+    } else {
+      state.referenceWindowRect.width = 320;
+      state.referenceWindowRect.height = 420;
+    }
+    
+    state.referenceWindowPrevRect = null;
+  }
+
   state.referenceWindowMinimized = next;
   ensureReferenceRectBounds();
   syncReferenceWindowState();
@@ -101,11 +147,13 @@ function renderReferenceImages() {
     const setAsBaseBtn = document.createElement('button');
     setAsBaseBtn.type = 'button';
     setAsBaseBtn.textContent = '作为底图';
+    setAsBaseBtn.className = 'reference-set-button'
     setAsBaseBtn.style.flex = '1';
     setAsBaseBtn.addEventListener('click', () => setReferenceAsBaseImage(entry));
     const deleteBtn = document.createElement('button');
     deleteBtn.type = 'button';
     deleteBtn.textContent = '删除';
+    deleteBtn.className = 'reference-delete-button'
     deleteBtn.style.flex = '1';
     deleteBtn.addEventListener('click', () => handleDeleteReference(entry.id));
     buttonContainer.appendChild(setAsBaseBtn);
@@ -130,7 +178,10 @@ function initializeReferenceRect() {
   const rect = state.referenceWindowRect ?? { width: 320, height: 420, top: 24, left: null };
   state.referenceWindowRect = rect;
   if (!Number.isFinite(rect.left)) {
-    rect.left = Math.max(EDGE_MARGIN, window.innerWidth - rect.width - EDGE_MARGIN);
+    const anchored = computeRightToolbarAnchor(rect.width, EDGE_MARGIN * 2);
+    rect.left = Number.isFinite(anchored)
+      ? anchored
+      : Math.max(EDGE_MARGIN, window.innerWidth - rect.width - EDGE_MARGIN);
   } rect.top = Number.isFinite(rect.top) ? rect.top : EDGE_MARGIN;
   ensureReferenceRectBounds(true);
   applyReferenceWindowLayout();
@@ -138,17 +189,32 @@ function initializeReferenceRect() {
 function ensureReferenceRectBounds(adjustSize = false) {
   const rect = state.referenceWindowRect;
   if (!rect) return;
+
   const maxWidth = Math.max(MIN_WIDTH, window.innerWidth - EDGE_MARGIN * 2);
   const maxHeight = Math.max(MIN_HEIGHT, window.innerHeight - EDGE_MARGIN * 2);
+
   if (adjustSize || !state.referenceWindowMinimized) {
     rect.width = clamp(rect.width, MIN_WIDTH, maxWidth);
     rect.height = clamp(rect.height, MIN_HEIGHT, maxHeight);
-  } const usedWidth = state.referenceWindowMinimized ? MINIMIZED_SIZE : rect.width;
+  }
+
+  
+  const usedWidth = state.referenceWindowMinimized ? MINIMIZED_SIZE : rect.width;
   const usedHeight = state.referenceWindowMinimized ? MINIMIZED_SIZE : rect.height;
+
   const maxLeft = window.innerWidth - usedWidth - EDGE_MARGIN;
   const maxTop = window.innerHeight - usedHeight - EDGE_MARGIN;
-  rect.left = clamp(Number.isFinite(rect.left) ? rect.left : EDGE_MARGIN, EDGE_MARGIN, Math.max(EDGE_MARGIN, maxLeft));
-  rect.top = clamp(Number.isFinite(rect.top) ? rect.top : EDGE_MARGIN, EDGE_MARGIN, Math.max(EDGE_MARGIN, maxTop));
+
+  rect.left = clamp(
+    Number.isFinite(rect.left) ? rect.left : EDGE_MARGIN,
+    EDGE_MARGIN,
+    Math.max(EDGE_MARGIN, maxLeft)
+  );
+  rect.top = clamp(
+    Number.isFinite(rect.top) ? rect.top : EDGE_MARGIN,
+    EDGE_MARGIN,
+    Math.max(EDGE_MARGIN, maxTop)
+  );
 }
 function applyReferenceWindowLayout() {
   const windowEl = elements.referenceWindow;
@@ -166,26 +232,54 @@ function applyReferenceWindowLayout() {
 function syncReferenceWindowState() {
   const windowEl = elements.referenceWindow;
   if (!windowEl) return;
+
   ensureReferenceRectBounds();
   applyReferenceWindowLayout();
+
   const visible = state.referenceWindowVisible;
   windowEl.classList.toggle('is-visible', visible);
   windowEl.classList.toggle('is-minimized', state.referenceWindowMinimized);
   windowEl.setAttribute('aria-hidden', visible ? 'false' : 'true');
-  elements.toggleReferenceBtn && (elements.toggleReferenceBtn.classList.toggle('active', visible), elements.toggleReferenceBtn.setAttribute('aria-pressed', visible ? 'true' : 'false'));
-  elements.referenceAddBtn && (elements.referenceAddBtn.textContent = ICONS.ADD);
-  elements.referenceMinimizeBtn && (elements.referenceMinimizeBtn.textContent = state.referenceWindowMinimized ? ICONS.RESTORE : ICONS.MINIMIZE, elements.referenceMinimizeBtn.setAttribute('aria-label', state.referenceWindowMinimized ? '还原参考窗' : '最小化参考窗'));
-  elements.referenceCloseBtn && (elements.referenceCloseBtn.textContent = ICONS.CLOSE);
-  elements.referenceResizer && (elements.referenceResizer.style.pointerEvents = state.referenceWindowMinimized ? 'none' : 'auto');
+
+  
+  if (elements.toggleReferenceBtn) {
+    elements.toggleReferenceBtn.classList.toggle('is-active', visible);
+    elements.toggleReferenceBtn.setAttribute('aria-pressed', visible ? 'true' : 'false');
+  }
+
+  
+  if (elements.referenceAddBtn) {
+    elements.referenceAddBtn.textContent = ICONS.ADD;
+    
+    elements.referenceAddBtn.style.display = state.referenceWindowMinimized ? 'none' : 'block';
+  }
+
+  if (elements.referenceMinimizeBtn) {
+    elements.referenceMinimizeBtn.textContent = state.referenceWindowMinimized ? ICONS.RESTORE : ICONS.MINIMIZE;
+    elements.referenceMinimizeBtn.setAttribute('aria-label',
+      state.referenceWindowMinimized ? '还原参考窗' : '最小化参考窗');
+  }
+
+  if (elements.referenceCloseBtn) {
+    elements.referenceCloseBtn.textContent = ICONS.CLOSE;
+  }
+
+  
+  if (elements.referenceResizer) {
+    elements.referenceResizer.style.pointerEvents = state.referenceWindowMinimized ? 'none' : 'auto';
+  }
 }
 function handleHeaderPointerDown(ev) {
   if (ev.button !== 0 || ev.target.closest('button')) return;
   beginInteraction(ev, 'move');
 }
 function handleWindowPointerDown(ev) {
-  if (!state.referenceWindowMinimized || ev.button !== 0 || ev.target.closest('button')) return;
-  beginInteraction(ev, 'move');
+  
+  if (state.referenceWindowMinimized && ev.button === 0 && !ev.target.closest('button')) {
+    beginInteraction(ev, 'move');
+  }
 }
+
 function handleResizerPointerDown(ev) {
   if (state.referenceWindowMinimized || ev.button !== 0) return;
   ev.stopPropagation();
@@ -193,37 +287,124 @@ function handleResizerPointerDown(ev) {
 }
 function beginInteraction(ev, mode) {
   if (!elements.referenceWindow) return;
-  activePointer = { id: ev.pointerId, mode, startX: ev.clientX, startY: ev.clientY, origin: { ...state.referenceWindowRect } };
-  elements.referenceWindow.classList.add('is-dragging');
-  try {
-    ev.target.setPointerCapture(ev.pointerId);
-  } catch { } window.addEventListener('pointermove', handlePointerMove);
-  window.addEventListener('pointerup', handlePointerUp);
-  window.addEventListener('pointercancel', handlePointerUp);
+
+  
+  if (mode === 'resize' && state.referenceWindowMinimized) return;
+
+  activePointer = {
+    id: ev.pointerId,
+    mode,
+    startX: ev.clientX,
+    startY: ev.clientY,
+    origin: { ...state.referenceWindowRect }
+  };
+
+  
+  const draggingClass = mode === 'resize' ? 'is-resizing' : 'is-dragging';
+  elements.referenceWindow.classList.add(draggingClass);
+  elements.referenceWindow.style.transition = 'none';
+  referenceWindowStackHandle?.bringToFront();
+
+  
+  pointerMoveHandler = handlePointerMove.bind(this);
+  pointerUpHandler = handlePointerUp.bind(this);
+  pointerCancelHandler = handlePointerUp.bind(this);
+
+  
+  window.addEventListener('pointermove', pointerMoveHandler, { passive: true });
+  window.addEventListener('pointerup', pointerUpHandler, { passive: true });
+  window.addEventListener('pointercancel', pointerCancelHandler, { passive: true });
+
+  
+  if (elements.referenceWindow.setPointerCapture) {
+    elements.referenceWindow.setPointerCapture(ev.pointerId);
+  }
+
   ev.preventDefault();
+  ev.stopPropagation();
 }
 function handlePointerMove(ev) {
-  if (!activePointer || ev.pointerId !== activePointer.id) return;
-  const dx = ev.clientX - activePointer.startX, dy = ev.clientY - activePointer.startY;
-  if (activePointer.mode === 'move') {
-    state.referenceWindowRect.left = activePointer.origin.left + dx;
-    state.referenceWindowRect.top = activePointer.origin.top + dy;
+  
+  if (!activePointer) {
+    cleanupInteraction();
+    return;
   }
-  else if (activePointer.mode === 'resize') {
-    state.referenceWindowRect.width = activePointer.origin.width + dx;
-    state.referenceWindowRect.height = activePointer.origin.height + dy;
+
+  if (ev.pointerId !== activePointer.id) {
+    return;
   }
-  ensureReferenceRectBounds(activePointer.mode === 'resize');
+
+  const dx = ev.clientX - activePointer.startX;
+  const dy = ev.clientY - activePointer.startY;
+
+  
+  if (!_rafPending) {
+    _rafPending = true;
+    requestAnimationFrame(() => {
+      _rafPending = false;
+
+      
+      if (!activePointer) {
+        return;
+      }
+
+      if (activePointer.mode === 'move') {
+        state.referenceWindowRect.left = activePointer.origin.left + dx;
+        state.referenceWindowRect.top = activePointer.origin.top + dy;
+      } else if (activePointer.mode === 'resize') {
+        state.referenceWindowRect.width = Math.max(MIN_WIDTH, activePointer.origin.width + dx);
+        state.referenceWindowRect.height = Math.max(MIN_HEIGHT, activePointer.origin.height + dy);
+      }
+
+      ensureReferenceRectBounds(activePointer.mode === 'resize');
+      if (state.referenceWindowMinimized && state.referenceWindowPrevRect) {
+        state.referenceWindowPrevRect.left = state.referenceWindowRect.left;
+        state.referenceWindowPrevRect.top = state.referenceWindowRect.top;
+      }
+      applyReferenceWindowLayout();
+    });
+  }
+}
+
+function cleanupInteraction() {
+  
+  window.removeEventListener('pointermove', pointerMoveHandler);
+  window.removeEventListener('pointerup', pointerUpHandler);
+  window.removeEventListener('pointercancel', pointerCancelHandler);
+
+  pointerMoveHandler = null;
+  pointerUpHandler = null;
+  pointerCancelHandler = null;
+
+  
+  if (elements.referenceWindow) {
+    elements.referenceWindow.classList.remove('is-dragging', 'is-resizing');
+    elements.referenceWindow.style.transition = '';
+
+    
+    if (elements.referenceWindow.releasePointerCapture && activePointer) {
+      elements.referenceWindow.releasePointerCapture(activePointer.id);
+    }
+  }
+
+  activePointer = null;
+  _rafPending = false;
+
+  ensureReferenceRectBounds();
   applyReferenceWindowLayout();
 }
 function handlePointerUp(ev) {
-  if (!activePointer || ev.pointerId !== activePointer.id) return;
+  
+  if (!activePointer || (ev.pointerId !== activePointer.id && activePointer.id !== undefined)) {
+    cleanupInteraction();
+    return;
+  }
+
   try {
     ev.target.releasePointerCapture(ev.pointerId);
-  } catch { } activePointer = null;
-  elements.referenceWindow?.classList.remove('is-dragging');['pointermove', 'pointerup', 'pointercancel'].forEach(event => window.removeEventListener(event, handlePointerMove));
-  ensureReferenceRectBounds();
-  applyReferenceWindowLayout();
+  } catch { }
+
+  cleanupInteraction();
 }
 function handleViewportResize() {
   ensureReferenceRectBounds(true);
@@ -274,7 +455,7 @@ function setReferenceAsBaseImage(entry) {
       }
     } catch (error) {
       console.error('调用底图函数时出错:', error);
-    } setTimeout(() => document.dispatchEvent(new CustomEvent('updateFullscreenOverlay')), 0);
+    }
     setReferenceWindowVisible(false);
   };
   img.onerror = function () {
@@ -286,3 +467,4 @@ function setReferenceAsBaseImage(entry) {
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
+

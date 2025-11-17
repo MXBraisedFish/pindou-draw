@@ -1,0 +1,73 @@
+
+
+.status-bar {
+  position: absolute;
+  bottom: 0;
+  height: 32px;
+  width: 100%;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  font-size: 12px;
+  color: #5f6368;
+  border-top: 1px solid #e8eaed;
+  z-index: 100;
+}
+
+.status-item {
+  margin-right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-label {
+  color: #5f6368;
+}
+
+.status-value {
+  color: #3c4043;
+  font-weight: 500;
+}
+
+.status-item--color {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-color {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-color-preview {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1px solid #dadce0;
+  background: transparent;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.status-label {
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.status-color-code {
+  font-weight: 500;
+}
+
+.status-color-hex {
+  font-size: 11px;
+  color: #5f6368;
+}
+
+.status-color-rgb {
+  font-size: 11px;
+  color: #5f6368;
+}

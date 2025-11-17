@@ -46,3 +46,9 @@ export function resetUsedColorsCache() {
   cachedHistoryIndex = null;
   cachedColors = [];
 }
+
+if (typeof document !== 'undefined') {
+  document.addEventListener('grid:updated', () => {
+    resetUsedColorsCache();
+  });
+}

@@ -1,10 +1,9 @@
 import { elements } from '../elements.js';
 import { state } from '../state.js';
 import { initializeShortcuts } from '../shortcuts.js';
-import { initializeUpdate } from '../update.js';
+import { initializeUpdate, toggleUpdate } from '../update.js';
 import { initializeExportWindow, toggleExportWindow } from '../export-window.js';
 import { initializeReferenceFeature } from '../reference.js';
-import { initializeDocs } from '../docs.js';
 import { initializeSelectionLayers, renderSelectionLayers } from '../selection-layer.js';
 import {
   createCanvas,
@@ -18,32 +17,30 @@ import {
   restoreLastPalette,
   initializeColorManagement
 } from '../palette.js';
-import { updateFullscreenState } from '../fullscreen.js';
+import { initializePaletteWindow } from '../palette-window.js';
 import { initializeResizeCanvas } from '../resize-canvas.js';
 import { initializeUIBindings } from '../ui/ui-bindings.js';
-import {
-  initializeFullscreenOverlay,
-  updateFullscreenOverlayState
-} from './fullscreen-overlay.js';
 import { resolveResolutionValue } from './resolution.js';
 import { initializeCanvasHighlight } from '../canvas-highlight.js';
 import { applyLocalization } from './localization.js';
+import { initializePhotoSketch } from '../photo-sketch.js';
 
 export async function initializeApp() {
   applyLocalization();
-  initializeFullscreenOverlay();
   initializeUIBindings();
 
   initializeReferenceFeature();
-  initializeDocs();
   initializeUpdate();
+  // toggleUpdate(true);
   initializeExportWindow();
+  initializePhotoSketch();
   initializeShortcuts();
 
   loadPaletteLibrary();
   await loadDefaultPalettes();
   restoreLastPalette();
   initializeColorManagement();
+  initializePaletteWindow();
   initializeCanvasHighlight();
 
   const resolvedRatio = resolveResolutionValue(elements.resolutionInput?.value ?? state.pixelRatio);
@@ -61,8 +58,6 @@ export async function initializeApp() {
   renderSelectionLayers();
   initializeResizeCanvas();
   initializeBaseScaleRange();
-  updateFullscreenState();
-  updateFullscreenOverlayState();
   prepareCanvasInteractions();
 
   window.addEventListener('beforeunload', handleBeforeUnload);
