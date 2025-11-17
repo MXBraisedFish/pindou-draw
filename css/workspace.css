@@ -1,0 +1,133 @@
+﻿
+.display-mode-toast {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translate(-50%, -140%) scale(0.96);
+  padding: 10px 22px;
+  border-radius: 999px;
+  background: rgba(19, 28, 48, 0.92);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.8px;
+  box-shadow: 0 16px 40px rgba(7, 10, 24, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.35s ease, opacity 0.35s ease;
+  z-index: 1400;
+}
+
+.display-mode-toast.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+
+
+
+.workspace {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  overflow: hidden;
+}
+
+.canvas-wrapper {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.canvas-stage {
+  position: relative;
+  display: inline-block;
+  transform-origin: top left;
+  will-change: transform;
+}
+
+.canvas-viewport {
+  position: relative;
+  display: inline-block;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  transform-origin: top left;
+  will-change: transform;
+}
+
+.canvas-viewport canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  image-rendering: pixelated;
+}
+
+#baseCanvas,
+#gridCanvas,
+#selectionMaskCanvas,
+#selectionContentCanvas,
+#selectionOutlineCanvas {
+  pointer-events: none;
+}
+
+#baseCanvas {
+  z-index: 0;
+}
+
+#drawingCanvas {
+  cursor: crosshair;
+  touch-action: none;
+  transition: cursor 0.15s ease;
+}
+
+#drawingCanvas.bucket-tool {
+  cursor: cell;
+}
+
+#drawingCanvas.eyedropper-tool {
+  cursor: crosshair;
+}
+
+#drawingCanvas.base-edit-mode {
+  cursor: grab;
+}
+
+#gridCanvas {
+  z-index: 7;
+}
+
+#gridCanvas.is-above-highlight {
+  z-index: 7;
+}
+
+#drawingCanvas.is-base-dragging,
+#drawingCanvas.is-panning {
+  cursor: grabbing;
+}
+
+#drawingCanvas.pan-modifier {
+  cursor: grab;
+}
+
+#drawingCanvas.pan-modifier.is-panning {
+  cursor: grabbing;
+}
+
+#selectionMaskCanvas {
+  z-index: 4;
+}
+
+#selectionContentCanvas {
+  z-index: 5;
+}
+
+#selectionOutlineCanvas {
+  z-index: 10;
+}

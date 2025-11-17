@@ -1,0 +1,1328 @@
+{
+  "A01": {
+    "num": "A01",
+    "type": "normal",
+    "color": "rgb(255, 255, 255)",
+    "color1": "rgb(255, 255, 255)"
+  },
+  "A02": {
+    "num": "A02",
+    "type": "normal",
+    "color": "rgb(251, 251, 251)",
+    "color1": "rgb(251, 251, 251)"
+  },
+  "A03": {
+    "num": "A03",
+    "type": "normal",
+    "color": "rgb(252, 255, 248)",
+    "color1": "rgb(252, 255, 248)"
+  },
+  "A04": {
+    "num": "A04",
+    "type": "normal",
+    "color": "rgb(253, 246, 238)",
+    "color1": "rgb(253, 246, 238)"
+  },
+  "A05": {
+    "num": "A05",
+    "type": "normal",
+    "color": "rgb(242, 238, 229)",
+    "color1": "rgb(242, 238, 229)"
+  },
+  "A06": {
+    "num": "A06",
+    "type": "normal",
+    "color": "rgb(244, 239, 209)",
+    "color1": "rgb(244, 239, 209)"
+  },
+  "A07": {
+    "num": "A07",
+    "type": "normal",
+    "color": "rgb(240, 238, 239)",
+    "color1": "rgb(240, 238, 239)"
+  },
+  "A08": {
+    "num": "A08",
+    "type": "normal",
+    "color": "rgb(239, 237, 238)",
+    "color1": "rgb(239, 237, 238)"
+  },
+  "A09": {
+    "num": "A09",
+    "type": "normal",
+    "color": "rgb(231, 214, 220)",
+    "color1": "rgb(231, 214, 220)"
+  },
+  "A10": {
+    "num": "A10",
+    "type": "normal",
+    "color": "rgb(236, 234, 235)",
+    "color1": "rgb(236, 234, 235)"
+  },
+  "A11": {
+    "num": "A11",
+    "type": "normal",
+    "color": "rgb(248, 251, 230)",
+    "color1": "rgb(248, 251, 230)"
+  },
+  "A12": {
+    "num": "A12",
+    "type": "normal",
+    "color": "rgb(202, 202, 210)",
+    "color1": "rgb(202, 202, 210)"
+  },
+  "B01": {
+    "num": "B01",
+    "type": "normal",
+    "color": "rgb(205, 205, 205)",
+    "color1": "rgb(205, 205, 205)"
+  },
+  "B02": {
+    "num": "B02",
+    "type": "normal",
+    "color": "rgb(206, 215, 212)",
+    "color1": "rgb(206, 215, 212)"
+  },
+  "B03": {
+    "num": "B03",
+    "type": "normal",
+    "color": "rgb(180, 180, 180)",
+    "color1": "rgb(180, 180, 180)"
+  },
+  "B04": {
+    "num": "B04",
+    "type": "normal",
+    "color": "rgb(152, 166, 166)",
+    "color1": "rgb(152, 166, 166)"
+  },
+  "B05": {
+    "num": "B05",
+    "type": "normal",
+    "color": "rgb(135, 135, 135)",
+    "color1": "rgb(135, 135, 135)"
+  },
+  "B06": {
+    "num": "B06",
+    "type": "normal",
+    "color": "rgb(70, 70, 72)",
+    "color1": "rgb(70, 70, 72)"
+  },
+  "B07": {
+    "num": "B07",
+    "type": "normal",
+    "color": "rgb(44, 44, 44)",
+    "color1": "rgb(44, 44, 44)"
+  },
+  "B08": {
+    "num": "B08",
+    "type": "normal",
+    "color": "rgb(27, 18, 19)",
+    "color1": "rgb(27, 18, 19)"
+  },
+  "B09": {
+    "num": "B09",
+    "type": "normal",
+    "color": "rgb(1, 1, 1)",
+    "color1": "rgb(1, 1, 1)"
+  },
+  "B10": {
+    "num": "B10",
+    "type": "normal",
+    "color": "rgb(150, 160, 159)",
+    "color1": "rgb(150, 160, 159)"
+  },
+  "B11": {
+    "num": "B11",
+    "type": "normal",
+    "color": "rgb(155, 156, 148)",
+    "color1": "rgb(155, 156, 148)"
+  },
+  "C01": {
+    "num": "C01",
+    "type": "normal",
+    "color": "rgb(248, 81, 109)",
+    "color1": "rgb(248, 81, 109)"
+  },
+  "C02": {
+    "num": "C02",
+    "type": "normal",
+    "color": "rgb(247, 61, 75)",
+    "color1": "rgb(247, 61, 75)"
+  },
+  "C03": {
+    "num": "C03",
+    "type": "normal",
+    "color": "rgb(239, 77, 62)",
+    "color1": "rgb(239, 77, 62)"
+  },
+  "C04": {
+    "num": "C04",
+    "type": "normal",
+    "color": "rgb(244, 92, 69)",
+    "color1": "rgb(244, 92, 69)"
+  },
+  "C05": {
+    "num": "C05",
+    "type": "normal",
+    "color": "rgb(232, 88, 66)",
+    "color1": "rgb(232, 88, 66)"
+  },
+  "C06": {
+    "num": "C06",
+    "type": "normal",
+    "color": "rgb(249, 43, 64)",
+    "color1": "rgb(249, 43, 64)"
+  },
+  "C07": {
+    "num": "C07",
+    "type": "normal",
+    "color": "rgb(227, 3, 40)",
+    "color1": "rgb(227, 3, 40)"
+  },
+  "C08": {
+    "num": "C08",
+    "type": "normal",
+    "color": "rgb(213, 5, 39)",
+    "color1": "rgb(213, 5, 39)"
+  },
+  "C09": {
+    "num": "C09",
+    "type": "normal",
+    "color": "rgb(187, 1, 38)",
+    "color1": "rgb(187, 1, 38)"
+  },
+  "C10": {
+    "num": "C10",
+    "type": "normal",
+    "color": "rgb(145, 25, 50)",
+    "color1": "rgb(145, 25, 50)"
+  },
+  "D01": {
+    "num": "D01",
+    "type": "normal",
+    "color": "rgb(254, 219, 153)",
+    "color1": "rgb(254, 219, 153)"
+  },
+  "D02": {
+    "num": "D02",
+    "type": "normal",
+    "color": "rgb(252, 191, 128)",
+    "color1": "rgb(252, 191, 128)"
+  },
+  "D03": {
+    "num": "D03",
+    "type": "normal",
+    "color": "rgb(240, 216, 58)",
+    "color1": "rgb(240, 216, 58)"
+  },
+  "D04": {
+    "num": "D04",
+    "type": "normal",
+    "color": "rgb(254, 198, 103)",
+    "color1": "rgb(254, 198, 103)"
+  },
+  "D05": {
+    "num": "D05",
+    "type": "normal",
+    "color": "rgb(253, 169, 81)",
+    "color1": "rgb(253, 169, 81)"
+  },
+  "D06": {
+    "num": "D06",
+    "type": "normal",
+    "color": "rgb(249, 156, 95)",
+    "color1": "rgb(249, 156, 95)"
+  },
+  "D07": {
+    "num": "D07",
+    "type": "normal",
+    "color": "rgb(244, 126, 54)",
+    "color1": "rgb(244, 126, 54)"
+  },
+  "D08": {
+    "num": "D08",
+    "type": "normal",
+    "color": "rgb(250, 140, 79)",
+    "color1": "rgb(250, 140, 79)"
+  },
+  "E01": {
+    "num": "E01",
+    "type": "normal",
+    "color": "rgb(252, 254, 214)",
+    "color1": "rgb(252, 254, 214)"
+  },
+  "E02": {
+    "num": "E02",
+    "type": "normal",
+    "color": "rgb(250, 245, 205)",
+    "color1": "rgb(250, 245, 205)"
+  },
+  "E03": {
+    "num": "E03",
+    "type": "normal",
+    "color": "rgb(254, 255, 151)",
+    "color1": "rgb(254, 255, 151)"
+  },
+  "E04": {
+    "num": "E04",
+    "type": "normal",
+    "color": "rgb(251, 246, 94)",
+    "color1": "rgb(251, 246, 94)"
+  },
+  "E05": {
+    "num": "E05",
+    "type": "normal",
+    "color": "rgb(252, 255, 146)",
+    "color1": "rgb(252, 255, 146)"
+  },
+  "E06": {
+    "num": "E06",
+    "type": "normal",
+    "color": "rgb(253, 225, 115)",
+    "color1": "rgb(253, 225, 115)"
+  },
+  "E07": {
+    "num": "E07",
+    "type": "normal",
+    "color": "rgb(247, 236, 92)",
+    "color1": "rgb(247, 236, 92)"
+  },
+  "E08": {
+    "num": "E08",
+    "type": "normal",
+    "color": "rgb(253, 217, 77)",
+    "color1": "rgb(253, 217, 77)"
+  },
+  "E09": {
+    "num": "E09",
+    "type": "normal",
+    "color": "rgb(249, 214, 110)",
+    "color1": "rgb(249, 214, 110)"
+  },
+  "E10": {
+    "num": "E10",
+    "type": "normal",
+    "color": "rgb(250, 227, 147)",
+    "color1": "rgb(250, 227, 147)"
+  },
+  "E11": {
+    "num": "E11",
+    "type": "normal",
+    "color": "rgb(237, 248, 120)",
+    "color1": "rgb(237, 248, 120)"
+  },
+  "E12": {
+    "num": "E12",
+    "type": "normal",
+    "color": "rgb(225, 201, 189)",
+    "color1": "rgb(225, 201, 189)"
+  },
+  "E13": {
+    "num": "E13",
+    "type": "normal",
+    "color": "rgb(243, 246, 169)",
+    "color1": "rgb(243, 246, 169)"
+  },
+  "E14": {
+    "num": "E14",
+    "type": "normal",
+    "color": "rgb(255, 215, 133)",
+    "color1": "rgb(255, 215, 133)"
+  },
+  "E15": {
+    "num": "E15",
+    "type": "normal",
+    "color": "rgb(254, 200, 50)",
+    "color1": "rgb(254, 200, 50)"
+  },
+  "F01": {
+    "num": "F01",
+    "type": "normal",
+    "color": "rgb(232, 250, 166)",
+    "color1": "rgb(232, 250, 166)"
+  },
+  "F02": {
+    "num": "F02",
+    "type": "normal",
+    "color": "rgb(200, 232, 125)",
+    "color1": "rgb(200, 232, 125)"
+  },
+  "F03": {
+    "num": "F03",
+    "type": "normal",
+    "color": "rgb(192, 237, 156)",
+    "color1": "rgb(192, 237, 156)"
+  },
+  "F04": {
+    "num": "F04",
+    "type": "normal",
+    "color": "rgb(159, 246, 133)",
+    "color1": "rgb(159, 246, 133)"
+  },
+  "F05": {
+    "num": "F05",
+    "type": "normal",
+    "color": "rgb(223, 241, 57)",
+    "color1": "rgb(223, 241, 57)"
+  },
+  "F06": {
+    "num": "F06",
+    "type": "normal",
+    "color": "rgb(172, 232, 76)",
+    "color1": "rgb(172, 232, 76)"
+  },
+  "F07": {
+    "num": "F07",
+    "type": "normal",
+    "color": "rgb(230, 237, 79)",
+    "color1": "rgb(230, 237, 79)"
+  },
+  "F08": {
+    "num": "F08",
+    "type": "normal",
+    "color": "rgb(100, 243, 67)",
+    "color1": "rgb(100, 243, 67)"
+  },
+  "F09": {
+    "num": "F09",
+    "type": "normal",
+    "color": "rgb(95, 223, 52)",
+    "color1": "rgb(95, 223, 52)"
+  },
+  "F10": {
+    "num": "F10",
+    "type": "normal",
+    "color": "rgb(57, 225, 88)",
+    "color1": "rgb(57, 225, 88)"
+  },
+  "F11": {
+    "num": "F11",
+    "type": "normal",
+    "color": "rgb(29, 155, 84)",
+    "color1": "rgb(29, 155, 84)"
+  },
+  "F12": {
+    "num": "F12",
+    "type": "normal",
+    "color": "rgb(26, 110, 61)",
+    "color1": "rgb(26, 110, 61)"
+  },
+  "F13": {
+    "num": "F13",
+    "type": "normal",
+    "color": "rgb(158, 179, 62)",
+    "color1": "rgb(158, 179, 62)"
+  },
+  "F14": {
+    "num": "F14",
+    "type": "normal",
+    "color": "rgb(98, 112, 50)",
+    "color1": "rgb(98, 112, 50)"
+  },
+  "F15": {
+    "num": "F15",
+    "type": "normal",
+    "color": "rgb(48, 83, 53)",
+    "color1": "rgb(48, 83, 53)"
+  },
+  "F16": {
+    "num": "F16",
+    "type": "normal",
+    "color": "rgb(42, 80, 55)",
+    "color1": "rgb(42, 80, 55)"
+  },
+  "F17": {
+    "num": "F17",
+    "type": "normal",
+    "color": "rgb(52, 59, 26)",
+    "color1": "rgb(52, 59, 26)"
+  },
+  "F18": {
+    "num": "F18",
+    "type": "normal",
+    "color": "rgb(78, 132, 109)",
+    "color1": "rgb(78, 132, 109)"
+  },
+  "F19": {
+    "num": "F19",
+    "type": "normal",
+    "color": "rgb(144, 124, 53)",
+    "color1": "rgb(144, 124, 53)"
+  },
+  "F20": {
+    "num": "F20",
+    "type": "normal",
+    "color": "rgb(208, 224, 175)",
+    "color1": "rgb(208, 224, 175)"
+  },
+  "F21": {
+    "num": "F21",
+    "type": "normal",
+    "color": "rgb(158, 229, 187)",
+    "color1": "rgb(158, 229, 187)"
+  },
+  "F22": {
+    "num": "F22",
+    "type": "normal",
+    "color": "rgb(198, 223, 95)",
+    "color1": "rgb(198, 223, 95)"
+  },
+  "F23": {
+    "num": "F23",
+    "type": "normal",
+    "color": "rgb(227, 251, 177)",
+    "color1": "rgb(227, 251, 177)"
+  },
+  "F24": {
+    "num": "F24",
+    "type": "normal",
+    "color": "rgb(178, 230, 148)",
+    "color1": "rgb(178, 230, 148)"
+  },
+  "F25": {
+    "num": "F25",
+    "type": "normal",
+    "color": "rgb(146, 173, 96)",
+    "color1": "rgb(146, 173, 96)"
+  },
+  "G01": {
+    "num": "G01",
+    "type": "normal",
+    "color": "rgb(240, 254, 228)",
+    "color1": "rgb(240, 254, 228)"
+  },
+  "G02": {
+    "num": "G02",
+    "type": "normal",
+    "color": "rgb(202, 237, 207)",
+    "color1": "rgb(202, 237, 207)"
+  },
+  "G03": {
+    "num": "G03",
+    "type": "normal",
+    "color": "rgb(154, 209, 186)",
+    "color1": "rgb(154, 209, 186)"
+  },
+  "G04": {
+    "num": "G04",
+    "type": "normal",
+    "color": "rgb(100, 224, 164)",
+    "color1": "rgb(100, 224, 164)"
+  },
+  "G05": {
+    "num": "G05",
+    "type": "normal",
+    "color": "rgb(62, 174, 124)",
+    "color1": "rgb(62, 174, 124)"
+  },
+  "G06": {
+    "num": "G06",
+    "type": "normal",
+    "color": "rgb(38, 183, 142)",
+    "color1": "rgb(38, 183, 142)"
+  },
+  "G07": {
+    "num": "G07",
+    "type": "normal",
+    "color": "rgb(23, 98, 104)",
+    "color1": "rgb(23, 98, 104)"
+  },
+  "G08": {
+    "num": "G08",
+    "type": "normal",
+    "color": "rgb(10, 66, 65)",
+    "color1": "rgb(10, 66, 65)"
+  },
+  "H01": {
+    "num": "H01",
+    "type": "normal",
+    "color": "rgb(205, 231, 254)",
+    "color1": "rgb(205, 231, 254)"
+  },
+  "H02": {
+    "num": "H02",
+    "type": "normal",
+    "color": "rgb(214, 253, 252)",
+    "color1": "rgb(214, 253, 252)"
+  },
+  "H03": {
+    "num": "H03",
+    "type": "normal",
+    "color": "rgb(171, 248, 254)",
+    "color1": "rgb(171, 248, 254)"
+  },
+  "H04": {
+    "num": "H04",
+    "type": "normal",
+    "color": "rgb(158, 224, 248)",
+    "color1": "rgb(158, 224, 248)"
+  },
+  "H05": {
+    "num": "H05",
+    "type": "normal",
+    "color": "rgb(68, 205, 251)",
+    "color1": "rgb(68, 205, 251)"
+  },
+  "H06": {
+    "num": "H06",
+    "type": "normal",
+    "color": "rgb(190, 221, 252)",
+    "color1": "rgb(190, 221, 252)"
+  },
+  "H07": {
+    "num": "H07",
+    "type": "normal",
+    "color": "rgb(6, 171, 227)",
+    "color1": "rgb(6, 171, 227)"
+  },
+  "H08": {
+    "num": "H08",
+    "type": "normal",
+    "color": "rgb(84, 167, 233)",
+    "color1": "rgb(84, 167, 233)"
+  },
+  "H09": {
+    "num": "H09",
+    "type": "normal",
+    "color": "rgb(61, 187, 227)",
+    "color1": "rgb(61, 187, 227)"
+  },
+  "H10": {
+    "num": "H10",
+    "type": "normal",
+    "color": "rgb(42, 222, 211)",
+    "color1": "rgb(42, 222, 211)"
+  },
+  "H11": {
+    "num": "H11",
+    "type": "normal",
+    "color": "rgb(33, 197, 196)",
+    "color1": "rgb(33, 197, 196)"
+  },
+  "H12": {
+    "num": "H12",
+    "type": "normal",
+    "color": "rgb(24, 134, 157)",
+    "color1": "rgb(24, 134, 157)"
+  },
+  "H13": {
+    "num": "H13",
+    "type": "normal",
+    "color": "rgb(57, 119, 204)",
+    "color1": "rgb(57, 119, 204)"
+  },
+  "H14": {
+    "num": "H14",
+    "type": "normal",
+    "color": "rgb(15, 82, 189)",
+    "color1": "rgb(15, 82, 189)"
+  },
+  "H15": {
+    "num": "H15",
+    "type": "normal",
+    "color": "rgb(54, 83, 175)",
+    "color1": "rgb(54, 83, 175)"
+  },
+  "H16": {
+    "num": "H16",
+    "type": "normal",
+    "color": "rgb(51, 73, 195)",
+    "color1": "rgb(51, 73, 195)"
+  },
+  "H17": {
+    "num": "H17",
+    "type": "normal",
+    "color": "rgb(26, 112, 169)",
+    "color1": "rgb(26, 112, 169)"
+  },
+  "H18": {
+    "num": "H18",
+    "type": "normal",
+    "color": "rgb(24, 88, 162)",
+    "color1": "rgb(24, 88, 162)"
+  },
+  "H19": {
+    "num": "H19",
+    "type": "normal",
+    "color": "rgb(2, 209, 243)",
+    "color1": "rgb(2, 209, 243)"
+  },
+  "H20": {
+    "num": "H20",
+    "type": "normal",
+    "color": "rgb(22, 44, 126)",
+    "color1": "rgb(22, 44, 126)"
+  },
+  "H21": {
+    "num": "H21",
+    "type": "normal",
+    "color": "rgb(56, 57, 149)",
+    "color1": "rgb(56, 57, 149)"
+  },
+  "H22": {
+    "num": "H22",
+    "type": "normal",
+    "color": "rgb(47, 30, 142)",
+    "color1": "rgb(47, 30, 142)"
+  },
+  "H23": {
+    "num": "H23",
+    "type": "normal",
+    "color": "rgb(30, 51, 78)",
+    "color1": "rgb(30, 51, 78)"
+  },
+  "H24": {
+    "num": "H24",
+    "type": "normal",
+    "color": "rgb(33, 50, 68)",
+    "color1": "rgb(33, 50, 68)"
+  },
+  "H25": {
+    "num": "H25",
+    "type": "normal",
+    "color": "rgb(107, 177, 187)",
+    "color1": "rgb(107, 177, 187)"
+  },
+  "H26": {
+    "num": "H26",
+    "type": "normal",
+    "color": "rgb(200, 226, 249)",
+    "color1": "rgb(200, 226, 249)"
+  },
+  "H27": {
+    "num": "H27",
+    "type": "normal",
+    "color": "rgb(126, 197, 249)",
+    "color1": "rgb(126, 197, 249)"
+  },
+  "H28": {
+    "num": "H28",
+    "type": "normal",
+    "color": "rgb(169, 232, 224)",
+    "color1": "rgb(169, 232, 224)"
+  },
+  "H29": {
+    "num": "H29",
+    "type": "normal",
+    "color": "rgb(66, 173, 209)",
+    "color1": "rgb(66, 173, 209)"
+  },
+  "H30": {
+    "num": "H30",
+    "type": "normal",
+    "color": "rgb(208, 222, 249)",
+    "color1": "rgb(208, 222, 249)"
+  },
+  "H31": {
+    "num": "H31",
+    "type": "normal",
+    "color": "rgb(189, 206, 232)",
+    "color1": "rgb(189, 206, 232)"
+  },
+  "H32": {
+    "num": "H32",
+    "type": "normal",
+    "color": "rgb(54, 74, 137)",
+    "color1": "rgb(54, 74, 137)"
+  },
+  "J01": {
+    "num": "J01",
+    "type": "normal",
+    "color": "rgb(226, 228, 240)",
+    "color1": "rgb(226, 228, 240)"
+  },
+  "J02": {
+    "num": "J02",
+    "type": "normal",
+    "color": "rgb(234, 219, 248)",
+    "color1": "rgb(234, 219, 248)"
+  },
+  "J03": {
+    "num": "J03",
+    "type": "normal",
+    "color": "rgb(227, 210, 254)",
+    "color1": "rgb(227, 210, 254)"
+  },
+  "J04": {
+    "num": "J04",
+    "type": "normal",
+    "color": "rgb(214, 186, 245)",
+    "color1": "rgb(214, 186, 245)"
+  },
+  "J05": {
+    "num": "J05",
+    "type": "normal",
+    "color": "rgb(199, 211, 249)",
+    "color1": "rgb(199, 211, 249)"
+  },
+  "J06": {
+    "num": "J06",
+    "type": "normal",
+    "color": "rgb(188, 186, 226)",
+    "color1": "rgb(188, 186, 226)"
+  },
+  "J07": {
+    "num": "J07",
+    "type": "normal",
+    "color": "rgb(172, 183, 239)",
+    "color1": "rgb(172, 183, 239)"
+  },
+  "J08": {
+    "num": "J08",
+    "type": "normal",
+    "color": "rgb(134, 141, 211)",
+    "color1": "rgb(134, 141, 211)"
+  },
+  "J09": {
+    "num": "J09",
+    "type": "normal",
+    "color": "rgb(216, 194, 217)",
+    "color1": "rgb(216, 194, 217)"
+  },
+  "J10": {
+    "num": "J10",
+    "type": "normal",
+    "color": "rgb(220, 153, 206)",
+    "color1": "rgb(220, 153, 206)"
+  },
+  "J11": {
+    "num": "J11",
+    "type": "normal",
+    "color": "rgb(179, 123, 220)",
+    "color1": "rgb(179, 123, 220)"
+  },
+  "J12": {
+    "num": "J12",
+    "type": "normal",
+    "color": "rgb(179, 78, 198)",
+    "color1": "rgb(179, 78, 198)"
+  },
+  "J13": {
+    "num": "J13",
+    "type": "normal",
+    "color": "rgb(154, 100, 184)",
+    "color1": "rgb(154, 100, 184)"
+  },
+  "J14": {
+    "num": "J14",
+    "type": "normal",
+    "color": "rgb(181, 3, 143)",
+    "color1": "rgb(181, 3, 143)"
+  },
+  "J15": {
+    "num": "J15",
+    "type": "normal",
+    "color": "rgb(135, 88, 169)",
+    "color1": "rgb(135, 88, 169)"
+  },
+  "J16": {
+    "num": "J16",
+    "type": "normal",
+    "color": "rgb(136, 40, 147)",
+    "color1": "rgb(136, 40, 147)"
+  },
+  "J17": {
+    "num": "J17",
+    "type": "normal",
+    "color": "rgb(156, 52, 173)",
+    "color1": "rgb(156, 52, 173)"
+  },
+  "J18": {
+    "num": "J18",
+    "type": "normal",
+    "color": "rgb(148, 5, 149)",
+    "color1": "rgb(148, 5, 149)"
+  },
+  "J19": {
+    "num": "J19",
+    "type": "normal",
+    "color": "rgb(48, 26, 73)",
+    "color1": "rgb(48, 26, 73)"
+  },
+  "J20": {
+    "num": "J20",
+    "type": "normal",
+    "color": "rgb(118, 138, 225)",
+    "color1": "rgb(118, 138, 225)"
+  },
+  "J21": {
+    "num": "J21",
+    "type": "normal",
+    "color": "rgb(73, 80, 194)",
+    "color1": "rgb(73, 80, 194)"
+  },
+  "J22": {
+    "num": "J22",
+    "type": "normal",
+    "color": "rgb(214, 198, 235)",
+    "color1": "rgb(214, 198, 235)"
+  },
+  "K01": {
+    "num": "K01",
+    "type": "normal",
+    "color": "rgb(251, 244, 236)",
+    "color1": "rgb(251, 244, 236)"
+  },
+  "K02": {
+    "num": "K02",
+    "type": "normal",
+    "color": "rgb(247, 218, 212)",
+    "color1": "rgb(247, 218, 212)"
+  },
+  "K03": {
+    "num": "K03",
+    "type": "normal",
+    "color": "rgb(246, 212, 203)",
+    "color1": "rgb(246, 212, 203)"
+  },
+  "K04": {
+    "num": "K04",
+    "type": "normal",
+    "color": "rgb(245, 201, 202)",
+    "color1": "rgb(245, 201, 202)"
+  },
+  "K05": {
+    "num": "K05",
+    "type": "normal",
+    "color": "rgb(250, 212, 191)",
+    "color1": "rgb(250, 212, 191)"
+  },
+  "K06": {
+    "num": "K06",
+    "type": "normal",
+    "color": "rgb(248, 192, 169)",
+    "color1": "rgb(248, 192, 169)"
+  },
+  "K07": {
+    "num": "K07",
+    "type": "normal",
+    "color": "rgb(252, 173, 178)",
+    "color1": "rgb(252, 173, 178)"
+  },
+  "K08": {
+    "num": "K08",
+    "type": "normal",
+    "color": "rgb(255, 146, 128)",
+    "color1": "rgb(255, 146, 128)"
+  },
+  "K09": {
+    "num": "K09",
+    "type": "normal",
+    "color": "rgb(253, 162, 118)",
+    "color1": "rgb(253, 162, 118)"
+  },
+  "K10": {
+    "num": "K10",
+    "type": "normal",
+    "color": "rgb(253, 126, 119)",
+    "color1": "rgb(253, 126, 119)"
+  },
+  "K11": {
+    "num": "K11",
+    "type": "normal",
+    "color": "rgb(247, 227, 236)",
+    "color1": "rgb(247, 227, 236)"
+  },
+  "K12": {
+    "num": "K12",
+    "type": "normal",
+    "color": "rgb(253, 219, 233)",
+    "color1": "rgb(253, 219, 233)"
+  },
+  "K13": {
+    "num": "K13",
+    "type": "normal",
+    "color": "rgb(251, 200, 219)",
+    "color1": "rgb(251, 200, 219)"
+  },
+  "K14": {
+    "num": "K14",
+    "type": "normal",
+    "color": "rgb(246, 187, 209)",
+    "color1": "rgb(246, 187, 209)"
+  },
+  "K15": {
+    "num": "K15",
+    "type": "normal",
+    "color": "rgb(252, 193, 221)",
+    "color1": "rgb(252, 193, 221)"
+  },
+  "K16": {
+    "num": "K16",
+    "type": "normal",
+    "color": "rgb(248, 147, 191)",
+    "color1": "rgb(248, 147, 191)"
+  },
+  "K17": {
+    "num": "K17",
+    "type": "normal",
+    "color": "rgb(246, 189, 232)",
+    "color1": "rgb(246, 189, 232)"
+  },
+  "K18": {
+    "num": "K18",
+    "type": "normal",
+    "color": "rgb(229, 117, 199)",
+    "color1": "rgb(229, 117, 199)"
+  },
+  "K19": {
+    "num": "K19",
+    "type": "normal",
+    "color": "rgb(241, 85, 159)",
+    "color1": "rgb(241, 85, 159)"
+  },
+  "K20": {
+    "num": "K20",
+    "type": "normal",
+    "color": "rgb(224, 103, 122)",
+    "color1": "rgb(224, 103, 122)"
+  },
+  "K21": {
+    "num": "K21",
+    "type": "normal",
+    "color": "rgb(233, 99, 158)",
+    "color1": "rgb(233, 99, 158)"
+  },
+  "K22": {
+    "num": "K22",
+    "type": "normal",
+    "color": "rgb(236, 64, 114)",
+    "color1": "rgb(236, 64, 114)"
+  },
+  "K23": {
+    "num": "K23",
+    "type": "normal",
+    "color": "rgb(211, 57, 151)",
+    "color1": "rgb(211, 57, 151)"
+  },
+  "K24": {
+    "num": "K24",
+    "type": "normal",
+    "color": "rgb(181, 2, 106)",
+    "color1": "rgb(181, 2, 106)"
+  },
+  "K25": {
+    "num": "K25",
+    "type": "normal",
+    "color": "rgb(198, 54, 116)",
+    "color1": "rgb(198, 54, 116)"
+  },
+  "K26": {
+    "num": "K26",
+    "type": "normal",
+    "color": "rgb(215, 198, 206)",
+    "color1": "rgb(215, 198, 206)"
+  },
+  "K27": {
+    "num": "K27",
+    "type": "normal",
+    "color": "rgb(192, 157, 164)",
+    "color1": "rgb(192, 157, 164)"
+  },
+  "K28": {
+    "num": "K28",
+    "type": "normal",
+    "color": "rgb(181, 139, 159)",
+    "color1": "rgb(181, 139, 159)"
+  },
+  "K29": {
+    "num": "K29",
+    "type": "normal",
+    "color": "rgb(147, 125, 138)",
+    "color1": "rgb(147, 125, 138)"
+  },
+  "K30": {
+    "num": "K30",
+    "type": "normal",
+    "color": "rgb(222, 190, 229)",
+    "color1": "rgb(222, 190, 229)"
+  },
+  "K31": {
+    "num": "K31",
+    "type": "normal",
+    "color": "rgb(232, 155, 125)",
+    "color1": "rgb(232, 155, 125)"
+  },
+  "K32": {
+    "num": "K32",
+    "type": "normal",
+    "color": "rgb(208, 126, 74)",
+    "color1": "rgb(208, 126, 74)"
+  },
+  "K33": {
+    "num": "K33",
+    "type": "normal",
+    "color": "rgb(190, 69, 74)",
+    "color1": "rgb(190, 69, 74)"
+  },
+  "K34": {
+    "num": "K34",
+    "type": "normal",
+    "color": "rgb(198, 148, 149)",
+    "color1": "rgb(198, 148, 149)"
+  },
+  "K35": {
+    "num": "K35",
+    "type": "normal",
+    "color": "rgb(242, 184, 198)",
+    "color1": "rgb(242, 184, 198)"
+  },
+  "K36": {
+    "num": "K36",
+    "type": "normal",
+    "color": "rgb(247, 195, 208)",
+    "color1": "rgb(247, 195, 208)"
+  },
+  "K37": {
+    "num": "K37",
+    "type": "normal",
+    "color": "rgb(236, 128, 109)",
+    "color1": "rgb(236, 128, 109)"
+  },
+  "K38": {
+    "num": "K38",
+    "type": "normal",
+    "color": "rgb(224, 157, 175)",
+    "color1": "rgb(224, 157, 175)"
+  },
+  "K39": {
+    "num": "K39",
+    "type": "normal",
+    "color": "rgb(232, 72, 84)",
+    "color1": "rgb(232, 72, 84)"
+  },
+  "Y01": {
+    "num": "Y01",
+    "type": "normal",
+    "color": "rgb(187, 198, 182)",
+    "color1": "rgb(187, 198, 182)"
+  },
+  "Y02": {
+    "num": "Y02",
+    "type": "normal",
+    "color": "rgb(144, 153, 148)",
+    "color1": "rgb(144, 153, 148)"
+  },
+  "Y03": {
+    "num": "Y03",
+    "type": "normal",
+    "color": "rgb(105, 126, 128)",
+    "color1": "rgb(105, 126, 128)"
+  },
+  "Y04": {
+    "num": "Y04",
+    "type": "normal",
+    "color": "rgb(224, 212, 188)",
+    "color1": "rgb(224, 212, 188)"
+  },
+  "Y05": {
+    "num": "Y05",
+    "type": "normal",
+    "color": "rgb(208, 203, 174)",
+    "color1": "rgb(208, 203, 174)"
+  },
+  "Y06": {
+    "num": "Y06",
+    "type": "normal",
+    "color": "rgb(176, 170, 134)",
+    "color1": "rgb(176, 170, 134)"
+  },
+  "Y07": {
+    "num": "Y07",
+    "type": "normal",
+    "color": "rgb(176, 167, 150)",
+    "color1": "rgb(176, 167, 150)"
+  },
+  "Y08": {
+    "num": "Y08",
+    "type": "normal",
+    "color": "rgb(174, 128, 130)",
+    "color1": "rgb(174, 128, 130)"
+  },
+  "Y09": {
+    "num": "Y09",
+    "type": "normal",
+    "color": "rgb(168, 135, 100)",
+    "color1": "rgb(168, 135, 100)"
+  },
+  "Y10": {
+    "num": "Y10",
+    "type": "normal",
+    "color": "rgb(198, 178, 187)",
+    "color1": "rgb(198, 178, 187)"
+  },
+  "Y11": {
+    "num": "Y11",
+    "type": "normal",
+    "color": "rgb(157, 118, 147)",
+    "color1": "rgb(157, 118, 147)"
+  },
+  "Y12": {
+    "num": "Y12",
+    "type": "normal",
+    "color": "rgb(100, 75, 81)",
+    "color1": "rgb(100, 75, 81)"
+  },
+  "Y13": {
+    "num": "Y13",
+    "type": "normal",
+    "color": "rgb(199, 146, 102)",
+    "color1": "rgb(199, 146, 102)"
+  },
+  "Y14": {
+    "num": "Y14",
+    "type": "normal",
+    "color": "rgb(195, 116, 99)",
+    "color1": "rgb(195, 116, 99)"
+  },
+  "Y15": {
+    "num": "Y15",
+    "type": "normal",
+    "color": "rgb(116, 125, 122)",
+    "color1": "rgb(116, 125, 122)"
+  },
+  "Z01": {
+    "num": "Z01",
+    "type": "normal",
+    "color": "rgb(255, 228, 214)",
+    "color1": "rgb(255, 228, 214)"
+  },
+  "Z02": {
+    "num": "Z02",
+    "type": "normal",
+    "color": "rgb(255, 228, 211)",
+    "color1": "rgb(255, 228, 211)"
+  },
+  "Z03": {
+    "num": "Z03",
+    "type": "normal",
+    "color": "rgb(246, 248, 227)",
+    "color1": "rgb(246, 248, 227)"
+  },
+  "Z04": {
+    "num": "Z04",
+    "type": "normal",
+    "color": "rgb(242, 216, 193)",
+    "color1": "rgb(242, 216, 193)"
+  },
+  "Z05": {
+    "num": "Z05",
+    "type": "normal",
+    "color": "rgb(252, 198, 172)",
+    "color1": "rgb(252, 198, 172)"
+  },
+  "Z06": {
+    "num": "Z06",
+    "type": "normal",
+    "color": "rgb(241, 196, 165)",
+    "color1": "rgb(241, 196, 165)"
+  },
+  "Z07": {
+    "num": "Z07",
+    "type": "normal",
+    "color": "rgb(218, 200, 152)",
+    "color1": "rgb(218, 200, 152)"
+  },
+  "Z08": {
+    "num": "Z08",
+    "type": "normal",
+    "color": "rgb(220, 179, 135)",
+    "color1": "rgb(220, 179, 135)"
+  },
+  "Z09": {
+    "num": "Z09",
+    "type": "normal",
+    "color": "rgb(228, 182, 133)",
+    "color1": "rgb(228, 182, 133)"
+  },
+  "Z10": {
+    "num": "Z10",
+    "type": "normal",
+    "color": "rgb(231, 179, 78)",
+    "color1": "rgb(231, 179, 78)"
+  },
+  "Z11": {
+    "num": "Z11",
+    "type": "normal",
+    "color": "rgb(227, 160, 20)",
+    "color1": "rgb(227, 160, 20)"
+  },
+  "Z12": {
+    "num": "Z12",
+    "type": "normal",
+    "color": "rgb(221, 125, 65)",
+    "color1": "rgb(221, 125, 65)"
+  },
+  "Z13": {
+    "num": "Z13",
+    "type": "normal",
+    "color": "rgb(254, 201, 147)",
+    "color1": "rgb(254, 201, 147)"
+  },
+  "Z14": {
+    "num": "Z14",
+    "type": "normal",
+    "color": "rgb(178, 113, 75)",
+    "color1": "rgb(178, 113, 75)"
+  },
+  "Z15": {
+    "num": "Z15",
+    "type": "normal",
+    "color": "rgb(218, 140, 66)",
+    "color1": "rgb(218, 140, 66)"
+  },
+  "Z16": {
+    "num": "Z16",
+    "type": "normal",
+    "color": "rgb(121, 84, 78)",
+    "color1": "rgb(121, 84, 78)"
+  },
+  "Z17": {
+    "num": "Z17",
+    "type": "normal",
+    "color": "rgb(139, 104, 76)",
+    "color1": "rgb(139, 104, 76)"
+  },
+  "Z18": {
+    "num": "Z18",
+    "type": "normal",
+    "color": "rgb(152, 92, 58)",
+    "color1": "rgb(152, 92, 58)"
+  },
+  "Z19": {
+    "num": "Z19",
+    "type": "normal",
+    "color": "rgb(165, 69, 47)",
+    "color1": "rgb(165, 69, 47)"
+  },
+  "Z20": {
+    "num": "Z20",
+    "type": "normal",
+    "color": "rgb(135, 70, 40)",
+    "color1": "rgb(135, 70, 40)"
+  },
+  "Z21": {
+    "num": "Z21",
+    "type": "normal",
+    "color": "rgb(145, 54, 53)",
+    "color1": "rgb(145, 54, 53)"
+  },
+  "Z22": {
+    "num": "Z22",
+    "type": "normal",
+    "color": "rgb(113, 61, 47)",
+    "color1": "rgb(113, 61, 47)"
+  },
+  "Z23": {
+    "num": "Z23",
+    "type": "normal",
+    "color": "rgb(89, 35, 35)",
+    "color1": "rgb(89, 35, 35)"
+  },
+  "Z24": {
+    "num": "Z24",
+    "type": "normal",
+    "color": "rgb(179, 133, 97)",
+    "color1": "rgb(179, 133, 97)"
+  }
+}
