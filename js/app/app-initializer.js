@@ -31,7 +31,7 @@ export async function initializeApp() {
 
   initializeReferenceFeature();
   initializeUpdate();
-  // toggleUpdate(true);
+  toggleUpdate(true);
   initializeExportWindow();
   initializePhotoSketch();
   initializeShortcuts();
