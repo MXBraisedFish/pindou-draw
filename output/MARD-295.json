@@ -1099,9 +1099,9 @@
   },
   "H1": {
     "num": "H1",
-    "type": "normal",
-    "color1": "rgb(251, 251, 251)",
-    "color": "rgb(251, 251, 251)"
+    "type": "transparent",
+    "color1": "rgba(251, 251, 251, 0.8)",
+    "color": "rgba(251, 251, 251, 0.8)"
   },
   "H2": {
     "num": "H2",
@@ -1244,8 +1244,8 @@
   "M2": {
     "num": "M2",
     "type": "normal",
-    "color1": "rgb(144, 153, 148)",
-    "color": "rgb(144, 153, 148)"
+    "color1": "rgb(116, 167, 116)",
+    "color": "rgb(116, 167, 116)"
   },
   "M3": {
     "num": "M3",
