@@ -521,23 +521,23 @@ function commitResize() {
     return;
   }
   if (resizeState.mode === 'crop' && willCropRemovePixels()) {
-    if (resizeState.mode === 'crop' && willCropRemovePixels()) {
-      const confirmed = window.confirm('裁剪将删除画布边缘的像素，确定继续吗？');
-    }
-    if (resizeState.mode === 'expand') {
-      applyExpand(newWidth, newHeight);
-    }
-    else {
-      applyCrop(newWidth, newHeight);
-    }
-    resetSelection({ suppressRender: true });
-    renderSelectionLayers();
-    resizeCanvas();
-    updateStatusSizeLabel();
-    saveHistory();
-    closeOverlay();
+    const confirmed = window.confirm('裁剪会删除画布边缘的像素，确认继续？');
+    if (!confirmed) return;
   }
+  if (resizeState.mode === 'expand') {
+    applyExpand(newWidth, newHeight);
+  } else {
+    applyCrop(newWidth, newHeight);
+  }
+  resetSelection({ suppressRender: true });
+  renderSelectionLayers();
+  resizeCanvas();
+  updateStatusSizeLabel();
+  saveHistory();
+  closeOverlay();
+
 }
+
 function applyExpand(newWidth, newHeight) {
   const { top, right, bottom, left }
     = resizeState.values;
