@@ -71,3 +71,22 @@
   font-size: 11px;
   color: #5f6368;
 }
+
+@media (min-width: 768px) and (max-width: 1199px) {
+  .status-bar {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 8px 16px;
+    gap: 6px 12px;
+  }
+
+  .status-item {
+    margin-right: 8px;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1366px) {
+  .status-bar {
+    padding: 10px 18px;
+  }
+}

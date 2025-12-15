@@ -6,6 +6,7 @@ import {
   isCanvasDirty,
   redrawCanvas,
   renderGridLayer,
+  redo,
   setCellSize,
   setDisplayMode,
   setTool,
@@ -13,6 +14,7 @@ import {
   updateStatusCreated,
   updateZoomIndicator,
   updateToolButtons,
+  undo,
   validateCanvasSize
 } from '../canvas.js';
 import {
@@ -39,12 +41,14 @@ import { importProjectFile } from '../pd.js';
 import { resolveResolutionValue, handleResolutionInputChange } from '../app/resolution.js';
 import { renderSelectionLayers } from '../selection-layer.js';
 import { toggleSymmetryMode, getSymmetryMode } from '../symmetry.js';
+import { computeRightToolbarAnchor } from '../toolbar-anchor.js';
 
 const CANVAS_WARNING_AREA = 80 * 80;
 const CANVAS_DANGER_AREA = 128 * 128;
 let closeAllPanels = () => { };
 
 export function initializeUIBindings() {
+  initializeTabletMode();
   initializePanelSwitcher();
   enhanceToolbarTooltips();
   enhanceFocusModePanel();
@@ -56,6 +60,42 @@ export function initializeUIBindings() {
   bindWindowControls();
   bindProjectControls();
   bindFocusModeControls();
+  bindTabletControls();
+  bindTabletPaletteExclusivity();
+}
+
+function bindTabletPaletteExclusivity() {
+  elements.paletteWindowToggleBtn?.addEventListener('click', () => {
+    if (!state.isTabletMode) return;
+    const paletteWindow = elements.paletteWindow;
+    if (!paletteWindow) return;
+    const currentlyVisible = paletteWindow.getAttribute('aria-hidden') === 'false' && paletteWindow.classList.contains('is-active');
+    if (currentlyVisible) return;
+    closeAllTabletFixedPanelsExceptPalette();
+  });
+  elements.paletteWindowCloseBtn?.addEventListener('click', () => {
+    if (!state.isTabletMode) return;
+  });
+}
+
+function closeAllTabletFixedPanelsExceptPalette() {
+  if (!state.isTabletMode) return;
+  closeAllPanels({ refocusTool: false });
+  document.querySelectorAll('.tool-panel.is-active').forEach((panel) => {
+    if (panel.id === 'paletteWindow') return;
+    panel.classList.remove('is-active');
+    panel.setAttribute('aria-hidden', 'true');
+    const target = panel.dataset?.panel;
+    if (target) {
+      const btn = document.querySelector(`[data-role="panel"][data-panel-target="${target}"]`);
+      if (btn) {
+        btn.classList.remove('is-active');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    }
+  });
+  state.activePanel = null;
+  updateToolButtons();
 }
 
 function bindBaseImageControls() {
@@ -451,6 +491,9 @@ function initializePanelSwitcher() {
 
   panelButtons.forEach((button) => {
     button.addEventListener('click', () => {
+      if (state.isTabletMode) {
+        closeTabletPalettePanelIfVisible();
+      }
       const target = button.dataset.panelTarget;
       const entry = entryByTarget.get(target);
       if (!entry) return;
@@ -492,6 +535,15 @@ function initializePanelSwitcher() {
   }
 }
 
+function closeTabletPalettePanelIfVisible() {
+  if (!state.isTabletMode) return;
+  const paletteWindow = elements.paletteWindow;
+  if (!paletteWindow) return;
+  const visible = paletteWindow.getAttribute('aria-hidden') === 'false' && paletteWindow.classList.contains('is-active');
+  if (!visible) return;
+  elements.paletteWindowCloseBtn?.click();
+}
+
 function bindFocusModeControls() {
   const toggleFullscreen = () => {
     if (document.fullscreenElement) {
@@ -502,11 +554,107 @@ function bindFocusModeControls() {
   };
   elements.focusFullscreenBtn?.addEventListener('click', toggleFullscreen);
   elements.focusSimpleModeBtn?.addEventListener('click', () => {
+    if (state.isTabletMode) return;
     setSimpleMode(!state.simpleMode);
   });
+  elements.forceTabletModeBtnPanel?.addEventListener('click', () => setTabletModeOverride('tablet'));
+  elements.forceDesktopModeBtnPanel?.addEventListener('click', () => setTabletModeOverride('desktop'));
   document.addEventListener('fullscreenchange', updateFullscreenButtonState);
   updateFullscreenButtonState();
   initializeSimpleModeUI();
+}
+
+function initializeTabletMode() {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    state.isTabletMode = false;
+    updateTabletUI();
+    return;
+  }
+  const portraitQuery = window.matchMedia('(min-width: 768px) and (max-width: 1199px) and (orientation: portrait)');
+  const landscapeQuery = window.matchMedia('(min-width: 1024px) and (max-width: 1366px) and (orientation: landscape)');
+  const queries = [portraitQuery, landscapeQuery];
+  const applyState = () => {
+    const mediaMatches = queries.some((mq) => mq.matches);
+    let matches = mediaMatches;
+    if (state.tabletModeOverride === 'tablet') matches = true;
+    if (state.tabletModeOverride === 'desktop') matches = false;
+    const prev = state.isTabletMode;
+    state.isTabletMode = matches;
+    document.body?.classList.toggle('tablet-mode', matches);
+    if (prev !== matches && typeof document !== 'undefined') {
+      try {
+        document.dispatchEvent(new CustomEvent('tablet:change', { detail: { enabled: matches } }));
+      } catch (error) { }
+    }
+    if (matches && state.simpleMode) {
+      setSimpleMode(false);
+    }
+    if (!matches && state.tabletEraserActive) {
+      state.tabletEraserActive = false;
+      state.selectionToolMode = 'add';
+    }
+    if (prev !== matches) {
+      updateToolButtons();
+      if (matches) {
+        applyTabletFloatingWindowFixups();
+      } else {
+        cleanupTabletFloatingWindowFixups();
+      }
+    }
+    updateTabletUI();
+  };
+  queries.forEach((mq) => {
+    if (typeof mq.addEventListener === 'function') {
+      mq.addEventListener('change', applyState);
+    } else if (typeof mq.addListener === 'function') {
+      mq.addListener(applyState);
+    }
+  });
+  window.addEventListener('resize', applyState);
+  document.addEventListener('tablet:override', applyState);
+  applyState();
+}
+
+function applyTabletFloatingWindowFixups() {
+  if (!state.isTabletMode) return;
+  // Tablet layout is handled by each feature (e.g. palette dock, reference long-press drag/resize).
+}
+
+function cleanupTabletFloatingWindowFixups() {
+  elements.paletteWindow?.classList.remove('is-tablet-fixed');
+  elements.referenceWindow?.classList.remove('is-tablet-fixed');
+}
+
+function bindTabletControls() {
+  elements.tabletUndoBtn?.addEventListener('click', undo);
+  elements.tabletRedoBtn?.addEventListener('click', redo);
+  elements.tabletMoveToggleBtn?.addEventListener('click', toggleMoveMode);
+  elements.eraserPrimaryBtn?.addEventListener('click', () => {
+    state.tabletEraserActive = false;
+    updateToolPopouts();
+  });
+  elements.eraserSwitchBtn?.addEventListener('click', () => {
+    if (state.currentTool === 'pencil' || state.currentTool === 'bucket') {
+      state.tabletEraserActive = true;
+      updateToolPopouts();
+    }
+  });
+  elements.selectionAddBtn?.addEventListener('click', () => setSelectionToolMode('add'));
+  elements.selectionDeleteBtn?.addEventListener('click', () => setSelectionToolMode('delete'));
+  elements.selectionMoveBtn?.addEventListener('click', () => setSelectionToolMode('move'));
+  document.addEventListener('tool:change', () => {
+    if (state.currentTool !== 'selection') {
+      state.selectionToolMode = 'add';
+    }
+    if (state.currentTool !== 'pencil' && state.currentTool !== 'bucket') {
+      state.tabletEraserActive = false;
+    }
+    updateTabletUI();
+  });
+  window.addEventListener('resize', () => {
+    positionToolPopouts();
+  });
+  updateTabletUI();
 }
 
 function initializeSimpleModeUI() {
@@ -524,6 +672,10 @@ function initializeSimpleModeUI() {
 
 function setSimpleMode(nextState) {
   const enabled = Boolean(nextState);
+  if (enabled && state.isTabletMode) {
+    updateSimpleModeButtonState();
+    return;
+  }
   if (state.simpleMode === enabled) return;
   state.simpleMode = enabled;
   document.body?.classList.toggle('simple-mode-active', enabled);
@@ -537,13 +689,46 @@ function setSimpleMode(nextState) {
 }
 
 function updateSimpleModeButtonState() {
+  const locked = state.isTabletMode;
   if (elements.focusSimpleModeBtn) {
-    elements.focusSimpleModeBtn.textContent = state.simpleMode ? '退出简洁模式' : '进入简洁模式';
-    elements.focusSimpleModeBtn.classList.toggle('is-active', state.simpleMode);
+    elements.focusSimpleModeBtn.disabled = locked;
+    elements.focusSimpleModeBtn.textContent = locked
+      ? '平板端禁用简洁模式'
+      : (state.simpleMode ? '退出简洁模式' : '进入简洁模式');
+    elements.focusSimpleModeBtn.classList.toggle('is-active', state.simpleMode && !locked);
   }
   if (elements.simpleModeExitBtn) {
-    elements.simpleModeExitBtn.classList.toggle('is-active', state.simpleMode);
+    elements.simpleModeExitBtn.disabled = locked;
+    elements.simpleModeExitBtn.classList.toggle('is-active', state.simpleMode && !locked);
   }
+  if (elements.simpleToolbar) {
+    const hidden = locked || !state.simpleMode;
+    elements.simpleToolbar.setAttribute('aria-hidden', hidden ? 'true' : 'false');
+  }
+  updateModeOverrideSwitchUI();
+}
+
+function updateTabletUI() {
+  updateTabletUndoRedoVisibility();
+  updateMoveToggleUI();
+  updateToolPopouts();
+  updateSimpleModeButtonState();
+  updateModeOverrideSwitchUI();
+}
+
+function updateTabletUndoRedoVisibility() {
+  if (!elements.tabletUndoRedoBar) return;
+  const visible = state.isTabletMode;
+  elements.tabletUndoRedoBar.classList.toggle('is-visible', visible);
+  elements.tabletUndoRedoBar.setAttribute('aria-hidden', visible ? 'false' : 'true');
+}
+
+function updateMoveToggleUI() {
+  if (!elements.tabletMoveToggleBtn) return;
+  const active = state.isTabletMode && state.moveModeEnabled;
+  elements.tabletMoveToggleBtn.disabled = !state.isTabletMode;
+  elements.tabletMoveToggleBtn.classList.toggle('is-active', active);
+  elements.tabletMoveToggleBtn.setAttribute('aria-pressed', active ? 'true' : 'false');
 }
 
 function updateFullscreenButtonState() {
@@ -552,6 +737,150 @@ function updateFullscreenButtonState() {
     elements.focusFullscreenBtn.textContent = isFullscreen ? '退出全屏' : '进入全屏';
     elements.focusFullscreenBtn.classList.toggle('is-active', isFullscreen);
   }
+  updateModeOverrideSwitchUI();
+}
+
+function updateModeOverrideSwitchUI() {
+  const showDesktopSwitch = !state.isTabletMode;
+  const showTabletSwitch = state.isTabletMode;
+
+  if (elements.forceTabletModeBtnPanel) {
+    elements.forceTabletModeBtnPanel.style.display = showDesktopSwitch ? '' : 'none';
+  }
+  if (elements.forceDesktopModeBtnPanel) {
+    elements.forceDesktopModeBtnPanel.style.display = showTabletSwitch ? '' : 'none';
+  }
+}
+
+function setTabletModeOverride(target) {
+  if (target !== 'tablet' && target !== 'desktop' && target !== null) return;
+  if (state.tabletModeOverride === target) return;
+  state.tabletModeOverride = target;
+  try {
+    document.dispatchEvent(new CustomEvent('tablet:override', { detail: { target } }));
+  } catch (_) { }
+  updateTabletUI();
+}
+
+function updateToolPopouts() {
+  const { toolPopouts, eraserPopout, selectionPopout } = elements;
+  if (!toolPopouts || !eraserPopout || !selectionPopout) return;
+
+  const isTablet = state.isTabletMode;
+
+  // Always hide all popouts first to ensure a clean state.
+  eraserPopout.classList.remove('is-visible');
+  eraserPopout.classList.add('no-display');
+  eraserPopout.setAttribute('aria-hidden', 'true');
+  selectionPopout.classList.remove('is-visible');
+  selectionPopout.classList.add('no-display');
+  selectionPopout.setAttribute('aria-hidden', 'true');
+  toolPopouts.setAttribute('aria-hidden', 'true');
+  
+  // Popouts are exclusive to tablet mode.
+  if (!isTablet) {
+    state.tabletEraserActive = false;
+    state.selectionToolMode = 'add'; // Reset state when leaving tablet mode
+    return;
+  }
+
+  const tool = state.currentTool;
+  let anyVisible = false;
+
+  // Mutually exclusive logic: only one popout can be visible at a time.
+  if (tool === 'pencil' || tool === 'bucket') {
+    selectionPopout.classList.remove('is-visible');
+    selectionPopout.classList.add('no-display');
+    selectionPopout.setAttribute('aria-hidden', 'true');
+
+    eraserPopout.classList.add('is-visible');
+    eraserPopout.classList.remove('no-display');
+    eraserPopout.setAttribute('aria-hidden', 'false');
+    anyVisible = true;
+
+    // Configure the eraser/primary tool button inside the popout
+    const activeIcon = tool === 'bucket' ? 'svg/油漆桶.svg' : 'svg/画笔.svg';
+    if (elements.eraserPrimaryBtn) {
+      elements.eraserPrimaryBtn.innerHTML = `<img src="${activeIcon}" alt="">`;
+      elements.eraserPrimaryBtn.classList.toggle('is-active', !state.tabletEraserActive);
+      elements.eraserPrimaryBtn.setAttribute('aria-pressed', String(!state.tabletEraserActive));
+    }
+    if (elements.eraserSwitchBtn) {
+      elements.eraserSwitchBtn.classList.toggle('is-active', state.tabletEraserActive);
+      elements.eraserSwitchBtn.setAttribute('aria-pressed', String(state.tabletEraserActive));
+    }
+  } else if (tool === 'selection') {
+    eraserPopout.classList.remove('is-visible');
+    eraserPopout.classList.add('no-display');
+    eraserPopout.setAttribute('aria-hidden', 'true');
+
+    selectionPopout.classList.add('is-visible');
+    selectionPopout.classList.remove('no-display');
+    selectionPopout.setAttribute('aria-hidden', 'false');
+    anyVisible = true;
+    
+    // Configure the selection mode buttons
+    highlightSelectionButton(elements.selectionAddBtn, state.selectionToolMode === 'add');
+    highlightSelectionButton(elements.selectionDeleteBtn, state.selectionToolMode === 'delete');
+    highlightSelectionButton(elements.selectionMoveBtn, state.selectionToolMode === 'move');
+  } else {
+    // For any other tool (like eyedropper), ensure associated states are reset.
+    state.tabletEraserActive = false;
+    // state.selectionToolMode = 'add'; // This line is commented out as it might reset user intention undesirably.
+  }
+
+  // Finally, show the main popout container if any popout is visible.
+  if (anyVisible) {
+    toolPopouts.setAttribute('aria-hidden', 'false');
+    positionToolPopouts();
+  }
+}
+
+function highlightSelectionButton(button, active) {
+  if (!button) return;
+  button.classList.toggle('is-active', active);
+  button.setAttribute('aria-pressed', active ? 'true' : 'false');
+}
+
+function positionToolPopouts() {
+  positionPopout(elements.eraserPopout, resolveAnchorButton());
+  positionPopout(elements.selectionPopout, elements.toolSelectionBtn);
+}
+
+function resolveAnchorButton() {
+  if (state.currentTool === 'pencil') return elements.toolPencilBtn;
+  if (state.currentTool === 'bucket') return elements.toolBucketBtn;
+  return null;
+}
+
+function positionPopout(popout, anchor) {
+  if (!popout || !anchor || !popout.classList.contains('is-visible')) return;
+  const rect = anchor.getBoundingClientRect();
+  const { scrollX, scrollY, innerWidth } = window;
+  popout.style.visibility = 'hidden';
+  popout.style.display = 'flex';
+  const popWidth = popout.offsetWidth;
+  const popHeight = popout.offsetHeight;
+  const spacing = 12;
+  const top = rect.top + rect.height / 2 - popHeight / 2 + scrollY;
+  const left = rect.left - popWidth - spacing + scrollX;
+  const clampedTop = Math.max(12 + scrollY, top);
+  const clampedLeft = Math.max(12 + scrollX, Math.min(left, innerWidth + scrollX - popWidth - 12));
+  popout.style.top = `${clampedTop}px`;
+  popout.style.left = `${clampedLeft}px`;
+  popout.style.visibility = 'visible';
+}
+
+function setSelectionToolMode(mode) {
+  if (!['add', 'delete', 'move'].includes(mode)) return;
+  state.selectionToolMode = mode;
+  updateToolPopouts();
+}
+
+function toggleMoveMode() {
+  if (!state.isTabletMode) return;
+  state.moveModeEnabled = !state.moveModeEnabled;
+  updateMoveToggleUI();
 }
 
 function enhanceToolbarTooltips() {
@@ -610,6 +939,32 @@ function enhanceFocusModePanel() {
   simpleBtn.className = 'ghost-button';
   simpleBtn.textContent = '简洁模式';
   actionRow.appendChild(simpleBtn);
+
+  let modeSwitchRow = body.querySelector('.focus-mode-mode-switch');
+  if (!modeSwitchRow) {
+    modeSwitchRow = document.createElement('div');
+    modeSwitchRow.className = 'button-row focus-mode-mode-switch';
+    body.appendChild(modeSwitchRow);
+  } else {
+    modeSwitchRow.innerHTML = '';
+  }
+
+  const forceTabletBtn = document.createElement('button');
+  forceTabletBtn.id = 'forceTabletModeBtnPanel';
+  forceTabletBtn.type = 'button';
+  forceTabletBtn.className = 'ghost-button';
+  forceTabletBtn.textContent = '改为平板端操作与显示';
+  modeSwitchRow.appendChild(forceTabletBtn);
+
+  const forceDesktopBtn = document.createElement('button');
+  forceDesktopBtn.id = 'forceDesktopModeBtnPanel';
+  forceDesktopBtn.type = 'button';
+  forceDesktopBtn.className = 'ghost-button';
+  forceDesktopBtn.textContent = '改为电脑端操作与显示';
+  modeSwitchRow.appendChild(forceDesktopBtn);
+
   elements.focusFullscreenBtn = fullscreenBtn;
   elements.focusSimpleModeBtn = simpleBtn;
+  elements.forceTabletModeBtnPanel = forceTabletBtn;
+  elements.forceDesktopModeBtnPanel = forceDesktopBtn;
 }

@@ -384,6 +384,18 @@ function ensureGlobalMiddleResetHandler() {
   globalMiddleResetBound = true;
 }
 
+const TABLET_DOUBLE_TAP_DISTANCE = 28;
+const TABLET_LONG_PRESS_MS = 420;
+const TABLET_MOVE_TOLERANCE = 8;
+const tabletGestureState = {
+  pointers: new Map(),
+  pinchActive: false,
+  startDistance: 0,
+  startZoomValue: 0,
+  startBaseScale: 1,
+  lastTapTime: 0,
+  lastTapPos: null
+};
 const selectionPointerState = { mode: 'idle', pointerId: null, startX: 0, startY: 0, currentX: 0, currentY: 0, offsetX: 0, offsetY: 0 };
 const selectionDoubleClickTime = { left: 0, right: 0 };
 function getCanvasCoordinates(ev) {
@@ -482,9 +494,138 @@ export function prepareCanvasInteractions() {
   if (!elements.canvas) return;
   ensureGlobalMiddleResetHandler();
   ensureSpacePanBinding();
+  const trySetPointerCapture = (pointerId) => {
+    try {
+      elements.canvas?.setPointerCapture?.(pointerId);
+    } catch (_) { }
+  };
+  const isTabletTouchPointer = (ev) => state.isTabletMode && ev.pointerType === 'touch';
+  const recordTabletPointer = (ev) => {
+    if (!isTabletTouchPointer(ev)) return;
+    tabletGestureState.pointers.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+  };
+  const clearTabletPointer = (ev) => {
+    if (!isTabletTouchPointer(ev)) return;
+    tabletGestureState.pointers.delete(ev.pointerId);
+    if (tabletGestureState.pinchActive && tabletGestureState.pointers.size < 2) {
+      tabletGestureState.pinchActive = false;
+      tabletGestureState.startDistance = 0;
+    }
+  };
+  const computePinchDistance = () => {
+    const points = Array.from(tabletGestureState.pointers.values());
+    if (points.length < 2) return 0;
+    const [a, b] = points;
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  };
+  const computePinchCenter = () => {
+    const points = Array.from(tabletGestureState.pointers.values());
+    if (points.length < 2) return null;
+    const [a, b] = points;
+    return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+  };
+  const resetTabletTapState = () => {
+    tabletGestureState.lastTapTime = 0;
+    tabletGestureState.lastTapPos = null;
+  };
+  const releaseTabletCaptures = () => {
+    tabletGestureState.pointers.forEach((_, id) => {
+      try {
+        elements.canvas?.releasePointerCapture(id);
+      } catch (error) { }
+    });
+  };
+  const startTabletPinch = () => {
+    tabletGestureState.pinchActive = true;
+    tabletGestureState.startDistance = computePinchDistance();
+    tabletGestureState.startZoomValue = state.zoomValue;
+    tabletGestureState.startBaseScale = state.baseScale;
+    resetSelectionPointerState();
+    if (pointerState?.type === 'pending' && pointerState.timer) {
+      clearTimeout(pointerState.timer);
+    }
+    if (pointerState?.type === 'pan') elements.canvas.classList.remove('is-panning');
+    if (pointerState?.type === 'baseMove') elements.canvas.classList.remove('is-base-dragging');
+    pointerState = null;
+    releaseTabletCaptures();
+    resetTabletTapState();
+  };
+  const applyTabletPinchZoom = () => {
+    if (!tabletGestureState.pinchActive) return;
+    const distance = computePinchDistance();
+    if (!distance || !tabletGestureState.startDistance) return;
+    const factor = distance / tabletGestureState.startDistance;
+    if (state.baseEditing && state.baseImage) {
+      const center = computePinchCenter();
+      if (!center || !elements.canvas) return;
+      const rect = elements.canvas.getBoundingClientRect();
+      const scaleX = elements.canvas.width / rect.width, scaleY = elements.canvas.height / rect.height;
+      const canvasX = (center.x - rect.left) * scaleX - state.axisPadding.left;
+      const canvasY = (center.y - rect.top) * scaleY - state.axisPadding.top;
+      const pointerCellX = canvasX / state.cellSize;
+      const pointerCellY = canvasY / state.cellSize;
+      applyBaseScale(tabletGestureState.startBaseScale * factor, pointerCellX, pointerCellY);
+      return;
+    }
+    const nextSize = clampCellSize(tabletGestureState.startZoomValue * factor);
+    if (nextSize !== state.zoomValue) setCellSize(nextSize);
+  };
+  const handleTabletDoubleTap = (ev) => {
+    if (!isTabletTouchPointer(ev) || tabletGestureState.pinchActive) return false;
+    if (state.currentTool === 'selection' && !state.moveModeEnabled) return false;
+    const now = ev.timeStamp;
+    const lastTime = tabletGestureState.lastTapTime || 0;
+    const lastPos = tabletGestureState.lastTapPos;
+    const distance = lastPos ? Math.hypot(ev.clientX - lastPos.x, ev.clientY - lastPos.y) : Infinity;
+    if (lastPos && now - lastTime > 0 && now - lastTime <= DOUBLE_CLICK_MS && distance <= TABLET_DOUBLE_TAP_DISTANCE) {
+      resetView();
+      resetTabletTapState();
+      tabletGestureState.pointers.clear();
+      return true;
+    }
+    tabletGestureState.lastTapTime = now;
+    tabletGestureState.lastTapPos = { x: ev.clientX, y: ev.clientY };
+    return false;
+  };
   elements.canvas.addEventListener('contextmenu', (ev) => ev.preventDefault());
   elements.canvas.addEventListener('pointerdown', (ev) => {
     if (!state.width || !state.height) return;
+    if (isTabletTouchPointer(ev)) {
+      if (handleTabletDoubleTap(ev)) return;
+      recordTabletPointer(ev);
+      if (tabletGestureState.pointers.size >= 2) {
+        startTabletPinch();
+        return;
+      }
+    }
+    const isTabletTouch = isTabletTouchPointer(ev);
+    if (state.moveModeEnabled && state.isTabletMode && isTabletTouch) {
+      pointerState = {
+        type: 'pending',
+        pointerId: ev.pointerId,
+        startX: ev.clientX,
+        startY: ev.clientY,
+        button: ev.button,
+        timer: setTimeout(() => {
+          if (!pointerState || pointerState.pointerId !== ev.pointerId || pointerState.type !== 'pending') return;
+          const baseMove = state.baseEditing && state.baseImage;
+          pointerState = {
+            type: baseMove ? 'baseMove' : 'pan',
+            pointerId: ev.pointerId,
+            startX: ev.clientX,
+            startY: ev.clientY,
+            originOffsetX: state.baseOffsetX,
+            originOffsetY: state.baseOffsetY,
+            originPanX: state.panX,
+            originPanY: state.panY
+          };
+          if (baseMove) elements.canvas.classList.add('is-base-dragging');
+          else elements.canvas.classList.add('is-panning');
+        }, TABLET_LONG_PRESS_MS)
+      };
+      trySetPointerCapture(ev.pointerId);
+      return;
+    }
     if (!state.baseEditing && state.currentTool === 'selection' && handleSelectionPointerDown(ev)) return;
     if (ev.button === 1 && ev.pointerType === 'mouse') {
       if (isMiddleDoubleClick(ev.timeStamp)) {
@@ -496,24 +637,33 @@ export function prepareCanvasInteractions() {
     if (state.baseEditing && state.baseImage && ev.button === 0) {
       ev.preventDefault();
       pointerState = { type: 'baseMove', pointerId: ev.pointerId, startX: ev.clientX, startY: ev.clientY, originOffsetX: state.baseOffsetX, originOffsetY: state.baseOffsetY };
-      elements.canvas.setPointerCapture(ev.pointerId);
+      trySetPointerCapture(ev.pointerId);
       elements.canvas.classList.add('is-base-dragging');
       return;
     }
     if (ev.button === 1 || isSpacePan) {
       ev.preventDefault();
       pointerState = { type: 'pan', pointerId: ev.pointerId, startX: ev.clientX, startY: ev.clientY, originPanX: state.panX, originPanY: state.panY };
-      elements.canvas.setPointerCapture(ev.pointerId);
+      trySetPointerCapture(ev.pointerId);
       elements.canvas.classList.add('is-panning');
       return;
     }
     if (state.baseEditing || state.currentTool === 'selection') return;
     if (ev.button !== 0 && ev.button !== 2) return;
+    ev.preventDefault();
     pointerState = { type: 'paint', pointerId: ev.pointerId, button: ev.button };
-    elements.canvas.setPointerCapture(ev.pointerId);
+    trySetPointerCapture(ev.pointerId);
     paintAtPointer(ev, ev.button);
   });
   elements.canvas.addEventListener('pointermove', (ev) => {
+    const isTabletTouch = isTabletTouchPointer(ev);
+    if (isTabletTouch) {
+      recordTabletPointer(ev);
+      if (tabletGestureState.pinchActive) {
+        applyTabletPinchZoom();
+        return;
+      }
+    }
     if (selectionPointerState.mode !== 'idle' && selectionPointerState.pointerId === ev.pointerId) {
       const coords = getCanvasCoordinates(ev);
       if (coords) {
@@ -540,13 +690,51 @@ export function prepareCanvasInteractions() {
       state.baseOffsetY = pointerState.originOffsetY + dyCells;
       updateBaseImageDisplay();
       return;
-    } if (pointerState.type === 'paint') paintAtPointer(ev, pointerState.button);
+    } if (pointerState.type === 'pending') {
+      const dx = ev.clientX - pointerState.startX;
+      const dy = ev.clientY - pointerState.startY;
+      const distance = Math.hypot(dx, dy);
+      if (distance > TABLET_MOVE_TOLERANCE) {
+        clearTimeout(pointerState.timer);
+        const baseMove = state.baseEditing && state.baseImage;
+        pointerState = {
+          type: baseMove ? 'baseMove' : 'pan',
+          pointerId: pointerState.pointerId,
+          startX: pointerState.startX,
+          startY: pointerState.startY,
+          originOffsetX: state.baseOffsetX,
+          originOffsetY: state.baseOffsetY,
+          originPanX: state.panX,
+          originPanY: state.panY
+        };
+        if (baseMove) {
+          elements.canvas.classList.add('is-base-dragging');
+        } else {
+          elements.canvas.classList.add('is-panning');
+        }
+      }
+    } else if (pointerState.type === 'paint') {
+      paintAtPointer(ev, pointerState.button);
+    }
   });
   const releasePointer = (ev) => {
+    const isTabletTouch = isTabletTouchPointer(ev);
+    if (isTabletTouch) {
+      clearTabletPointer(ev);
+      if (tabletGestureState.pinchActive) {
+        try {
+          elements.canvas.releasePointerCapture(ev.pointerId);
+        } catch (error) { }
+        return;
+      }
+    }
     if (handleSelectionPointerRelease(ev)) return;
     if (!pointerState || pointerState.pointerId !== ev.pointerId) return;
     if (pointerState.type === 'pan') elements.canvas.classList.remove('is-panning');
     if (pointerState.type === 'baseMove') elements.canvas.classList.remove('is-base-dragging');
+    if (pointerState.type === 'pending') {
+      clearTimeout(pointerState.timer);
+    }
     pointerState = null;
     try {
       elements.canvas.releasePointerCapture(ev.pointerId);
@@ -556,51 +744,112 @@ export function prepareCanvasInteractions() {
   elements.canvas.addEventListener('pointercancel', releasePointer);
 }
 function handleSelectionPointerDown(ev) {
+  if (state.isTabletMode && state.moveModeEnabled) return false;
   const coords = getCanvasCoordinates(ev);
-  if (ev.button === 0) {
+  const isTabletSelection = state.isTabletMode && ev.pointerType === 'touch';
+  if (isTabletSelection) {
+    if (!coords) return true;
+    if (state.selectionToolMode === 'add') {
+      if (isSelectionDoubleClick('left', ev.timeStamp)) {
+        state.selection.preview = null;
+        invertSelection();
+        saveHistory();
+        return true;
+      }
+       ev.preventDefault();
+       selectionPointerState.mode = 'add';
+       selectionPointerState.pointerId = ev.pointerId;
+       selectionPointerState.startX = selectionPointerState.currentX = coords.cellX;
+       selectionPointerState.startY = selectionPointerState.currentY = coords.cellY;
+       try {
+         elements.canvas?.setPointerCapture?.(ev.pointerId);
+       } catch (_) { }
+       updateSelectionPreview();
+       return true;
+     }
+     if (state.selectionToolMode === 'delete') {
+      if (isSelectionDoubleClick('right', ev.timeStamp)) {
+        state.selection.preview = null;
+        clearSelection();
+        saveHistory();
+        return true;
+      }
+       ev.preventDefault();
+       selectionPointerState.mode = 'subtract';
+       selectionPointerState.pointerId = ev.pointerId;
+       selectionPointerState.startX = selectionPointerState.currentX = coords.cellX;
+       selectionPointerState.startY = selectionPointerState.currentY = coords.cellY;
+       try {
+         elements.canvas?.setPointerCapture?.(ev.pointerId);
+       } catch (_) { }
+       updateSelectionPreview();
+       return true;
+     }
+     if (state.selectionToolMode === 'move' && state.selection.active) {
+      ev.preventDefault();
+      selectionPointerState.mode = 'move';
+       selectionPointerState.pointerId = ev.pointerId;
+       selectionPointerState.startX = selectionPointerState.currentX = coords.cellX;
+       selectionPointerState.startY = selectionPointerState.currentY = coords.cellY;
+       selectionPointerState.offsetX = 0;
+       selectionPointerState.offsetY = 0;
+       try {
+         elements.canvas?.setPointerCapture?.(ev.pointerId);
+       } catch (_) { }
+       updateSelectionPreview();
+       return true;
+     }
+   }
+   if (ev.button === 0) {
     if (isSelectionDoubleClick('left', ev.timeStamp)) {
       state.selection.preview = null;
       invertSelection();
       saveHistory();
       return true;
     } if (!coords) return true;
-    ev.preventDefault();
-    selectionPointerState.mode = 'add';
-    selectionPointerState.pointerId = ev.pointerId;
-    selectionPointerState.startX = selectionPointerState.currentX = coords.cellX;
-    selectionPointerState.startY = selectionPointerState.currentY = coords.cellY;
-    elements.canvas.setPointerCapture(ev.pointerId);
-    updateSelectionPreview();
-    return true;
-  } if (ev.button === 2) {
-    ev.preventDefault();
+     ev.preventDefault();
+     selectionPointerState.mode = 'add';
+     selectionPointerState.pointerId = ev.pointerId;
+     selectionPointerState.startX = selectionPointerState.currentX = coords.cellX;
+     selectionPointerState.startY = selectionPointerState.currentY = coords.cellY;
+     try {
+       elements.canvas?.setPointerCapture?.(ev.pointerId);
+     } catch (_) { }
+     updateSelectionPreview();
+     return true;
+   } if (ev.button === 2) {
+     ev.preventDefault();
     if (isSelectionDoubleClick('right', ev.timeStamp)) {
       state.selection.preview = null;
       clearSelection();
       saveHistory();
       return true;
     } if (!coords) return true;
-    selectionPointerState.mode = 'subtract';
-    selectionPointerState.pointerId = ev.pointerId;
-    selectionPointerState.startX = selectionPointerState.currentX = coords.cellX;
-    selectionPointerState.startY = selectionPointerState.currentY = coords.cellY;
-    elements.canvas.setPointerCapture(ev.pointerId);
-    updateSelectionPreview();
-    return true;
-  } if (ev.button === 1 && state.selection.active) {
-    if (!coords) return true;
-    ev.preventDefault();
+     selectionPointerState.mode = 'subtract';
+     selectionPointerState.pointerId = ev.pointerId;
+     selectionPointerState.startX = selectionPointerState.currentX = coords.cellX;
+     selectionPointerState.startY = selectionPointerState.currentY = coords.cellY;
+     try {
+       elements.canvas?.setPointerCapture?.(ev.pointerId);
+     } catch (_) { }
+     updateSelectionPreview();
+     return true;
+   } if (ev.button === 1 && state.selection.active) {
+     if (!coords) return true;
+     ev.preventDefault();
     selectionPointerState.mode = 'move';
-    selectionPointerState.pointerId = ev.pointerId;
-    selectionPointerState.startX = selectionPointerState.currentX = coords.cellX;
-    selectionPointerState.startY = selectionPointerState.currentY = coords.cellY;
-    selectionPointerState.offsetX = 0;
-    selectionPointerState.offsetY = 0;
-    elements.canvas.setPointerCapture(ev.pointerId);
-    updateSelectionPreview();
-    return true;
-  } return false;
-}
+     selectionPointerState.pointerId = ev.pointerId;
+     selectionPointerState.startX = selectionPointerState.currentX = coords.cellX;
+     selectionPointerState.startY = selectionPointerState.currentY = coords.cellY;
+     selectionPointerState.offsetX = 0;
+     selectionPointerState.offsetY = 0;
+     try {
+       elements.canvas?.setPointerCapture?.(ev.pointerId);
+     } catch (_) { }
+     updateSelectionPreview();
+     return true;
+   } return false;
+ }
 function handleSelectionPointerRelease(ev) {
   if (selectionPointerState.mode === 'idle' || selectionPointerState.pointerId !== ev.pointerId) return false;
   if (selectionPointerState.mode === 'add') {
@@ -645,6 +894,10 @@ function commitSelectionMove(offsetX, offsetY) {
 }
 export function handleWheelEvent(ev) {
   if (!state.width || !state.height) return;
+  if (state.isTabletMode) {
+    ev.preventDefault();
+    return;
+  }
   ev.preventDefault();
   const rect = elements.canvas.getBoundingClientRect();
   const scaleX = elements.canvas.width / rect.width, scaleY = elements.canvas.height / rect.height;
@@ -669,7 +922,10 @@ function paintAtPointer(ev, button) {
   const x = Math.floor(localX / state.cellSize), y = Math.floor(localY / state.cellSize);
   if (!Number.isInteger(x) || !Number.isInteger(y) || x < 0 || y < 0 || x >= state.width || y >= state.height) return;
   if (!isCellEditable(x, y)) return;
-  if (state.currentTool === 'eyedropper' && button === 0) {
+  const effectiveButton = state.isTabletMode && state.tabletEraserActive && (state.currentTool === 'pencil' || state.currentTool === 'bucket')
+    ? 2
+    : button;
+  if (state.currentTool === 'eyedropper' && effectiveButton === 0) {
     const cell = state.grid[y][x];
     if (cell?.code) {
       state.selectedColorKey = cell.code;
@@ -681,19 +937,19 @@ function paintAtPointer(ev, button) {
   }
   if (state.currentTool === 'bucket') {
     if (!isCellEditable(x, y)) return;
-    if (button === 0) {
+    if (effectiveButton === 0) {
       const colorEntry = resolvePaintColor(x, y);
       colorEntry && bucketFill(x, y, colorEntry);
       return;
     }
-    if (button === 2) {
+    if (effectiveButton === 2) {
       bucketFill(x, y, null);
       return;
     }
   }
   const targets = computeSymmetryTargets(x, y);
   if (!targets.length) return;
-  if (button === 2) {
+  if (effectiveButton === 2) {
     let cleared = false;
     targets.forEach(({ x: tx, y: ty }) => {
       if (!isCellEditable(tx, ty)) return;
@@ -709,7 +965,7 @@ function paintAtPointer(ev, button) {
     }
     return;
   }
-  if (button !== 0) return;
+  if (effectiveButton !== 0) return;
   const colorEntry = resolvePaintColor(x, y);
   if (!colorEntry) return;
   let painted = false;
@@ -1016,6 +1272,9 @@ export function setTool(tool) {
   state.currentTool = tool;
   updateToolButtons();
   updateCanvasCursorState();
+  if (typeof document !== 'undefined') {
+    document.dispatchEvent(new CustomEvent('tool:change', { detail: { tool } }));
+  }
 }
 export function updateToolButtons() {
   if (!elements.toolButtons?.length) return;
@@ -1085,5 +1344,3 @@ function shouldIgnoreSpacePanTarget(target) {
 if (typeof window !== 'undefined') {
   updateDisplayModeToast();
 }
-
-

@@ -19,6 +19,9 @@ try {
 } const MIN_WIDTH = 240, MIN_HEIGHT = 200, EDGE_MARGIN = 16, MINIMIZED_SIZE = 88;
 const ICONS = { ADD: '+', MINIMIZE: '-', RESTORE: '↩', CLOSE: 'x' };
 let referenceIdSeed = 0, activePointer = null, referenceWindowStackHandle = null;
+const TABLET_LONG_PRESS_MS = 420;
+const TABLET_LONG_PRESS_TOLERANCE = 8;
+let pendingInteraction = null;
 export function initializeReferenceFeature() {
   if (!elements.referenceWindow) return;
 
@@ -271,31 +274,101 @@ function syncReferenceWindowState() {
 }
 function handleHeaderPointerDown(ev) {
   if (ev.button !== 0 || ev.target.closest('button')) return;
+  if (state.isTabletMode && ev.pointerType !== 'mouse') {
+    startLongPress(ev, 'move');
+    return;
+  }
   beginInteraction(ev, 'move');
 }
 function handleWindowPointerDown(ev) {
   
-  if (state.referenceWindowMinimized && ev.button === 0 && !ev.target.closest('button')) {
-    beginInteraction(ev, 'move');
+  if (!state.referenceWindowMinimized || ev.button !== 0 || ev.target.closest('button')) return;
+  if (state.isTabletMode && ev.pointerType !== 'mouse') {
+    startLongPress(ev, 'move');
+    return;
   }
+  beginInteraction(ev, 'move');
 }
 
 function handleResizerPointerDown(ev) {
   if (state.referenceWindowMinimized || ev.button !== 0) return;
   ev.stopPropagation();
+  if (state.isTabletMode && ev.pointerType !== 'mouse') {
+    startLongPress(ev, 'resize');
+    return;
+  }
   beginInteraction(ev, 'resize');
 }
+function startLongPress(ev, mode) {
+  if (!elements.referenceWindow) return;
+  cancelPendingInteraction();
+  pendingInteraction = {
+    id: ev.pointerId,
+    mode,
+    startX: ev.clientX,
+    startY: ev.clientY,
+    timer: setTimeout(() => {
+      if (!pendingInteraction || pendingInteraction.id !== ev.pointerId) return;
+      const { mode: resolvedMode, startX, startY } = pendingInteraction;
+      cancelPendingInteraction({ keepPointerCapture: true });
+      beginInteractionWithPointer(ev.pointerId, resolvedMode, startX, startY);
+    }, TABLET_LONG_PRESS_MS)
+  };
+  try {
+    elements.referenceWindow.setPointerCapture?.(ev.pointerId);
+  } catch (_) { }
+  window.addEventListener('pointermove', handlePendingPointerMove, { passive: true });
+  window.addEventListener('pointerup', cancelPendingInteraction, { passive: true });
+  window.addEventListener('pointercancel', cancelPendingInteraction, { passive: true });
+  ev.preventDefault();
+  ev.stopPropagation();
+}
+
+function handlePendingPointerMove(ev) {
+  if (!pendingInteraction || ev.pointerId !== pendingInteraction.id) return;
+  const dx = ev.clientX - pendingInteraction.startX;
+  const dy = ev.clientY - pendingInteraction.startY;
+  const distance = Math.hypot(dx, dy);
+  if (distance <= TABLET_LONG_PRESS_TOLERANCE) return;
+  cancelPendingInteraction();
+}
+
+function cancelPendingInteraction(options = {}) {
+  if (!pendingInteraction) return;
+  const isPointerEvent = typeof options === 'object' && options !== null && 'pointerId' in options;
+  if (isPointerEvent && options.pointerId !== pendingInteraction.id) return;
+  const resolvedOptions = isPointerEvent ? {} : options;
+  clearTimeout(pendingInteraction.timer);
+  const pointerId = pendingInteraction.id;
+  pendingInteraction = null;
+  window.removeEventListener('pointermove', handlePendingPointerMove);
+  window.removeEventListener('pointerup', cancelPendingInteraction);
+  window.removeEventListener('pointercancel', cancelPendingInteraction);
+  if (!resolvedOptions.keepPointerCapture) {
+    try {
+      elements.referenceWindow?.releasePointerCapture?.(pointerId);
+    } catch (_) { }
+  }
+}
+
 function beginInteraction(ev, mode) {
+  if (!elements.referenceWindow) return;
+  beginInteractionWithPointer(ev.pointerId, mode, ev.clientX, ev.clientY);
+  ev.preventDefault();
+  ev.stopPropagation();
+}
+
+function beginInteractionWithPointer(pointerId, mode, clientX, clientY) {
   if (!elements.referenceWindow) return;
 
   
   if (mode === 'resize' && state.referenceWindowMinimized) return;
 
   activePointer = {
-    id: ev.pointerId,
+    id: pointerId,
     mode,
-    startX: ev.clientX,
-    startY: ev.clientY,
+    startX: clientX,
+    startY: clientY,
     origin: { ...state.referenceWindowRect }
   };
 
@@ -317,11 +390,10 @@ function beginInteraction(ev, mode) {
 
   
   if (elements.referenceWindow.setPointerCapture) {
-    elements.referenceWindow.setPointerCapture(ev.pointerId);
+    try {
+      elements.referenceWindow.setPointerCapture(pointerId);
+    } catch (_) { }
   }
-
-  ev.preventDefault();
-  ev.stopPropagation();
 }
 function handlePointerMove(ev) {
   
@@ -467,4 +539,3 @@ function setReferenceAsBaseImage(entry) {
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
-

@@ -8,6 +8,11 @@
   gap: 16px;
 }
 
+/* Tablet: ensure overlay stays above toolbars */
+body.tablet-mode #projectImportOverlay.overlay {
+  z-index: 220;
+}
+
 .project-import-body {
   flex: 1;
   overflow: auto;

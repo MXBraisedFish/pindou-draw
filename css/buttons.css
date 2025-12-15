@@ -10,6 +10,10 @@
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 }
 
+.focus-mode-mode-switch {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
 .primary-button,
 .ghost-button {
   padding: 10px 16px;

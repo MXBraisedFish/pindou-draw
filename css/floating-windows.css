@@ -1,5 +1,3 @@
-
-
 .floating-window {
   position: fixed;
   top: 96px;
@@ -13,7 +11,7 @@
   display: none;
   flex-direction: column;
   overflow: hidden;
-  z-index: 70;
+  z-index: 150;
   transition: box-shadow 0.25s ease;
   will-change: transform, box-shadow;
 }
@@ -181,4 +179,38 @@
 .palette-window__body .palette-grid {
   flex: 1;
   min-height: 0;
+}
+
+/* Tablet mode overrides for floating windows */
+.tablet-mode .floating-window.is-tablet-fixed {
+  position: fixed !important;
+  opacity: 0.95;
+  border: 1px solid var(--color-border-dark);
+  box-shadow: var(--shadow-l);
+  transform: none !important;
+}
+
+.tablet-mode .floating-window.is-tablet-fixed .floating-window__header {
+  cursor: default;
+  pointer-events: none;
+}
+
+.tablet-mode .floating-window.is-tablet-fixed .floating-window__resizer {
+  pointer-events: none;
+  display: none;
+}
+
+/* Re-enable pointer events for buttons inside the header */
+.tablet-mode .floating-window.is-tablet-fixed .floating-window__header .floating-window__actions button {
+  pointer-events: auto;
+}
+
+/* Color Palette specific styles */
+.tablet-mode #paletteWindow.is-tablet-fixed {
+  top: 96px !important;
+  right: 16px !important;
+  left: auto !important;
+  width: 320px !important;
+  max-height: 65vh !important;
+  height: auto !important;
 }

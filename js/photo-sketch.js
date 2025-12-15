@@ -68,6 +68,7 @@ export function initializePhotoSketch() {
   updateSketchSummary(null);
   updateSketchStatus('请选择图片并配置草图参数。', 'info');
   toggleSketchActionButtons(false);
+  bindPhotoSketchViewTabs();
   document.addEventListener('palette-library-changed', syncPhotoSketchPaletteOptions);
   photoSketchState.cropLockEnabled = Boolean(elements.photoSketchCropLock?.checked);
   if (photoSketchState.cropLockEnabled) {
@@ -78,12 +79,87 @@ export function initializePhotoSketch() {
 function openPhotoSketchOverlay() {
   syncPhotoSketchPaletteOptions();
   updateScaleDisplay(elements.photoSketchScaleRange?.value || '100');
+  initializePhotoSketchViewState();
   elements.photoSketchOverlay?.setAttribute('aria-hidden', 'false');
 }
 
 function closePhotoSketchOverlay() {
   elements.photoSketchOverlay?.setAttribute('aria-hidden', 'true');
   cancelPendingPreview();
+}
+
+function bindPhotoSketchViewTabs() {
+  const mainParamsBtn = document.getElementById('photoSketchTabParams');
+  const mainPreviewBtn = document.getElementById('photoSketchTabPreview');
+  const previewOriginalBtn = document.getElementById('photoSketchPreviewTabOriginal');
+  const previewPixelBtn = document.getElementById('photoSketchPreviewTabPixel');
+
+  mainParamsBtn?.addEventListener('click', () => setPhotoSketchMainView('params'));
+  mainPreviewBtn?.addEventListener('click', () => setPhotoSketchMainView('preview'));
+  previewOriginalBtn?.addEventListener('click', () => setPhotoSketchPreviewView('original'));
+  previewPixelBtn?.addEventListener('click', () => setPhotoSketchPreviewView('pixel'));
+
+  document.addEventListener('tablet:change', () => {
+    if (!isPhotoSketchOverlayOpen()) return;
+    initializePhotoSketchViewState();
+  });
+
+  initializePhotoSketchViewState({ allowNoOverlay: true });
+}
+
+function isPhotoSketchOverlayOpen() {
+  return elements.photoSketchOverlay?.getAttribute('aria-hidden') === 'false';
+}
+
+function initializePhotoSketchViewState(options = {}) {
+  const overlay = elements.photoSketchOverlay;
+  if (!overlay && !options.allowNoOverlay) return;
+
+  if (state.isTabletMode) {
+    overlay.dataset.photoSketchView = overlay.dataset.photoSketchView || 'params';
+  } else {
+    delete overlay.dataset.photoSketchView;
+  }
+
+  overlay.dataset.photoSketchPreview = overlay.dataset.photoSketchPreview || 'pixel';
+  updatePhotoSketchTabsUI();
+}
+
+function setPhotoSketchMainView(view) {
+  const overlay = elements.photoSketchOverlay;
+  if (!overlay || !state.isTabletMode) return;
+  overlay.dataset.photoSketchView = view === 'preview' ? 'preview' : 'params';
+  updatePhotoSketchTabsUI();
+}
+
+function setPhotoSketchPreviewView(view) {
+  const overlay = elements.photoSketchOverlay;
+  if (!overlay) return;
+  overlay.dataset.photoSketchPreview = view === 'original' ? 'original' : 'pixel';
+  updatePhotoSketchTabsUI();
+}
+
+function updatePhotoSketchTabsUI() {
+  const overlay = elements.photoSketchOverlay;
+  if (!overlay) return;
+
+  const mainParamsBtn = document.getElementById('photoSketchTabParams');
+  const mainPreviewBtn = document.getElementById('photoSketchTabPreview');
+  const previewOriginalBtn = document.getElementById('photoSketchPreviewTabOriginal');
+  const previewPixelBtn = document.getElementById('photoSketchPreviewTabPixel');
+
+  if (state.isTabletMode) {
+    const view = overlay.dataset.photoSketchView === 'preview' ? 'preview' : 'params';
+    mainParamsBtn?.setAttribute('aria-selected', view === 'params' ? 'true' : 'false');
+    mainPreviewBtn?.setAttribute('aria-selected', view === 'preview' ? 'true' : 'false');
+  } else {
+    mainParamsBtn?.setAttribute('aria-selected', 'false');
+    mainPreviewBtn?.setAttribute('aria-selected', 'false');
+  }
+
+  const preview = overlay.dataset.photoSketchPreview === 'original' ? 'original' : 'pixel';
+  previewOriginalBtn?.setAttribute('aria-selected', preview === 'original' ? 'true' : 'false');
+  previewPixelBtn?.setAttribute('aria-selected', preview === 'pixel' ? 'true' : 'false');
 }
 
 function handlePhotoSketchFile(event) {

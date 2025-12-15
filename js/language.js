@@ -79,7 +79,7 @@
     replace: {
       button: '替换选中颜色',
       panelTitle: '选择替换色',
-      panelHint: '从色卡中挑选新的替换色，可多选，之后会顺序替换当前高亮颜色。',
+      panelHint: '此处挑选替换为的颜色。',
       filterPlaceholder: '输入色号或关键字',
       confirmButton: '开始替换',
       cancelButton: '取消',

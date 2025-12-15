@@ -124,6 +124,36 @@
       <img src="svg/退出.svg" alt="">
     </button>
   </aside>
+  <aside id="tabletUndoRedo" class="toolbar-bottom tablet-undo-redo" aria-label="撤回与重做" aria-hidden="true">
+    <button id="tabletUndoBtn" class="toolbar-button" type="button" aria-label="撤回" data-tooltip="撤回">
+      <img src="svg/撤回.svg" alt="">
+    </button>
+    <button id="tabletMoveToggleBtn" class="toolbar-button" type="button" aria-label="移动模式" data-tooltip="移动模式">
+      <img src="svg/移动.svg" alt="">
+    </button>
+    <button id="tabletRedoBtn" class="toolbar-button" type="button" aria-label="重做" data-tooltip="重做">
+      <img src="svg/重做.svg" alt="">
+    </button>
+  </aside>
+  <div id="toolPopouts" class="tool-popouts" aria-hidden="true">
+    <div id="eraserPopout" class="tool-popout" data-expansion="eraser" aria-label="橡皮展开栏">
+      <button id="eraserPrimaryBtn" class="toolbar-button popout-button" type="button" aria-label="当前绘制工具"></button>
+      <button id="eraserSwitchBtn" class="toolbar-button popout-button" type="button" aria-label="橡皮">
+        <img src="svg/橡皮.svg" alt="">
+      </button>
+    </div>
+    <div id="selectionPopout" class="tool-popout" data-expansion="selection" aria-label="选区模式">
+      <button id="selectionAddBtn" class="toolbar-button popout-button" type="button" aria-label="添加选区">
+        <img src="svg/选区.svg" alt="">
+      </button>
+      <button id="selectionDeleteBtn" class="toolbar-button popout-button" type="button" aria-label="删除选区">
+        <img src="svg/删除选区.svg" alt="">
+      </button>
+      <button id="selectionMoveBtn" class="toolbar-button popout-button" type="button" aria-label="移动选区">
+        <img src="svg/移动选区.svg" alt="">
+      </button>
+    </div>
+  </div>
 
   <!-- 图层 -->
   <main class="workspace" role="main">
@@ -844,8 +874,14 @@
   <!-- 导出窗口 -->
   <div id="exportWindow" class="modal-window modal-window--wide" aria-hidden="true" tabindex="-1"
     data-shortcuts-ignore="true">
-    <div class="modal-window__dialog .export-window__dialog">
-      <div class="modal-window__body .export-window__body">
+    <div class="modal-window__dialog export-window__dialog">
+      <div class="modal-window__body export-window__body">
+        <div class="export-tablet-tabs" role="tablist" aria-label="导出窗口视图切换">
+          <button id="exportTabPreview" class="ghost-button export-tab-button" type="button" role="tab"
+            aria-selected="true" data-export-view="preview">导出预览</button>
+          <button id="exportTabSettings" class="ghost-button export-tab-button" type="button" role="tab"
+            aria-selected="false" data-export-view="settings">导出设置</button>
+        </div>
         <div class="export-layout">
           <!-- 预览部分 -->
           <div class="export-preview-section">
@@ -1072,7 +1108,7 @@
               <div class="highlight-window__replacement-header">
                 <div>
                   <h3 id="canvasHighlightReplacementTitle">选择替换色</h3>
-                  <p id="canvasHighlightReplacementHint" class="highlight-window__replacement-hint">从色卡中挑选新的替换色，可多选，之后会顺序替换当前高亮颜色。</p>
+                  <p id="canvasHighlightReplacementHint" class="highlight-window__replacement-hint">此处挑选替换为的颜色。</p>
                 </div>
                 <button id="canvasHighlightReplacementCloseBtn" type="button" class="ghost-button">取消</button>
               </div>
@@ -1198,6 +1234,14 @@
         <button id="photoSketchCloseBtn" type="button" class="madol" aria-label="关闭">×</button>
       </header>
       <div class="overlay__body photo-sketch-body madol">
+        <div class="photo-sketch-tablet-tabs madol" role="tablist" aria-label="草图功能切换">
+          <button id="photoSketchTabParams" class="ghost-button madol" type="button" role="tab" aria-selected="true">
+            参数设置
+          </button>
+          <button id="photoSketchTabPreview" class="ghost-button madol" type="button" role="tab" aria-selected="false">
+            参考预览
+          </button>
+        </div>
         <div class="photo-sketch-grid madol">
           <section class="photo-sketch-panel madol">
             <div class="form-field madol">
@@ -1287,14 +1331,17 @@
           </section>
           <section class="photo-sketch-panel photo-sketch-panel--preview madol">
             <header class="madol">参考预览</header>
-            <div class="photo-sketch-preview-grid madol">
-              <div class="photo-sketch-preview-card madol">
-                <h4 class="madol">原图</h4>
-                <canvas id="photoSketchOriginalPreview" width="320" height="320" aria-label="原图预览"
-                  class="madol"></canvas>
+            <div class="photo-sketch-preview-tabs madol" role="tablist" aria-label="预览切换">
+              <button id="photoSketchPreviewTabOriginal" class="ghost-button madol" type="button" role="tab"
+                aria-selected="false">原图</button>
+              <button id="photoSketchPreviewTabPixel" class="ghost-button madol" type="button" role="tab"
+                aria-selected="true">像素图</button>
+            </div>
+            <div class="photo-sketch-preview-stack madol">
+              <div class="photo-sketch-preview-pane madol" data-pane="original">
+                <canvas id="photoSketchOriginalPreview" width="320" height="320" aria-label="原图预览" class="madol"></canvas>
               </div>
-              <div class="photo-sketch-preview-card madol">
-                <h4 class="madol">像素图</h4>
+              <div class="photo-sketch-preview-pane madol" data-pane="pixel">
                 <canvas id="photoSketchPixelPreview" width="320" height="320" aria-label="像素图预览" class="madol"></canvas>
                 <p id="photoSketchPreviewInfo" class="photo-sketch-preview__info madol">尚未选择图片</p>
               </div>

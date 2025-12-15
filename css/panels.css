@@ -48,12 +48,18 @@ body.simple-mode-active .panel-stack-right {
   pointer-events: auto;
   display: none;
   max-height: calc(100vh - 220px);
-  overflow: hidden;
+  overflow: auto;
 }
 
 .tool-panel.is-active {
   display: flex;
   flex-direction: column;
+}
+
+body.tablet-mode .panel-stack-right #paletteWindow.tablet-palette-panel {
+  width: 320px;
+  max-height: calc(100vh - 220px);
+  pointer-events: auto;
 }
 
 .tool-panel__header {

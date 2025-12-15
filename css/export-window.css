@@ -573,3 +573,70 @@
     max-width: none;
   }
 }
+
+/* Tablet-only export window: split preview/settings views */
+.export-tablet-tabs {
+  display: none;
+  gap: 12px;
+  padding: 16px 20px 0;
+  background: #ffffff;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.export-tab-button {
+  flex: 1;
+  width: 100%;
+  border-radius: 999px;
+  transform: translateY(-10px);
+}
+
+.export-tab-button[aria-selected="true"] {
+  background: #1a73e8;
+  border-color: #1a73e8;
+  color: #ffffff;
+}
+
+body.tablet-mode #exportWindow.modal-window {
+  z-index: 220;
+}
+
+body.tablet-mode #exportWindow .modal-window__body {
+  height: calc(100vh - 200px);
+  max-height: calc(100vh - 200px);
+}
+
+body.tablet-mode #exportWindow .export-tablet-tabs {
+  display: flex;
+  background-color: transparent;
+}
+
+body.tablet-mode #exportWindow .export-layout {
+  grid-template-columns: 1fr;
+  gap: 16px;
+  min-height: 0;
+}
+
+body.tablet-mode #exportWindow .export-preview-section {
+  max-width: none;
+}
+
+body.tablet-mode #exportWindow[data-tablet-export-view="preview"] .export-settings-section,
+body.tablet-mode #exportWindow[data-tablet-export-view="preview"] .export-highlight-section {
+  display: none;
+}
+
+body.tablet-mode #exportWindow[data-tablet-export-view="settings"] .export-preview-section {
+  display: none;
+}
+
+body.tablet-mode #exportWindow[data-tablet-export-view="settings"] .export-layout {
+  grid-template-columns: 1fr 1fr;
+}
+
+body.tablet-mode #exportWindow[data-tablet-export-view="settings"] .export-settings-section {
+  grid-column: 1;
+}
+
+body.tablet-mode #exportWindow[data-tablet-export-view="settings"] .export-highlight-section {
+  grid-column: 2;
+}

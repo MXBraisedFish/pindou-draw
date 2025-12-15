@@ -238,6 +238,216 @@
   color: #1d2333;
 }
 
+/* Tablet-only: compact layout + keep on top of toolbars */
+body.tablet-mode #colorManageWindow.modal-window {
+  z-index: 260;
+}
+
+body.tablet-mode #colorManageWindow .modal-window__dialog {
+  width: min(980px, 96vw);
+  max-height: calc(100vh - 200px);
+}
+
+body.tablet-mode #colorManageWindow .modal-window__header {
+  padding: 14px 16px;
+}
+
+body.tablet-mode #colorManageWindow .modal-window__footer {
+  padding: 12px 16px;
+}
+
+body.tablet-mode #colorManageWindow .modal-window__body {
+  gap: 12px;
+  max-height: calc(100vh - 240px);
+}
+
+body.tablet-mode #colorManageWindow .color-manage-layout {
+  gap: 12px;
+}
+
+body.tablet-mode #colorManageWindow .color-manage-toolbar {
+  gap: 10px;
+}
+
+body.tablet-mode #colorManageWindow .color-manage-quick-actions {
+  gap: 8px;
+}
+
+body.tablet-mode #colorManageWindow .color-manage-quick-actions .ghost-button {
+  min-width: 120px;
+  padding: 8px 12px;
+}
+
+body.tablet-mode #colorManageWindow .color-manage-status {
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+
+body.tablet-mode #colorManageWindow .color-manage-counter {
+  font-size: 13px;
+}
+
+body.tablet-mode #colorManageWindow .color-manage-counter strong {
+  font-size: 16px;
+}
+
+body.tablet-mode #colorManageWindow .color-manage-board {
+  padding: 10px;
+  border-radius: 14px;
+}
+
+body.tablet-mode #colorManageWindow .color-manage-list {
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 10px;
+  padding-right: 4px;
+}
+
+body.tablet-mode #colorManageWindow .color-manage-item {
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+
+body.tablet-mode #colorManageWindow .color-manage-swatch {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+}
+
+body.tablet-mode #colorManageWindow .color-manage-code {
+  font-size: 14px;
+}
+
+body.tablet-mode #colorManageWindow .color-manage-color {
+  font-size: 11px;
+}
+
+body.tablet-mode #colorManageWindow .color-manage-checkbox {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+}
+
+/* Tablet-only: highlight window compact + keep on top of toolbars */
+body.tablet-mode #canvasHighlightWindow.modal-window {
+  z-index: 260;
+}
+
+body.tablet-mode #canvasHighlightWindow .modal-window__dialog {
+  width: min(980px, 96vw);
+  max-height: calc(100vh - 200px);
+}
+
+body.tablet-mode #canvasHighlightWindow .modal-window__header {
+  padding: 14px 16px;
+}
+
+body.tablet-mode #canvasHighlightWindow .modal-window__body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: calc(100vh - 240px);
+  overflow: hidden;
+}
+
+body.tablet-mode #canvasHighlightWindow .highlight-window {
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+
+body.tablet-mode #canvasHighlightWindow .highlight-window__toolbar {
+  gap: 10px;
+}
+
+body.tablet-mode #canvasHighlightWindow .highlight-window__actions {
+  gap: 8px;
+}
+
+body.tablet-mode #canvasHighlightWindow .highlight-window__content {
+  padding: 10px;
+  border-radius: 14px;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+body.tablet-mode #canvasHighlightWindow .highlight-window__grid {
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+  align-items: stretch;
+}
+
+body.tablet-mode #canvasHighlightWindow .highlight-list {
+  min-width: 240px;
+  max-height: none;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  align-self: stretch;
+}
+
+body.tablet-mode #canvasHighlightWindow .highlight-list-header {
+  padding: 10px 12px;
+  font-size: 12px;
+}
+
+body.tablet-mode #canvasHighlightWindow .highlight-list-content {
+  max-height: none;
+  overflow: visible;
+  padding: 4px 0;
+}
+
+body.tablet-mode #canvasHighlightWindow .highlight-list-content .highlight-color-item {
+  padding: 10px 12px;
+  font-size: 12px;
+  gap: 10px;
+}
+
+body.tablet-mode #canvasHighlightWindow .highlight-window__replacement-panel {
+  flex: 0 0 260px;
+  padding: 12px;
+  border-radius: 14px;
+  gap: 10px;
+  max-height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  align-self: stretch;
+}
+
+body.tablet-mode #canvasHighlightWindow .highlight-window__replacement-list {
+  max-height: none;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  gap: 8px;
+}
+
+body.tablet-mode #canvasHighlightWindow .highlight-window__replacement-item {
+  padding: 8px;
+  border-radius: 12px;
+  min-height: 72px;
+  font-size: 12px;
+}
+
+body.tablet-mode #canvasHighlightWindow .highlight-window__hint {
+  font-size: 12px;
+  line-height: 1.35;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+body.tablet-mode #canvasHighlightWindow .highlight-message {
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
 
 .highlight-list-content .highlight-color-item {
 	display: grid;

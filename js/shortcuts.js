@@ -147,6 +147,7 @@ function toggleFullscreen() {
 }
 
 function toggleSimpleMode() {
+  if (state.isTabletMode) return;
   if (elements.focusSimpleModeBtn) {
     elements.focusSimpleModeBtn.click();
     return;

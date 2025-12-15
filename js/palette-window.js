@@ -1,4 +1,5 @@
 import { elements } from './elements.js';
+import { state } from './state.js';
 import { registerFloatingWindow } from './floating-window-stack.js';
 import { computeRightToolbarAnchor } from './toolbar-anchor.js';
 
@@ -18,6 +19,9 @@ class PaletteWindowController {
     this.position = null;
     this.dimensions = null;
     this.interaction = null;
+    this.originalParent = null;
+    this.originalNextSibling = null;
+    this.tabletDockEl = null;
     this.minSize = {
       width: Number(this.windowEl?.dataset.minWidth) || DEFAULT_MIN_WIDTH,
       height: Number(this.windowEl?.dataset.minHeight) || DEFAULT_MIN_HEIGHT
@@ -30,10 +34,13 @@ class PaletteWindowController {
     this.boundHandleResize = this.handleResize.bind(this);
     this.boundPointerMove = this.handlePointerMove.bind(this);
     this.boundPointerUp = this.handlePointerUp.bind(this);
+    this.boundTabletChange = this.handleTabletChange.bind(this);
   }
 
   init() {
     if (!this.windowEl || !this.toggleBtn) return;
+    this.originalParent = this.windowEl.parentNode;
+    this.originalNextSibling = this.windowEl.nextSibling;
     this.dimensions = this.measureInitialSize();
     const datasetMaxWidth = Number(this.windowEl?.dataset.maxWidth);
     if (Number.isFinite(datasetMaxWidth) && datasetMaxWidth > 0) {
@@ -54,6 +61,9 @@ class PaletteWindowController {
     this.headerEl?.addEventListener('pointerdown', (event) => this.startInteraction(event, 'move'));
     this.resizerEl?.addEventListener('pointerdown', (event) => this.startInteraction(event, 'resize'));
     window.addEventListener('resize', this.boundHandleResize);
+    document.addEventListener('tablet:change', this.boundTabletChange);
+
+    this.applyTabletDockState(Boolean(state.isTabletMode));
   }
 
   measureInitialSize() {
@@ -123,6 +133,9 @@ class PaletteWindowController {
 
   applyLayout() {
     if (!this.position) return;
+    if (state.isTabletMode) {
+      return;
+    }
     this.dimensions = this.clampSize(this.dimensions?.width ?? this.minSize.width, this.dimensions?.height ?? this.minSize.height);
     this.position = this.clampPosition(this.position.x, this.position.y);
 
@@ -136,6 +149,9 @@ class PaletteWindowController {
 
   handleResize() {
     if (!this.position) return;
+    if (state.isTabletMode) {
+      return;
+    }
     this.applyLayout();
   }
 
@@ -146,9 +162,16 @@ class PaletteWindowController {
   show() {
     if (this.isVisible) return;
     this.isVisible = true;
-    this.windowEl.classList.add('is-visible');
+    if (state.isTabletMode) {
+      this.applyTabletDockState(true);
+      this.windowEl.classList.add('is-active');
+      this.windowEl.classList.remove('is-visible');
+    } else {
+      this.windowEl.classList.add('is-visible');
+      this.windowEl.classList.remove('is-active');
+      this.applyLayout();
+    }
     this.windowEl.setAttribute('aria-hidden', 'false');
-    this.applyLayout();
     this.toggleBtn.classList.add('is-active');
     this.toggleBtn.setAttribute('aria-pressed', 'true');
     this.windowStackHandle?.bringToFront();
@@ -157,7 +180,7 @@ class PaletteWindowController {
   hide() {
     if (!this.isVisible) return;
     this.isVisible = false;
-    this.windowEl.classList.remove('is-visible');
+    this.windowEl.classList.remove('is-visible', 'is-active');
     this.windowEl.setAttribute('aria-hidden', 'true');
     this.toggleBtn.classList.remove('is-active');
     this.toggleBtn.setAttribute('aria-pressed', 'false');
@@ -165,6 +188,7 @@ class PaletteWindowController {
   }
 
   startInteraction(event, mode) {
+    if (state.isTabletMode) return;
     if (!this.isVisible || event.button !== 0) return;
     event.preventDefault();
     this.windowStackHandle?.bringToFront();
@@ -220,6 +244,64 @@ class PaletteWindowController {
     window.removeEventListener('pointermove', this.boundPointerMove);
     window.removeEventListener('pointerup', this.boundPointerUp);
     window.removeEventListener('pointercancel', this.boundPointerUp);
+  }
+
+  handleTabletChange(event) {
+    const enabled = Boolean(event?.detail?.enabled);
+    this.applyTabletDockState(enabled);
+    if (!enabled && this.isVisible) {
+      this.position = this.computeInitialPosition();
+      this.applyLayout();
+    }
+  }
+
+  ensureTabletDock() {
+    if (this.tabletDockEl && this.tabletDockEl.isConnected) return this.tabletDockEl;
+    const rightStack = document.querySelector('.panel-stack.panel-stack-right');
+    if (rightStack) {
+      this.tabletDockEl = rightStack;
+      return rightStack;
+    }
+    const dock = document.createElement('div');
+    dock.id = 'tabletPaletteDock';
+    dock.className = 'panel-stack panel-stack-right tablet-palette-dock';
+    dock.setAttribute('aria-live', 'polite');
+    document.body.appendChild(dock);
+    this.tabletDockEl = dock;
+    return dock;
+  }
+
+  applyTabletDockState(enabled) {
+    if (!this.windowEl || !this.headerEl) return;
+    if (enabled) {
+      const dock = this.ensureTabletDock();
+      if (dock && this.windowEl.parentNode !== dock) {
+        dock.appendChild(this.windowEl);
+      }
+      this.windowEl.classList.add('tool-panel', 'tablet-palette-panel');
+      this.windowEl.classList.remove('floating-window');
+      this.windowEl.classList.remove('is-visible');
+      this.windowEl.classList.toggle('is-active', this.isVisible);
+      this.headerEl.classList.add('tool-panel__header');
+      const body = this.windowEl.querySelector('.floating-window__body');
+      body?.classList.add('tool-panel__body');
+      if (this.resizerEl) this.resizerEl.style.display = 'none';
+      this.windowEl.style.left = '';
+      this.windowEl.style.top = '';
+      this.windowEl.style.right = '';
+      this.windowEl.style.bottom = '';
+    } else {
+      this.windowEl.classList.remove('tool-panel', 'tablet-palette-panel', 'is-active');
+      this.windowEl.classList.add('floating-window');
+      this.windowEl.classList.toggle('is-visible', this.isVisible);
+      this.headerEl.classList.remove('tool-panel__header');
+      const body = this.windowEl.querySelector('.floating-window__body');
+      body?.classList.remove('tool-panel__body');
+      if (this.resizerEl) this.resizerEl.style.display = '';
+      if (this.originalParent) {
+        this.originalParent.insertBefore(this.windowEl, this.originalNextSibling);
+      }
+    }
   }
 }
 

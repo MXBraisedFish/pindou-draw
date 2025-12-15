@@ -276,3 +276,105 @@
   justify-content: flex-end;
   flex-shrink: 0;
 }
+
+/* Tablet-only full layout (no scrolling) */
+body.tablet-mode #resizeCanvasOverlay.overlay {
+  z-index: 220;
+}
+
+body.tablet-mode #resizeCanvasOverlay .resize-overlay-dialog {
+  width: min(720px, 92vw);
+  height: calc(100vh - 220px);
+  max-height: calc(100vh - 220px);
+  margin: 10px auto;
+  display: flex;
+  flex-direction: column;
+}
+
+body.tablet-mode #resizeCanvasOverlay .overlay__header {
+  padding: 12px 14px;
+}
+
+body.tablet-mode #resizeCanvasOverlay .resize-overlay-body {
+  flex: 1;
+  min-height: 0;
+  padding: 10px;
+  gap: 8px;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+}
+
+body.tablet-mode #resizeCanvasOverlay #resizeMessage.panel-notice {
+  max-height: 2.6em;
+  overflow: hidden;
+}
+
+body.tablet-mode #resizeCanvasOverlay .resize-mode-toggle {
+  max-width: 220px;
+  padding: 4px;
+}
+
+body.tablet-mode #resizeCanvasOverlay .resize-stage {
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+  gap: 8px;
+  grid-template-columns: minmax(86px, 1fr) minmax(0, 1.2fr) minmax(86px, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+body.tablet-mode #resizeCanvasOverlay .resize-edge-card {
+  max-width: none;
+  padding: 6px 6px;
+  gap: 4px;
+}
+
+body.tablet-mode #resizeCanvasOverlay .resize-edit-btn {
+  padding: 3px 8px;
+  font-size: 11px;
+}
+
+body.tablet-mode #resizeCanvasOverlay .resize-edge-control {
+  grid-template-columns: minmax(28px, 1fr) 46px minmax(28px, 1fr);
+}
+
+body.tablet-mode #resizeCanvasOverlay .resize-step-btn {
+  padding: 4px 0;
+  font-size: 11px;
+}
+
+body.tablet-mode #resizeCanvasOverlay .resize-value-input {
+  padding: 4px;
+  font-size: 12px;
+}
+
+body.tablet-mode #resizeCanvasOverlay .resize-preview-block {
+  min-height: 0;
+  max-height: none;
+}
+
+body.tablet-mode #resizeCanvasOverlay .resize-preview {
+  padding: 6px;
+}
+
+body.tablet-mode #resizeCanvasOverlay .resize-info {
+  padding: 6px 8px;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+body.tablet-mode #resizeCanvasOverlay .resize-info-item {
+  min-width: 0;
+}
+
+body.tablet-mode #resizeCanvasOverlay .resize-actions {
+  gap: 8px;
+}
+
+body.tablet-mode #resizeCanvasOverlay .resize-actions .primary-button,
+body.tablet-mode #resizeCanvasOverlay .resize-actions .ghost-button {
+  padding: 8px 10px;
+  font-size: 13px;
+  border-radius: 10px;
+}

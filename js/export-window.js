@@ -28,6 +28,7 @@ export function initializeExportWindow() {
     bindExportSettingsEvents();
     initializeExportSettings();
     bindPreviewInteractions();
+    bindExportTabletViewTabs();
     document.addEventListener('keydown', handleKeydown);
     syncExportWindow();
 }
@@ -226,6 +227,9 @@ export function toggleExportWindow(force) {
     if (state.exportVisible === next) return;
     state.exportVisible = next;
     if (next) {
+        if (state.isTabletMode && elements.exportWindow) {
+            elements.exportWindow.dataset.tabletExportView = 'preview';
+        }
         updateExportPreview({ force: true });
         updateDefaultFilename();
         exportHighlightManager.updateUsedColors(); 
@@ -613,11 +617,59 @@ function syncExportWindow() {
   elements.exportWindow.classList.toggle('is-visible', visible);
   elements.exportWindow.setAttribute('aria-hidden', visible ? 'false' : 'true');
   visible && elements.exportWindow.focus?.();
+  if (visible) {
+      updateExportTabletViewTabsUI();
+  }
   const exportToggleBtn = elements.exportBtn ?? document.querySelector('[data-role="export"]');
   if (exportToggleBtn) {
     exportToggleBtn.classList.toggle('is-active', visible);
     exportToggleBtn.setAttribute('aria-pressed', visible ? 'true' : 'false');
   }
+}
+
+function bindExportTabletViewTabs() {
+    const previewBtn = document.getElementById('exportTabPreview');
+    const settingsBtn = document.getElementById('exportTabSettings');
+    if (!previewBtn || !settingsBtn) return;
+
+    previewBtn.addEventListener('click', () => setTabletExportView('preview'));
+    settingsBtn.addEventListener('click', () => setTabletExportView('settings'));
+
+    document.addEventListener('tablet:change', () => {
+        if (!state.exportVisible) return;
+        if (state.isTabletMode && elements.exportWindow) {
+            const raw = elements.exportWindow.dataset.tabletExportView;
+            if (raw !== 'preview' && raw !== 'settings') {
+                elements.exportWindow.dataset.tabletExportView = 'preview';
+            }
+        }
+        updateExportTabletViewTabsUI();
+    });
+
+    updateExportTabletViewTabsUI();
+}
+
+function setTabletExportView(view) {
+    if (!elements.exportWindow || !state.isTabletMode) return;
+    const normalized = view === 'settings' ? 'settings' : 'preview';
+    elements.exportWindow.dataset.tabletExportView = normalized;
+    updateExportTabletViewTabsUI();
+}
+
+function updateExportTabletViewTabsUI() {
+    const previewBtn = document.getElementById('exportTabPreview');
+    const settingsBtn = document.getElementById('exportTabSettings');
+    if (!previewBtn || !settingsBtn || !elements.exportWindow) return;
+
+    if (!state.isTabletMode) {
+        previewBtn.setAttribute('aria-selected', 'false');
+        settingsBtn.setAttribute('aria-selected', 'false');
+        return;
+    }
+
+    const view = elements.exportWindow.dataset.tabletExportView === 'settings' ? 'settings' : 'preview';
+    previewBtn.setAttribute('aria-selected', view === 'preview' ? 'true' : 'false');
+    settingsBtn.setAttribute('aria-selected', view === 'settings' ? 'true' : 'false');
 }
 function handleKeydown(ev) {
     ev.key === 'Escape' && state.exportVisible && toggleExportWindow(false);

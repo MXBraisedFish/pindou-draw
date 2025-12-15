@@ -178,6 +178,18 @@ export const elements = {
   simpleToolbar: $('#simpleToolbar'),
   simplePaletteWindowBtn: $('#simplePaletteWindowBtn'),
   simpleModeExitBtn: $('#simpleModeExitBtn'),
+  tabletUndoRedoBar: $('#tabletUndoRedo'),
+  tabletUndoBtn: $('#tabletUndoBtn'),
+  tabletMoveToggleBtn: $('#tabletMoveToggleBtn'),
+  tabletRedoBtn: $('#tabletRedoBtn'),
+  toolPopouts: $('#toolPopouts'),
+  eraserPopout: $('#eraserPopout'),
+  eraserPrimaryBtn: $('#eraserPrimaryBtn'),
+  eraserSwitchBtn: $('#eraserSwitchBtn'),
+  selectionPopout: $('#selectionPopout'),
+  selectionAddBtn: $('#selectionAddBtn'),
+  selectionDeleteBtn: $('#selectionDeleteBtn'),
+  selectionMoveBtn: $('#selectionMoveBtn'),
   photoSketchBtn: $('#photoSketchBtn'),
   photoSketchOverlay: $('#photoSketchOverlay'),
   photoSketchCloseBtn: $('#photoSketchCloseBtn'),
@@ -207,5 +219,3 @@ export const elements = {
   photoSketchStatus: $('#photoSketchStatus'),
   photoSketchDitherRadios: $$('input[name="photoSketchDither"]')
 };
-
-

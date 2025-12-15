@@ -63,6 +63,11 @@ export const state = {
   pixelShape: 'square',
   symmetryMode: 'none',
   axisOpacity: 1,
+  isTabletMode: false,
+  tabletModeOverride: null,
+  tabletEraserActive: false,
+  selectionToolMode: 'add',
+  moveModeEnabled: false,
   gridOverlay: { ...GRID_OVERLAY_DEFAULTS },
   selection: {
     active: false,
