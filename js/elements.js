@@ -35,6 +35,7 @@ export const elements = {
   autoSnapToggle: $('#autoSnapToggle'),
   showCodesToggle: $('#showCodesToggle'),
   displayModeToast: $('#displayModeToast'),
+  manualHintToast: $('#manualHintToast'),
   displayModeRadios: $$('input[name="canvasDisplayMode"]'),
   pixelShapeRadios: $$('input[name="pixelShape"]'),
   axisOpacityRange: $('#axisOpacityRange'),

@@ -46,6 +46,8 @@ import { computeRightToolbarAnchor } from '../toolbar-anchor.js';
 const CANVAS_WARNING_AREA = 80 * 80;
 const CANVAS_DANGER_AREA = 128 * 128;
 let closeAllPanels = () => { };
+let manualHintHideTimer = null;
+let manualHintShown = false;
 
 export function initializeUIBindings() {
   initializeTabletMode();
@@ -62,6 +64,56 @@ export function initializeUIBindings() {
   bindFocusModeControls();
   bindTabletControls();
   bindTabletPaletteExclusivity();
+  bindManualHintToast();
+}
+
+function bindManualHintToast() {
+  document.addEventListener('update:autoClosed', () => {
+    showManualHintToast();
+  });
+  window.addEventListener('resize', () => {
+    if (!elements.manualHintToast?.classList.contains('is-visible')) return;
+    positionManualHintToast();
+  });
+}
+
+function positionManualHintToast() {
+  const toast = elements.manualHintToast;
+  const anchor = document.querySelector('[data-role="panel"][data-panel-target="manual"]');
+  if (!toast || !anchor) return;
+
+  const margin = 12;
+  const anchorRect = anchor.getBoundingClientRect();
+  const toastWidth = toast.offsetWidth || 280;
+  const toastHeight = toast.offsetHeight || 40;
+
+  let left = anchorRect.right + 12;
+  let top = anchorRect.top + anchorRect.height / 2 - toastHeight / 2;
+
+  left = Math.max(margin, Math.min(left, window.innerWidth - toastWidth - margin));
+  top = Math.max(margin, Math.min(top, window.innerHeight - toastHeight - margin));
+
+  toast.style.left = `${left}px`;
+  toast.style.top = `${top}px`;
+}
+
+function showManualHintToast() {
+  if (manualHintShown) return;
+  const toast = elements.manualHintToast;
+  if (!toast) return;
+
+  manualHintShown = true;
+  positionManualHintToast();
+  toast.classList.add('is-visible');
+  toast.setAttribute('aria-hidden', 'false');
+
+  if (manualHintHideTimer) {
+    clearTimeout(manualHintHideTimer);
+  }
+  manualHintHideTimer = setTimeout(() => {
+    toast.classList.remove('is-visible');
+    toast.setAttribute('aria-hidden', 'true');
+  }, 3000);
 }
 
 function bindTabletPaletteExclusivity() {
@@ -585,6 +637,9 @@ function initializeTabletMode() {
       try {
         document.dispatchEvent(new CustomEvent('tablet:change', { detail: { enabled: matches } }));
       } catch (error) { }
+    }
+    if (!prev && matches) {
+      window.alert('平板端目前处于测试版本，当前使用可能会遇到不可预知的Bug，请谨慎使用，若您遇到Bug请及时向我汇报');
     }
     if (matches && state.simpleMode) {
       setSimpleMode(false);

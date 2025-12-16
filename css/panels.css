@@ -56,8 +56,8 @@ body.simple-mode-active .panel-stack-right {
   flex-direction: column;
 }
 
-body.tablet-mode .panel-stack-right #paletteWindow.tablet-palette-panel {
-  width: 320px;
+body.tablet-mode .panel-stack-right #paletteWindow.tablet-palette-panel  {
+  width: 320px !important;
   max-height: calc(100vh - 220px);
   pointer-events: auto;
 }

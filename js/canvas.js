@@ -1,4 +1,4 @@
-﻿import { AXIS_STYLE, DOUBLE_CLICK_MS, SIZE_LIMITS, CANVAS_SIZE_LIMIT, MAX_SAFE_CANVAS_DIMENSION } from './constants.js';
+import { AXIS_STYLE, DOUBLE_CLICK_MS, SIZE_LIMITS, CANVAS_SIZE_LIMIT, MAX_SAFE_CANVAS_DIMENSION } from './constants.js';
 import { elements } from './elements.js';
 import { state } from './state.js';
 import { cellsEqual, clampAlpha, clampCellSize, computeAxisPadding, pickTextColor } from './utils.js';
@@ -528,13 +528,6 @@ export function prepareCanvasInteractions() {
     tabletGestureState.lastTapTime = 0;
     tabletGestureState.lastTapPos = null;
   };
-  const releaseTabletCaptures = () => {
-    tabletGestureState.pointers.forEach((_, id) => {
-      try {
-        elements.canvas?.releasePointerCapture(id);
-      } catch (error) { }
-    });
-  };
   const startTabletPinch = () => {
     tabletGestureState.pinchActive = true;
     tabletGestureState.startDistance = computePinchDistance();
@@ -547,7 +540,6 @@ export function prepareCanvasInteractions() {
     if (pointerState?.type === 'pan') elements.canvas.classList.remove('is-panning');
     if (pointerState?.type === 'baseMove') elements.canvas.classList.remove('is-base-dragging');
     pointerState = null;
-    releaseTabletCaptures();
     resetTabletTapState();
   };
   const applyTabletPinchZoom = () => {
@@ -593,6 +585,8 @@ export function prepareCanvasInteractions() {
     if (isTabletTouchPointer(ev)) {
       if (handleTabletDoubleTap(ev)) return;
       recordTabletPointer(ev);
+      // 触控捏合时确保能收到 pointerup/cancel 来正确清理状态。
+      trySetPointerCapture(ev.pointerId);
       if (tabletGestureState.pointers.size >= 2) {
         startTabletPinch();
         return;
@@ -721,12 +715,10 @@ export function prepareCanvasInteractions() {
     const isTabletTouch = isTabletTouchPointer(ev);
     if (isTabletTouch) {
       clearTabletPointer(ev);
-      if (tabletGestureState.pinchActive) {
-        try {
-          elements.canvas.releasePointerCapture(ev.pointerId);
-        } catch (error) { }
-        return;
-      }
+      try {
+        elements.canvas.releasePointerCapture(ev.pointerId);
+      } catch (error) { }
+      if (tabletGestureState.pinchActive) return;
     }
     if (handleSelectionPointerRelease(ev)) return;
     if (!pointerState || pointerState.pointerId !== ev.pointerId) return;

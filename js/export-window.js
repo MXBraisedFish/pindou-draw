@@ -5,6 +5,7 @@ import { exportProject } from './pd.js';
 import { exportHighlightManager } from './export-highlight.js';
 import { TEXT } from './language.js';
 let previewState = { sourceCanvas: null, scale: 1, offsetX: 0, offsetY: 0, isDragging: false, lastX: 0, lastY: 0, minScale: 0.1, maxScale: 3 };
+let previewTouchGesture = { pinchActive: false, startDistance: 0, startScale: 1, startOffsetX: 0, startOffsetY: 0, anchorX: 0, anchorY: 0 };
 let exportInProgress = false;
 const HIGHLIGHT_IMAGE_FORMATS = new Set(['image/png', 'image/jpeg']);
 let colorInputTimer = null;
@@ -150,6 +151,7 @@ function bindPreviewInteractions() {
     previewCanvas.addEventListener('touchstart', handlePreviewTouchStart, { passive: false });
     previewCanvas.addEventListener('touchmove', handlePreviewTouchMove, { passive: false });
     previewCanvas.addEventListener('touchend', handlePreviewTouchEnd);
+    previewCanvas.addEventListener('touchcancel', handlePreviewTouchEnd);
     previewCanvas.addEventListener('dblclick', resetPreviewView);
 }
 function handlePreviewWheel(event) {
@@ -187,13 +189,60 @@ function handlePreviewMouseUp() {
     elements.exportPreviewCanvas.style.cursor = 'grab';
 }
 function handlePreviewTouchStart(event) {
+    if (!state.isTabletMode) {
+        if (event.touches.length !== 1) return;
+        event.preventDefault();
+        previewState.isDragging = true;
+        previewState.lastX = event.touches[0].clientX;
+        previewState.lastY = event.touches[0].clientY;
+        return;
+    }
+
+    if (event.touches.length === 2) {
+        event.preventDefault();
+        previewState.isDragging = false;
+        previewTouchGesture.pinchActive = true;
+        const [a, b] = event.touches;
+        const dx = a.clientX - b.clientX;
+        const dy = a.clientY - b.clientY;
+        previewTouchGesture.startDistance = Math.hypot(dx, dy);
+        previewTouchGesture.startScale = previewState.scale;
+        previewTouchGesture.startOffsetX = previewState.offsetX;
+        previewTouchGesture.startOffsetY = previewState.offsetY;
+        const rect = elements.exportPreviewCanvas.getBoundingClientRect();
+        previewTouchGesture.anchorX = ((a.clientX + b.clientX) / 2) - rect.left;
+        previewTouchGesture.anchorY = ((a.clientY + b.clientY) / 2) - rect.top;
+        return;
+    }
+
     if (event.touches.length !== 1) return;
     event.preventDefault();
+    previewTouchGesture.pinchActive = false;
     previewState.isDragging = true;
     previewState.lastX = event.touches[0].clientX;
     previewState.lastY = event.touches[0].clientY;
 }
 function handlePreviewTouchMove(event) {
+    if (state.isTabletMode && previewTouchGesture.pinchActive) {
+        if (event.touches.length !== 2) return;
+        event.preventDefault();
+        const [a, b] = event.touches;
+        const dx = a.clientX - b.clientX;
+        const dy = a.clientY - b.clientY;
+        const distance = Math.hypot(dx, dy);
+        if (!distance || !previewTouchGesture.startDistance) return;
+        const factor = distance / previewTouchGesture.startDistance;
+        const newScale = Math.max(previewState.minScale, Math.min(previewState.maxScale, previewTouchGesture.startScale * factor));
+        if (newScale !== previewState.scale) {
+            const scaleChange = newScale / previewTouchGesture.startScale;
+            previewState.offsetX = previewTouchGesture.anchorX - (previewTouchGesture.anchorX - previewTouchGesture.startOffsetX) * scaleChange;
+            previewState.offsetY = previewTouchGesture.anchorY - (previewTouchGesture.anchorY - previewTouchGesture.startOffsetY) * scaleChange;
+            previewState.scale = newScale;
+            renderPreviewCanvas();
+        }
+        return;
+    }
+
     if (!previewState.isDragging || event.touches.length !== 1) return;
     event.preventDefault();
     const deltaX = event.touches[0].clientX - previewState.lastX, deltaY = event.touches[0].clientY - previewState.lastY;
@@ -203,7 +252,16 @@ function handlePreviewTouchMove(event) {
     previewState.lastY = event.touches[0].clientY;
     renderPreviewCanvas();
 }
-function handlePreviewTouchEnd() {
+function handlePreviewTouchEnd(event) {
+    if (state.isTabletMode && previewTouchGesture.pinchActive && event.touches.length < 2) {
+        previewTouchGesture.pinchActive = false;
+        if (event.touches.length === 1) {
+            previewState.isDragging = true;
+            previewState.lastX = event.touches[0].clientX;
+            previewState.lastY = event.touches[0].clientY;
+            return;
+        }
+    }
     previewState.isDragging = false;
 }
 function resetPreviewView() {
