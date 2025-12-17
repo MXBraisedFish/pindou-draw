@@ -230,7 +230,7 @@
             <ul class="doc-list doc-list--unordered">
               <li>撤回</li>
               <li>移动模式</li>
-              <li>重做</li>
+              <li>回退</li>
             </ul>
             <figure class="doc-image">
               <img src="./doc-tablet-image/UI-bottom-toolbar.png" alt="下方工具栏" />
@@ -300,11 +300,34 @@
           <h2 class="doc-section__title">画布使用</h2>
           <p class="doc-paragraph">绘画的区域。</p>
           <ul class="doc-list doc-list--unordered">
-            <li><strong>单指滑动</strong>：绘制 / 擦除 / 移动。(详细查看后续说明)</li>
-            <li><strong>双指滑动</strong>：放大和缩小</li>
+            <li><strong>单指滑动</strong>：绘制 / 擦除 / 移动 ...... (详细查看后续说明)</li>
+            <li><strong>双指滑动</strong>：放大和缩小。</li>
+            <figure class="doc-image">
+              <img src="./doc-tablet-image/TOOL-canvas.gif" alt="画布手势演示" />
+              <figcaption class="doc-image__caption">图：画布手势演示</figcaption>
+            </figure>
+        </section>
+
+        <hr />
+
+        <!-- 移动 -->
+        <section class="doc-section" id="chapter-brush">
+          <span class="doc-section__eyebrow">Page 2</span>
+          <h2 class="doc-section__title">移动模式</h2>
+          <p class="doc-paragraph">用于移动画布位置。</p>
+          <ul class="doc-list doc-list--unordered">
+            <li><strong>单指滑动</strong>：拖动画布。</li>
+          </ul>
+          <div class="doc-callout"">
+            注意：移动模式下会禁止画笔 / 油漆桶 / 吸管 / 选区 工具的使用。
+          </div>
           <figure class="doc-image">
-            <img src="./doc-tablet-image/TOOL-canvas.gif" alt="画布手势演示" />
-            <figcaption class="doc-image__caption">图：画布手势演示</figcaption>
+            <img src="./doc-tablet-image/TOOL-move-area.png" alt="移动模式"" />
+            <figcaption class=" doc-image__caption">图：移动模式</figcaption>
+          </figure>
+          <figure class="doc-image">
+            <img src="./doc-tablet-image/TOOL-move.gif" alt="移动模式演示"" />
+            <figcaption class=" doc-image__caption">图：移动模式演示</figcaption>
           </figure>
         </section>
 
@@ -312,7 +335,7 @@
 
         <!-- 画笔 -->
         <section class="doc-section" id="chapter-brush">
-          <span class="doc-section__eyebrow">Page 2</span>
+          <span class="doc-section__eyebrow">Page 3</span>
           <h2 class="doc-section__title">画笔使用</h2>
           <p class="doc-paragraph">用于最基础的像素绘制。</p>
           <ul class="doc-list doc-list--unordered">
@@ -320,8 +343,12 @@
             <li><strong>橡皮模式-单指滑动</strong>：擦除。</li>
           </ul>
           <figure class="doc-image">
+            <img src="./doc-tablet-image/TOOL-pencil-area.png" alt="画笔工具模式"" />
+            <figcaption class=" doc-image__caption">图：画笔工具模式</figcaption>
+          </figure>
+          <figure class="doc-image">
             <img src="./doc-tablet-image/TOOL-pencil.gif" alt="画笔演示"" />
-            <figcaption class="doc-image__caption">图：画笔绘制与擦除</figcaption>
+            <figcaption class=" doc-image__caption">图：画笔绘制与擦除</figcaption>
           </figure>
         </section>
 
@@ -329,13 +356,17 @@
 
         <!-- 油漆桶 -->
         <section class="doc-section" id="chapter-bucket">
-          <span class="doc-section__eyebrow">Page 3</span>
+          <span class="doc-section__eyebrow">Page 4</span>
           <h2 class="doc-section__title">油漆桶使用</h2>
           <p class="doc-paragraph">用于大面积像素填充。</p>
           <ul class="doc-list doc-list--unordered">
-            <li><strong>画笔模式-单指滑动</strong>：填充。</li>
+            <li><strong>油漆桶模式-单指滑动</strong>：填充。</li>
             <li><strong>橡皮模式-单指滑动</strong>：擦除填充。</li>
           </ul>
+          <figure class="doc-image">
+            <img src="./doc-tablet-image/TOOL-bucket-area.png" alt="油漆桶工具模式" />
+            <figcaption class="doc-image__caption">图：油漆桶工具模式</figcaption>
+          </figure>
           <figure class="doc-image">
             <img src="./doc-tablet-image/TOOL-bucket.gif" alt="油漆桶演示" />
             <figcaption class="doc-image__caption">图：油漆桶填充与擦除</figcaption>
@@ -346,14 +377,14 @@
 
         <!-- 吸管 -->
         <section class="doc-section" id="chapter-dropper">
-          <span class="doc-section__eyebrow">Page 4</span>
+          <span class="doc-section__eyebrow">Page 5</span>
           <h2 class="doc-section__title">吸管使用</h2>
           <p class="doc-paragraph">用于快速拾取画布已有颜色。</p>
           <ul class="doc-list doc-list--unordered">
             <li><strong>单指点击</strong>：吸取颜色。</li>
           </ul>
           <figure class="doc-image">
-            <img src="./doc-tablet-image/TOOL-eyedropper.gif" alt="吸管演示"/>
+            <img src="./doc-tablet-image/TOOL-eyedropper.gif" alt="吸管演示" />
             <figcaption class="doc-image__caption">图：吸管取色</figcaption>
           </figure>
         </section>
@@ -362,20 +393,24 @@
 
         <!-- 选区 -->
         <section class="doc-section" id="chapter-select">
-          <span class="doc-section__eyebrow">Page 5</span>
+          <span class="doc-section__eyebrow">Page 6</span>
           <h2 class="doc-section__title">选区使用</h2>
           <p class="doc-paragraph">用于对画布局部区域进行编辑。</p>
           <ul class="doc-list doc-list--unordered">
-            <li><strong>长按左键</strong>：添加选区。</li>
-            <li><strong>双击左键</strong>：反选全部。</li>
-            <li><strong>长按右键</strong>：减去选区。</li>
-            <li><strong>双击右键</strong>：清空全部选区。</li>
-            <li><strong>长按滚轮</strong>：拖动已有选区位置。</li>
+            <li><strong>添加选区模式-单指滑动</strong>：添加选区。</li>
+            <li><strong>添加选区模式-单指双击</strong>：反选全部。</li>
+            <li><strong>删除选区模式-单指滑动</strong>：减去选区。</li>
+            <li><strong>删除选区模式-单指双击</strong>：清空全部选区。</li>
+            <li><strong>移动选区模式-单指滑动</strong>：拖动已有选区位置。</li>
           </ul>
           <div class="doc-callout">提示：存在选区时，所有绘制操作仅作用于被选中的像素。</div>
           <figure class="doc-image">
-            <img src="./doc-tablet-image/TOOL-selection.gif" alt="选取演示" />
-            <figcaption class="doc-image__caption">图：选取添加、减选与拖动</figcaption>
+            <img src="./doc-tablet-image/TOOL-selection-area.png" alt="选区工具模式" />
+            <figcaption class="doc-image__caption">图：选区工具模式</figcaption>
+          </figure>
+          <figure class="doc-image">
+            <img src="./doc-tablet-image/TOOL-selection.gif" alt="选区演示" />
+            <figcaption class="doc-image__caption">图：选区添加、减选与拖动</figcaption>
           </figure>
         </section>
 
@@ -383,12 +418,8 @@
 
         <!-- 撤回与回退 -->
         <section class="doc-section" id="chapter-undo">
-          <span class="doc-section__eyebrow">Page 6</span>
+          <span class="doc-section__eyebrow">Page 7</span>
           <h2 class="doc-section__title">撤回与回退</h2>
-          <p class="doc-paragraph">
-            撤回：<kbd>Alt</kbd> + <kbd>Z</kbd><br>
-            回退：<kbd>Alt</kbd> + <kbd>X</kbd>
-          </p>
           <ul class="doc-list doc-list--unordered">
             <li><strong>撤回</strong>：回退至上一步操作。</li>
             <li><strong>回退</strong>：恢复被撤回的一步操作。</li>
@@ -399,7 +430,11 @@
           </div>
 
           <figure class="doc-image">
-            <img src="./doc-tablet-image/TOOL-undo-redo.gif" alt="撤回与回退演示" style="width: 40%;" />
+            <img src="./doc-tablet-image/TOOL-undo-redo-area.png" alt="撤回与回退模式" />
+            <figcaption class="doc-image__caption">图：撤回与回退模式</figcaption>
+          </figure>
+          <figure class="doc-image">
+            <img src="./doc-tablet-image/TOOL-undo-redo.gif" alt="撤回与回退演示" />
             <figcaption class="doc-image__caption">图：撤回与回退演示</figcaption>
           </figure>
         </section>
@@ -783,7 +818,8 @@
               <figcaption class="doc-image__caption">图：最小化</figcaption>
             </figure>
             <figure class="doc-image">
-              <img src="./doc-tablet-image/TOOL-floatrefer-tobig.png" alt="恢复" style="margin:240px auto 0;height: auto;" />
+              <img src="./doc-tablet-image/TOOL-floatrefer-tobig.png" alt="恢复"
+                style="margin:240px auto 0;height: auto;" />
               <figcaption class="doc-image__caption">图：恢复窗口</figcaption>
             </figure>
           </div>
