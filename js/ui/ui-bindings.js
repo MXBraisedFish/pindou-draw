@@ -70,6 +70,7 @@ export function initializeUIBindings() {
   bindManualHintToast();
   bindTabletUsageToast();
   bindTabletToolbarTooltipAutoHide();
+  bindDocsLinkRouting();
 }
 
 function bindManualHintToast() {
@@ -182,6 +183,22 @@ function bindTabletToolbarTooltipAutoHide() {
       }, 1500);
     });
   });
+}
+
+function bindDocsLinkRouting() {
+  const link = elements.docsLink;
+  if (!link) return;
+
+  const originalHref = link.getAttribute('href') || 'manual.html';
+  link.dataset.desktopHref = originalHref;
+  link.dataset.tabletHref = './manual-tablet.html';
+
+  const applyHref = () => {
+    link.setAttribute('href', state.isTabletMode ? link.dataset.tabletHref : link.dataset.desktopHref);
+  };
+
+  document.addEventListener('tablet:change', applyHref);
+  applyHref();
 }
 
 function bindTabletPaletteExclusivity() {

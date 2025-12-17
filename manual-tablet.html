@@ -44,6 +44,7 @@
         <summary>绘图工具</summary>
         <ul class="doc-tree">
           <li><a href="#chapter-canvas">画布使用</a></li>
+          <li><a href="#chapter-move">画移动模式</a></li>
           <li><a href="#chapter-brush">画笔使用</a></li>
           <li><a href="#chapter-bucket">油漆桶使用</a></li>
           <li><a href="#chapter-dropper">吸管使用</a></li>
@@ -56,7 +57,6 @@
       <details class="doc-tree-group" open>
         <summary>工具详情</summary>
         <ul class="doc-tree">
-          <li><a href="#chapter-shortcuts">快捷键操作</a></li>
           <li><a href="#chapter-gestures">手势操作</a></li>
           <li><a href="#chapter-canvas-edit">画布的创建与编辑</a></li>
           <li><a href="#chapter-bg">底图的设置与编辑</a></li>
@@ -64,7 +64,7 @@
           <li><a href="#chapter-export">导出草图</a></li>
           <li><a href="#chapter-import-pd">导入 PD 工程文件</a></li>
           <li><a href="#chapter-display">显示设置</a></li>
-          <li><a href="#chapter-screen">全屏与简洁模式</a></li>
+          <li><a href="#chapter-screen">全屏模式</a></li>
           <li><a href="#chapter-palette">调色板</a></li>
           <li><a href="#chapter-image-op">图像操作</a></li>
           <li><a href="#chapter-colorcard">色卡管理</a></li>
@@ -162,7 +162,7 @@
           <p class="doc-paragraph">可通过 左侧工具栏 -> 全屏和简洁模式开关 -> 改为电脑端操作与显示 将绘画操作切换为电脑端</p>
           <p class="doc-paragraph">切换为电脑端后在左侧的工具栏重新打开说明书即可切换为电脑端说明书</p>
           <p class="doc-paragraph">点击此处可快速切换
-            <a href="./manual-tablet.html" target="_self" rel="noopener noreferrer">
+            <a href="./manual.html" target="_self" rel="noopener noreferrer">
               电脑端说明书
             </a>
           </p>
@@ -300,8 +300,8 @@
           <h2 class="doc-section__title">画布使用</h2>
           <p class="doc-paragraph">绘画的区域。</p>
           <ul class="doc-list doc-list--unordered">
-            <li><strong>单指滑动</strong>：绘制 / 擦除 / 移动 ...... (详细查看后续说明)</li>
-            <li><strong>双指滑动</strong>：放大和缩小。</li>
+            <li><strong>单指双击</strong>：还原画布至初始位置。</li>
+            <li><strong>双指缩放</strong>：放大和缩小。</li>
             <figure class="doc-image">
               <img src="./doc-tablet-image/TOOL-canvas.gif" alt="画布手势演示" />
               <figcaption class="doc-image__caption">图：画布手势演示</figcaption>
@@ -311,7 +311,7 @@
         <hr />
 
         <!-- 移动 -->
-        <section class="doc-section" id="chapter-brush">
+        <section class="doc-section" id="chapter-move">
           <span class="doc-section__eyebrow">Page 2</span>
           <h2 class="doc-section__title">移动模式</h2>
           <p class="doc-paragraph">用于移动画布位置。</p>
@@ -321,14 +321,14 @@
           <div class="doc-callout"">
             注意：移动模式下会禁止画笔 / 油漆桶 / 吸管 / 选区 工具的使用。
           </div>
-          <figure class="doc-image">
+          <figure class=" doc-image">
             <img src="./doc-tablet-image/TOOL-move-area.png" alt="移动模式"" />
             <figcaption class=" doc-image__caption">图：移动模式</figcaption>
-          </figure>
-          <figure class="doc-image">
-            <img src="./doc-tablet-image/TOOL-move.gif" alt="移动模式演示"" />
+            </figure>
+            <figure class="doc-image">
+              <img src="./doc-tablet-image/TOOL-move.gif" alt="移动模式演示"" />
             <figcaption class=" doc-image__caption">图：移动模式演示</figcaption>
-          </figure>
+            </figure>
         </section>
 
         <hr />
@@ -442,178 +442,64 @@
 
       <!-- 工具详情 -->
       <article class="doc-content">
-        <!-- 快捷键操作 -->
-        <section class="doc-section" id="chapter-shortcuts">
-          <span class="doc-section__eyebrow">Page 1</span>
-          <h2 class="doc-section__title">快捷键操作</h2>
-
-          <blockquote class="doc-quote">
-            以下快捷键仅在画布处于激活状态且未聚焦任何输入框时生效。
-          </blockquote>
-
-          <table style="width:100%;border-collapse:collapse;margin-top:12px;font-size:14px;">
-            <thead>
-              <tr style="border-bottom:1px solid var(--doc-border);">
-                <th style="text-align:left;padding:8px 0;">快捷键</th>
-                <th style="text-align:left;padding:8px 0;">功能</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><code>1</code></td>
-                <td>切换到<strong>画笔</strong>工具</td>
-              </tr>
-              <tr>
-                <td><code>2</code></td>
-                <td>切换到<strong>油漆桶</strong>工具</td>
-              </tr>
-              <tr>
-                <td><code>3</code></td>
-                <td>切换到<strong>吸管</strong>工具</td>
-              </tr>
-              <tr>
-                <td><code>4</code></td>
-                <td>切换到<strong>选区</strong>工具</td>
-              </tr>
-              <tr>
-                <td><code>Alt + S</code></td>
-                <td>以默认选项快速保存（pixel-canvas-宽x高.png，含色号、坐标轴、默认背景、光效全开）</td>
-              </tr>
-              <tr>
-                <td><code>Alt + Z</code></td>
-                <td>撤回一步</td>
-              </tr>
-              <tr>
-                <td><code>Alt + X</code></td>
-                <td>回退 / 重做一步</td>
-              </tr>
-              <tr>
-                <td><code>Alt + W</code></td>
-                <td>底图编辑模式 开/关</td>
-              </tr>
-              <tr>
-                <td><code>Alt + A</code></td>
-                <td>全屏模式切换</td>
-              </tr>
-              <tr>
-                <td><code>Alt + Q</code></td>
-                <td>简洁模式 开/关</td>
-              </tr>
-              <tr>
-                <td><code>Alt + R</code></td>
-                <td>打开 / 关闭“画布设置”面板</td>
-              </tr>
-              <tr>
-                <td><code>Alt + T</code></td>
-                <td>打开 / 关闭“底图设置”面板（导入 / 校准底图）</td>
-              </tr>
-              <tr>
-                <td><code>Alt + Y</code></td>
-                <td>参考图窗口 开/关</td>
-              </tr>
-              <tr>
-                <td><code>Alt + U</code></td>
-                <td>导出草图窗口 开/关</td>
-              </tr>
-              <tr>
-                <td><code>Alt + I</code></td>
-                <td>显示设置面板 开/关</td>
-              </tr>
-              <tr>
-                <td><code>Alt + O</code></td>
-                <td>查看更新说明</td>
-              </tr>
-              <tr>
-                <td><code>Alt + P</code></td>
-                <td>打开使用手册页面（manual.html）</td>
-              </tr>
-              <tr>
-                <td><code>Alt + F</code></td>
-                <td>调色板窗口 开/关</td>
-              </tr>
-              <tr>
-                <td><code>Alt + G</code></td>
-                <td>图像操作面板 开/关</td>
-              </tr>
-              <tr>
-                <td><code>Alt + H</code></td>
-                <td>色卡管理面板 开/关</td>
-              </tr>
-              <tr>
-                <td><code>Alt + V</code></td>
-                <td>打开颜色管理窗口</td>
-              </tr>
-
-              <tr>
-                <td><code>Alt + B</code></td>
-                <td>打开颜色高亮窗口</td>
-              </tr>
-            </tbody>
-          </table>
-        </section>
-
-        <hr />
-
         <!-- 手势操作 -->
         <section class="doc-section" id="chapter-gestures">
-          <span class="doc-section__eyebrow">Page 2</span>
+          <span class="doc-section__eyebrow">Page 1</span>
           <h2 class="doc-section__title">手势操作</h2>
 
           <h3 class="doc-section__subtitle">画布</h3>
           <ul class="doc-list doc-list--unordered">
-            <li><strong>滚轮滚动</strong>：放大 / 缩小画布。</li>
-            <li><strong>长按滚轮</strong>：拖动画布。</li>
-            <li><strong>双击滚轮</strong>：还原画布至初始位置。</li>
+            <li><strong>单指双击</strong>：还原画布至初始位置。</li>
+            <li><strong>双指缩放</strong>：放大和缩小。</li>
+          </ul>
+
+          <h3 class="doc-section__subtitle">移动模式</h3>
+          <ul class="doc-list doc-list--unordered">
+            <li><strong>单指滑动</strong>：拖动画布。</li>
           </ul>
 
           <h3 class="doc-section__subtitle">画笔</h3>
           <ul class="doc-list doc-list--unordered">
-            <li><strong>左键</strong>：绘制。</li>
-            <li><strong>右键</strong>：擦除。</li>
+            <li><strong>画笔模式-单指滑动</strong>：绘制。</li>
+            <li><strong>橡皮模式-单指滑动</strong>：擦除。</li>
           </ul>
 
           <h3 class="doc-section__subtitle">油漆桶</h3>
           <ul class="doc-list doc-list--unordered">
-            <li><strong>左键</strong>：填充。</li>
-            <li><strong>右键</strong>：擦除填充。</li>
+            <li><strong>油漆桶模式-单指滑动</strong>：填充。</li>
+            <li><strong>橡皮模式-单指滑动</strong>：擦除填充。</li>
           </ul>
 
           <h3 class="doc-section__subtitle">吸管</h3>
           <ul class="doc-list doc-list--unordered">
-            <li><strong>左键</strong>：吸取颜色。</li>
+            <li><strong>单指点击</strong>：吸取颜色。</li>
           </ul>
 
           <h3 class="doc-section__subtitle">选区</h3>
           <ul class="doc-list doc-list--unordered">
-            <li><strong>长按左键</strong>：添加选区。</li>
-            <li><strong>双击左键</strong>：反选全部。</li>
-            <li><strong>长按右键</strong>：减去选区。</li>
-            <li><strong>双击右键</strong>：清空全部选区。</li>
-            <li><strong>长按滚轮</strong>：拖动已有选区位置。</li>
+            <li><strong>添加选区模式-单指滑动</strong>：添加选区。</li>
+            <li><strong>添加选区模式-单指双击</strong>：反选全部。</li>
+            <li><strong>删除选区模式-单指滑动</strong>：减去选区。</li>
+            <li><strong>删除选区模式-单指双击</strong>：清空全部选区。</li>
+            <li><strong>移动选区模式-单指滑动</strong>：拖动已有选区位置。</li>
           </ul>
 
           <h3 class="doc-section__subtitle">底图编辑</h3>
           <ul class="doc-list doc-list--unordered">
-            <li><strong>长按左键</strong>：拖动底图。</li>
-            <li><strong>滚轮滚动</strong>：底图缩放。</li>
+            <li><strong>单指滑动</strong>：拖动底图。</li>
+            <li><strong>双指缩放</strong>：底图缩放。</li>
           </ul>
 
           <h3 class="doc-section__subtitle">参考窗口</h3>
           <ul class="doc-list doc-list--unordered">
-            <li><strong>顶部长按左键</strong>：拖动窗口。</li>
-            <li><strong>右下角长按左键</strong>：改变窗口大小。</li>
+            <li><strong>顶部长按拖动</strong>：拖动窗口。</li>
+            <li><strong>右下角长按拖动</strong>：改变窗口大小。</li>
           </ul>
 
           <h3 class="doc-section__subtitle">导出草图预览窗口</h3>
           <ul class="doc-list doc-list--unordered">
-            <li><strong>长按左键</strong>：拖动预览图。</li>
-            <li><strong>滚轮滚动</strong>：预览图缩放。</li>
-          </ul>
-
-          <h3 class="doc-section__subtitle">调色板窗口</h3>
-          <ul class="doc-list doc-list--unordered">
-            <li><strong>顶部长按左键</strong>：拖动窗口。</li>
-            <li><strong>右下角长按左键</strong>：改变窗口大小。</li>
+            <li><strong>单指滑动</strong>：拖动预览图。</li>
+            <li><strong>双指缩放</strong>：预览图缩放。</li>
           </ul>
         </section>
 
@@ -621,9 +507,8 @@
 
         <!-- 画布的创建与编辑 -->
         <section class="doc-section" id="chapter-canvas-edit">
-          <span class="doc-section__eyebrow">Page 3</span>
+          <span class="doc-section__eyebrow">Page 2</span>
           <h2 class="doc-section__title">画布的创建与编辑</h2>
-          <p class="doc-paragraph">快捷键：<kbd>Alt</kbd> + <kbd>R</kbd></p>
 
           <h3 class="doc-section__subtitle">基础设置</h3>
           <ul class="doc-list doc-list--unordered">
@@ -634,14 +519,14 @@
             计算公式：<em>N</em> = 原图像素 ÷ 画布比例
           </div>
           <figure class="doc-image">
-            <img src="./doc-tablet-image/TOOL-create.png" alt="新建画布面板" />
+            <img src="./doc-image/TOOL-create.png" alt="新建画布面板" />
             <figcaption class="doc-image__caption">图：新建画布面板</figcaption>
           </figure>
 
           <div class="doc-grid">
             <article class="doc-card">
               <p class="doc-card__title">原图 160×160</p>
-              <img src="./doc-tablet-image/TOOL-create-testPixel.png" alt="原图" style="height: 90%" />
+              <img src="./doc-image/TOOL-create-testPixel.png" alt="原图" style="height: 90%" />
             </article>
             <article class="doc-card">
               <p class="doc-card__title">导入后 16×16（N=10）</p>
@@ -743,12 +628,8 @@
 
         <!-- 底图的设置与编辑 -->
         <section class="doc-section" id="chapter-bg">
-          <span class="doc-section__eyebrow">Page 4</span>
+          <span class="doc-section__eyebrow">Page 3</span>
           <h2 class="doc-section__title">底图的设置与编辑</h2>
-          <p class="doc-paragraph">
-            打开底图编辑窗口：<kbd>Alt</kbd> + <kbd>T</kbd><br>
-            切换底图编辑模式：<kbd>Alt</kbd> + <kbd>W</kbd>
-          </p>
 
           <h3 class="doc-section__subtitle">基础设置</h3>
           <ul class="doc-list doc-list--unordered">
@@ -762,14 +643,14 @@
           </ul>
 
           <figure class="doc-image">
-            <img src="./doc-tablet-image/TOOL-Refer.png" alt="底图设置面板" />
+            <img src="./doc-image/TOOL-Refer.png" alt="底图设置面板" />
             <figcaption class="doc-image__caption">图：底图设置面板</figcaption>
           </figure>
 
           <h3 class="doc-section__subtitle">操作手势</h3>
           <ol class="doc-list">
-            <li><strong>长按左键</strong>：拖动底图。</li>
-            <li><strong>滚轮滚动</strong>：底图缩放。</li>
+            <li><strong>单指滑动</strong>：拖动底图。</li>
+            <li><strong>双指缩放</strong>：底图缩放。</li>
           </ol>
         </section>
 
@@ -777,9 +658,8 @@
 
         <!-- 参考图窗口 -->
         <section class="doc-section" id="chapter-float-ref">
-          <span class="doc-section__eyebrow">Page 5</span>
+          <span class="doc-section__eyebrow">Page 4</span>
           <h2 class="doc-section__title">参考图窗口</h2>
-          <p class="doc-paragraph">快捷键：<kbd>Alt</kbd> + <kbd>Y</kbd></p>
           <figure class="doc-image">
             <img src="./doc-tablet-image/TOOL-floatrefer.png" alt="参考图窗口" />
             <figcaption class="doc-image__caption">图：参考图窗口总览</figcaption>
@@ -829,9 +709,8 @@
 
         <!-- 导出草图 -->
         <section class="doc-section" id="chapter-export">
-          <span class="doc-section__eyebrow">Page 6</span>
+          <span class="doc-section__eyebrow">Page 5</span>
           <h2 class="doc-section__title">导出草图</h2>
-          <p class="doc-paragraph">快捷键：<kbd>Alt</kbd> + <kbd>U</kbd></p>
           <p class="doc-paragraph">
             导出窗口可自定义色号、坐标系、背景等内容，并支持高亮指定颜色单独输出。
           </p>
@@ -845,11 +724,11 @@
           <p class="doc-callout">因窗口压缩，预览图模糊属正常现象，不影响最终清晰度。</p>
           <h3 class="doc-section__subtitle">操作手势</h3>
           <ol class="doc-list">
-            <li><strong>长按左键</strong>：拖动预览图。</li>
-            <li><strong>滚轮滚动</strong>：预览图缩放。</li>
+            <li><strong>单指滑动</strong>：拖动预览图。</li>
+            <li><strong>双指缩放</strong>：预览图缩放。</li>
           </ol>
           <figure class="doc-image">
-            <img src="./doc-tablet-image/TOOL-export-preview.png" alt="预览操作" style="width: 50%;" />
+            <img src="./doc-tablet-image/TOOL-export-preview.png" alt="预览操作"/>
             <figcaption class="doc-image__caption">图：预览操作示意</figcaption>
           </figure>
 
@@ -915,7 +794,7 @@
               <figcaption class="doc-image__caption">图：高亮选项</figcaption>
             </figure>
             <figure class="doc-image">
-              <img src="./doc-tablet-image/TOOL-export-allExport.png" alt="批量导出" style="height: 89%;" />
+              <img src="./doc-image/TOOL-export-allExport.png" alt="批量导出" style="height: 89%;" />
               <figcaption class="doc-image__caption">图：批量导出</figcaption>
             </figure>
           </div>
@@ -929,7 +808,7 @@
 
         <!-- 导入 PD 工程文件 -->
         <section class="doc-section" id="chapter-import-pd">
-          <span class="doc-section__eyebrow">Page 7</span>
+          <span class="doc-section__eyebrow">Page 6</span>
           <h2 class="doc-section__title">导入 PD 工程文件</h2>
           <p class="doc-paragraph">
             <code>.pd</code> 工程文件为本站自定义格式，可在任意浏览器内恢复完整草图，支持跨网页传输。
@@ -940,7 +819,7 @@
             <li>在导入文件窗口点击 <strong>导入 .pd 文件</strong>。</li>
           </ol>
           <figure class="doc-image">
-            <img src="./doc-tablet-image/TOOL-import.png" alt="导入入口" />
+            <img src="./doc-image/TOOL-import.png" alt="导入入口" />
             <figcaption class="doc-image__caption">图：导入入口</figcaption>
           </figure>
 
@@ -963,7 +842,7 @@
               <li>若文件色卡已存在，可直接切换；否则强制使用当前色卡。</li>
             </ul>
             <figure class="doc-image">
-              <img src="./doc-tablet-image/TOOL-import-window.png" alt="覆盖式导入" />
+              <img src="./doc-image/TOOL-import-window.png" alt="覆盖式导入" />
               <figcaption class="doc-image__caption">图：覆盖式导入确认</figcaption>
             </figure>
           </details>
@@ -975,7 +854,7 @@
               <li>色卡一致时直接合并；不一致时自动映射为当前色卡。</li>
             </ul>
             <figure class="doc-image">
-              <img src="./doc-tablet-image/TOOL-import-window-add.png" alt="拓展式导入" />
+              <img src="./doc-image/TOOL-import-window-add.png" alt="拓展式导入" />
               <figcaption class="doc-image__caption">图：拓展式导入示意</figcaption>
             </figure>
           </details>
@@ -989,9 +868,8 @@
 
         <!-- 显示设置 -->
         <section class="doc-section" id="chapter-display">
-          <span class="doc-section__eyebrow">Page 8</span>
+          <span class="doc-section__eyebrow">Page 7</span>
           <h2 class="doc-section__title">显示设置</h2>
-          <p class="doc-paragraph">快捷键：<kbd>Alt</kbd> + <kbd>I</kbd></p>
           <p class="doc-paragraph">调整画布显示效果与辅助工具，实时生效。</p>
           <figure class="doc-image">
             <img src="./doc-tablet-image/TOOL-display.png" alt="显示设置面板" />
@@ -1004,8 +882,8 @@
             <li><strong>显示色号</strong>：在每个像素中心叠加显示所用色号。</li>
           </ul>
           <figure class="doc-image">
-            <img src="./doc-tablet-image/TOOL-display-draw-colornum.png" alt="色号与贴合示意" style="width: 40%;" />
-            <figcaption class="doc-image__caption">图：左-显示色号开启;中-自动贴合开启；</figcaption>
+            <img src="./doc-image/TOOL-display-draw-colornum.png" alt="色号与贴合示意" style="width: 40%;" />
+            <figcaption class="doc-image__caption">图：左-显示色号开启;中-自动贴合开启;右-底图显示</figcaption>
           </figure>
 
           <h3 class="doc-section__subtitle">画布光效</h3>
@@ -1024,7 +902,7 @@
             <img src="./doc-tablet-image/TOOL-display-shap.png" alt="形状选项" />
           </figure>
           <figure class="doc-image">
-            <img src="./doc-tablet-image/TOOL-display-shap-Lsquare-Rcircle.png" alt="形状对比" style="width: 50%;" />
+            <img src="./doc-image/TOOL-display-shap-Lsquare-Rcircle.png" alt="形状对比" style="width: 50%;" />
             <figcaption class="doc-image__caption">图：左-实心方形；右-空心圆</figcaption>
           </figure>
 
@@ -1049,7 +927,7 @@
               <figcaption class="doc-image__caption">图：普通坐标轴</figcaption>
             </figure>
             <figure class="doc-image" style="height: 60%;">
-              <img src="./doc-tablet-image/TOOL-display-axis-strong.png" alt="加粗分区坐标轴" style="height: 90%;" />
+              <img src="./doc-image/TOOL-display-axis-strong.png" alt="加粗分区坐标轴" style="height: 90%;" />
               <figcaption class="doc-image__caption">图：加粗分区坐标轴</figcaption>
             </figure>
           </div>
@@ -1059,28 +937,20 @@
 
         <!-- 全屏与简洁模式 -->
         <section class="doc-section" id="chapter-screen">
-          <span class="doc-section__eyebrow">Page 9</span>
-          <h2 class="doc-section__title">全屏与简洁模式</h2>
-
-          <p class="doc-paragraph">
-            全屏：<kbd>Alt</kbd> + <kbd>A</kbd><br>
-            简洁模式：<kbd>Alt</kbd> + <kbd>Q</kbd>
-          </p>
+          <span class="doc-section__eyebrow">Page 8</span>
+          <h2 class="doc-section__title">全屏模式</h2>
 
           <div class="doc-callout">
-            注意：全屏快捷键请勿快速连按，否则会导致按键失效；若出现此情况，等待 5 秒即可恢复。
+            注意：平板端无法使用简洁模式。
           </div>
 
           <ul class="doc-list doc-list--unordered">
-            <li><strong>全屏模式</strong>：将工作区域放大至整个屏幕，隐藏浏览器地址栏与系统任务栏，获得最大可视区域。</li>
-            <li><strong>简洁模式</strong>：仅保留主要工具栏与画布，隐藏次要面板与装饰元素，界面更干净。</li>
+            <li><strong>全屏模式</strong>：将工作区域放大至整个屏幕，隐藏浏览器地址栏与系统任务栏，获得最大可视区域，<strong>平板端建议开启</strong>。</li>
           </ul>
 
-          <div class="doc-quote">两者可分别开启，互不冲突。</div>
-
           <figure class="doc-image">
-            <img src="./doc-tablet-image/TOOL-screen-full+easy.png" alt="全屏与简洁模式结合" />
-            <figcaption class="doc-image__caption">图：全屏与简洁模式结合</figcaption>
+            <img src="./doc-tablet-image/TOOL-screen-full.png" alt="全屏模式" />
+            <figcaption class="doc-image__caption">图：全屏模式</figcaption>
           </figure>
         </section>
 
@@ -1088,9 +958,8 @@
 
         <!-- 调色板 -->
         <section class="doc-section" id="chapter-palette">
-          <span class="doc-section__eyebrow">Page 10</span>
+          <span class="doc-section__eyebrow">Page 9</span>
           <h2 class="doc-section__title">调色板</h2>
-          <p class="doc-paragraph">快捷键：<kbd>Alt</kbd> + <kbd>F</kbd></p>
           <p class="doc-paragraph">调色板用于切换绘制颜色，支持常规色与特殊色快速选取。</p>
           <figure class="doc-image">
             <img src="./doc-tablet-image/TOOL-palette.png" alt="调色板面板" />
@@ -1106,31 +975,14 @@
             <img src="./doc-tablet-image/TOOL-palette-sp.png" alt="特殊色筛选" />
             <figcaption class="doc-image__caption">图：特殊色筛选示例</figcaption>
           </figure>
-
-          <h3 class="doc-section__subtitle">窗口操作</h3>
-          <ul class="doc-list doc-list--unordered">
-            <li><strong>拖动右下角</strong>：改变窗口大小。</li>
-            <li><strong>长按窗口顶部</strong>：拖动窗口位置。</li>
-          </ul>
-          <div class="doc-grid">
-            <figure class="doc-image">
-              <img src="./doc-tablet-image/TOOL-palette-resize.png" alt="调整大小" style="height: 95%;" />
-              <figcaption class="doc-image__caption">图：调整大小</figcaption>
-            </figure>
-            <figure class="doc-image">
-              <img src="./doc-tablet-image/TOOL-palette-trans.png" alt="拖动位置" style="height: 94.3%;" />
-              <figcaption class="doc-image__caption">图：拖动位置</figcaption>
-            </figure>
-          </div>
         </section>
 
         <hr />
 
         <!-- 图像操作 -->
         <section class="doc-section" id="chapter-image-op">
-          <span class="doc-section__eyebrow">Page 11</span>
+          <span class="doc-section__eyebrow">Page 10</span>
           <h2 class="doc-section__title">图像操作</h2>
-          <p class="doc-paragraph">快捷键：<kbd>Alt</kbd> + <kbd>G</kbd></p>
           <p class="doc-paragraph">
             提供图像翻转、旋转及对称绘制功能，可快速生成对称图案或调整画面方向。
           </p>
@@ -1155,9 +1007,8 @@
 
         <!-- 色卡管理 -->
         <section class="doc-section" id="chapter-colorcard">
-          <span class="doc-section__eyebrow">Page 12</span>
+          <span class="doc-section__eyebrow">Page 11</span>
           <h2 class="doc-section__title">色卡管理</h2>
-          <p class="doc-paragraph">快捷键：<kbd>Alt</kbd> + <kbd>H</kbd></p>
           <p class="doc-paragraph">在此窗口可切换、重置、新增或删除色卡，支持默认色卡与自定义色卡混合使用。</p>
           <figure class="doc-image">
             <img src="./doc-tablet-image/TOOL-colorcard.png" alt="色卡管理面板" />
@@ -1190,12 +1041,8 @@
 
         <!-- 颜色管理 -->
         <section class="doc-section" id="chapter-color-manage">
-          <span class="doc-section__eyebrow">Page 13</span>
+          <span class="doc-section__eyebrow">Page 12</span>
           <h2 class="doc-section__title">颜色管理</h2>
-          <p class="doc-paragraph">
-            颜色管理窗口：<kbd>Alt</kbd> + <kbd>V</kbd><br>
-            颜色高亮窗口：<kbd>Alt</kbd> + <kbd>B</kbd>
-          </p>
 
           <h3 class="doc-section__subtitle">颜色管理窗口</h3>
           <p class="doc-paragraph">可临时<strong>禁用 / 启用</strong>指定色号；被禁止的色号无法在调色盘中使用(已绘制像素不会被清除)</p>
@@ -1228,47 +1075,8 @@
           <span class="doc-section__eyebrow">Page 1</span>
           <h2 class="doc-section__title">色卡制作</h2>
           <p class="doc-paragraph">网站提供专用色卡编辑器，路径：<em>色卡管理 → 制作色卡。</em></p>
-          <figure class="doc-image">
-            <img src="./doc-tablet-image/WEB-makecard-entry.png" alt="色卡编辑器入口" style="width: 30%;" />
-            <figcaption class="doc-image__caption">图：色卡编辑器入口</figcaption>
-          </figure>
-          <figure class="doc-image">
-            <img src="./doc-tablet-image/WEB-makecard.png" alt="色卡编辑器界面" />
-            <figcaption class="doc-image__caption">图：色卡编辑器界面</figcaption>
-          </figure>
-
-          <h3 class="doc-section__subtitle">颜色规格定义</h3>
-          <p class="doc-paragraph">左上角栏可指定颜色类型、色号及色值。支持以下六种规格：</p>
-          <ul class="doc-list doc-list--unordered">
-            <li><strong>普通色（normal）</strong>：单色，RGB 格式。</li>
-            <li><strong>珠光色（pearlescent）</strong>：单色，RGBA 格式。</li>
-            <li><strong>光变色（light）</strong>：双色渐变，RGBA ×2；仅填写 颜色一 时默认 透明 → 颜色一。</li>
-            <li><strong>温变色（temperature）</strong>：双色渐变，RGBA ×2；仅填写 颜色一 时默认 透明 → 颜色一。</li>
-            <li><strong>透明色（transparent）</strong>：单色，RGBA 格式。</li>
-            <li><strong>夜光色（glow）</strong>：单色，RGBA 格式。</li>
-          </ul>
-
-          <h3 class="doc-section__subtitle">试色画布</h3>
-          <p class="doc-paragraph">右侧画布提供实时试色功能，可切换光效模式以验证特殊色表现。</p>
-          <ul class="doc-list doc-list--unordered">
-            <li>点击已添加颜色或颜色制作栏即可更换画笔色。</li>
-            <li>顶部按钮 <em>使用当前编辑颜色</em> 可快速应用正在编辑的色值；<em>清空画布</em> 重置试色区域。</li>
-          </ul>
-          <div class="doc-callout">提示：若底部状态栏提示“无 无活动颜色”，表示当前选中为白色 RGB(255, 255, 255)。</div>
-          <figure class="doc-image">
-            <img src="./doc-tablet-image/WEB-makecard-use.png" alt="试色画布" />
-            <figcaption class="doc-image__caption">图：试色画布与光效切换</figcaption>
-          </figure>
-
-          <h3 class="doc-section__subtitle">色卡列表管理</h3>
-          <p class="doc-paragraph">左下角列表展示当前已添加颜色，支持二次编辑或删除。</p>
-
-          <h3 class="doc-section__subtitle">导入与导出</h3>
-          <p class="doc-paragraph">顶部左侧三个按钮分别对应“导入继续编辑”“导出 JSON”“导出 CSV”。导出前请在弹窗内输入色卡名称。</p>
-          <figure class="doc-image">
-            <img src="./doc-tablet-image/WEB-makecard-export-import.png" alt="导入导出按钮" />
-            <figcaption class="doc-image__caption">图：导入 / 导出按钮组</figcaption>
-          </figure>
+          
+          <div class="doc-callout">注意：色卡编辑器仅支持电脑端</div>
 
           <h3 class="doc-section__subtitle">文件格式规范</h3>
           <div class="doc-callout">使用*星号*包裹的内容为自定义输入内容，用[中括号]包裹的内容是固定选择内容，// 双斜线后跟着的内容为注释</div>

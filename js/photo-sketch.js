@@ -606,11 +606,13 @@ function quantizeImage(config, paletteEntries, ditherMode) {
   const imageData = sampleCtx.getImageData(0, 0, width, height);
   const data = imageData.data;
   const working = new Float32Array(width * height * 3);
+  const alphaMask = new Uint8ClampedArray(width * height);
   for (let i = 0; i < data.length; i += 4) {
     const j = (i / 4) * 3;
     working[j] = data[i];
     working[j + 1] = data[i + 1];
     working[j + 2] = data[i + 2];
+    alphaMask[i / 4] = data[i + 3];
   }
   const buffer = new Uint8ClampedArray(width * height * 4);
   const grid = Array.from({ length: height }, () => Array(width).fill(null));
@@ -619,6 +621,14 @@ function quantizeImage(config, paletteEntries, ditherMode) {
     for (let x = 0; x < width; x++) {
       const index3 = (y * width + x) * 3;
       const index4 = (y * width + x) * 4;
+      if (alphaMask[y * width + x] === 0) {
+        buffer[index4] = 0;
+        buffer[index4 + 1] = 0;
+        buffer[index4 + 2] = 0;
+        buffer[index4 + 3] = 0;
+        grid[y][x] = null;
+        continue;
+      }
       let r = working[index3];
       let g = working[index3 + 1];
       let b = working[index3 + 2];

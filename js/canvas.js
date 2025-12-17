@@ -384,6 +384,54 @@ function ensureGlobalMiddleResetHandler() {
   globalMiddleResetBound = true;
 }
 
+let globalDoubleResetBound = false;
+const globalOutsideTapState = { lastTapTime: 0, lastTapPos: null };
+function shouldIgnoreGlobalResetTarget(target) {
+  if (!(target instanceof Element)) return true;
+  return Boolean(
+    target.closest('button, input, textarea, select, a, [contenteditable="true"], .tool-panel, .floating-window, .modal-window[aria-hidden=\"false\"], .overlay[aria-hidden=\"false\"]')
+  );
+}
+
+function ensureGlobalDoubleResetHandler() {
+  if (globalDoubleResetBound || typeof window === 'undefined') return;
+
+  const canReset = () => Boolean(state.width && state.height && !(state.currentTool === 'selection' && !state.moveModeEnabled));
+
+  const handleDblClick = (ev) => {
+    if (!canReset()) return;
+    if (shouldIgnoreGlobalResetTarget(ev.target)) return;
+    resetView();
+  };
+
+  const handleOutsideDoubleTap = (ev) => {
+    if (!state.isTabletMode) return;
+    if (ev.pointerType !== 'touch' && ev.pointerType !== 'pen') return;
+    if (!canReset()) return;
+    if (elements.canvas?.contains(ev.target)) return;
+    if (shouldIgnoreGlobalResetTarget(ev.target)) return;
+
+    const now = ev.timeStamp;
+    const lastTime = globalOutsideTapState.lastTapTime || 0;
+    const lastPos = globalOutsideTapState.lastTapPos;
+    const distance = lastPos ? Math.hypot(ev.clientX - lastPos.x, ev.clientY - lastPos.y) : Infinity;
+
+    if (lastPos && now - lastTime > 0 && now - lastTime <= DOUBLE_CLICK_MS && distance <= TABLET_DOUBLE_TAP_DISTANCE) {
+      resetView();
+      globalOutsideTapState.lastTapTime = 0;
+      globalOutsideTapState.lastTapPos = null;
+      return;
+    }
+
+    globalOutsideTapState.lastTapTime = now;
+    globalOutsideTapState.lastTapPos = { x: ev.clientX, y: ev.clientY };
+  };
+
+  window.addEventListener('dblclick', handleDblClick, true);
+  window.addEventListener('pointerdown', handleOutsideDoubleTap, true);
+  globalDoubleResetBound = true;
+}
+
 const TABLET_DOUBLE_TAP_DISTANCE = 28;
 const TABLET_LONG_PRESS_MS = 420;
 const TABLET_MOVE_TOLERANCE = 8;
@@ -493,6 +541,7 @@ export function prepareCanvasInteractions() {
   let pointerState = null;
   if (!elements.canvas) return;
   ensureGlobalMiddleResetHandler();
+  ensureGlobalDoubleResetHandler();
   ensureSpacePanBinding();
   const trySetPointerCapture = (pointerId) => {
     try {
