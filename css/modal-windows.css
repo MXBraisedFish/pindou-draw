@@ -521,7 +521,6 @@ input[type="number"]:focus {
 .ghost-button:hover {
   background: #f9fafb;
   border-color: #9ca3af;
-  transform: translateY(-1px);
 }
 
 .primary-button {
