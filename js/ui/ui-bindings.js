@@ -48,6 +48,9 @@ const CANVAS_DANGER_AREA = 128 * 128;
 let closeAllPanels = () => { };
 let manualHintHideTimer = null;
 let manualHintShown = false;
+let tabletUsageHideTimer = null;
+let tabletTooltipHideTimer = null;
+let tabletTooltipActiveBtn = null;
 
 export function initializeUIBindings() {
   initializeTabletMode();
@@ -65,6 +68,8 @@ export function initializeUIBindings() {
   bindTabletControls();
   bindTabletPaletteExclusivity();
   bindManualHintToast();
+  bindTabletUsageToast();
+  bindTabletToolbarTooltipAutoHide();
 }
 
 function bindManualHintToast() {
@@ -114,6 +119,69 @@ function showManualHintToast() {
     toast.classList.remove('is-visible');
     toast.setAttribute('aria-hidden', 'true');
   }, 3000);
+}
+
+function bindTabletUsageToast() {
+  document.addEventListener('tablet:change', (ev) => {
+    if (!ev?.detail?.enabled) return;
+    showTabletUsageToast();
+  });
+}
+
+function showTabletUsageToast() {
+  const toast = elements.tabletUsageToast;
+  if (!toast || !state.isTabletMode) return;
+
+  toast.classList.add('is-visible');
+  toast.setAttribute('aria-hidden', 'false');
+
+  if (tabletUsageHideTimer) {
+    clearTimeout(tabletUsageHideTimer);
+  }
+  tabletUsageHideTimer = setTimeout(() => {
+    toast.classList.remove('is-visible');
+    toast.setAttribute('aria-hidden', 'true');
+  }, 3000);
+}
+
+function bindTabletToolbarTooltipAutoHide() {
+  const hide = () => {
+    if (tabletTooltipHideTimer) {
+      clearTimeout(tabletTooltipHideTimer);
+      tabletTooltipHideTimer = null;
+    }
+    if (tabletTooltipActiveBtn) {
+      tabletTooltipActiveBtn.classList.remove('tablet-tooltip-visible');
+      tabletTooltipActiveBtn = null;
+    }
+  };
+
+  document.addEventListener('tablet:change', (ev) => {
+    if (ev?.detail?.enabled) return;
+    hide();
+  });
+
+  document.addEventListener('pointerdown', (ev) => {
+    if (!state.isTabletMode) return;
+    const target = ev.target instanceof Element ? ev.target : null;
+    if (!target || !target.closest('.toolbar')) {
+      hide();
+    }
+  }, true);
+
+  document.querySelectorAll('.toolbar-button[data-tooltip]').forEach((btn) => {
+    btn.addEventListener('pointerdown', () => {
+      if (!state.isTabletMode) return;
+      hide();
+      btn.classList.add('tablet-tooltip-visible');
+      tabletTooltipActiveBtn = btn;
+      tabletTooltipHideTimer = setTimeout(() => {
+        if (tabletTooltipActiveBtn !== btn) return;
+        btn.classList.remove('tablet-tooltip-visible');
+        tabletTooltipActiveBtn = null;
+      }, 1500);
+    });
+  });
 }
 
 function bindTabletPaletteExclusivity() {
@@ -639,7 +707,8 @@ function initializeTabletMode() {
       } catch (error) { }
     }
     if (!prev && matches) {
-      window.alert('平板端目前处于测试版本，当前使用可能会遇到不可预知的Bug，请谨慎使用，若您遇到Bug请及时向作者汇报(小红书、b站、github)');
+      window.alert('平板端目前处于测试版本，当前使用可能会遇到不可预知的Bug，请谨慎使用，若您遇到Bug请及时汇报(小红书、B站、Github仓库)。');
+      showTabletUsageToast();
     }
     if (matches && state.simpleMode) {
       setSimpleMode(false);

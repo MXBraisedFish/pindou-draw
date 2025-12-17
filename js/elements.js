@@ -36,6 +36,7 @@ export const elements = {
   showCodesToggle: $('#showCodesToggle'),
   displayModeToast: $('#displayModeToast'),
   manualHintToast: $('#manualHintToast'),
+  tabletUsageToast: $('#tabletUsageToast'),
   displayModeRadios: $$('input[name="canvasDisplayMode"]'),
   pixelShapeRadios: $$('input[name="pixelShape"]'),
   axisOpacityRange: $('#axisOpacityRange'),

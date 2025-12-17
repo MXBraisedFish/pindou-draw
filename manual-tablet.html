@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>拼豆色卡说明书-平板端</title>
+  <link rel="icon" type="image/png" sizes="16x16" href="./icon/BOOK.png">
+  <link rel="stylesheet" href="./css/reset.css">
+  <link rel="stylesheet" href="./css/manual-docs.css">
+</head>
+
+<body class="doc-body">
+  <div class="doc-shell">
+    <aside class="doc-sidebar" aria-label="说明书目录">
+      <!-- 通用信息 -->
+      <details class="doc-tree-group" open>
+        <summary>通用信息</summary>
+        <ul class="doc-tree">
+          <li><a href="#chapter-intro">网页简介</a></li>
+          <li><a href="#chapter-feedback">Bug 反馈与功能建议</a></li>
+        </ul>
+      </details>
+
+      <!-- 基础教程 -->
+      <details class="doc-tree-group" open>
+        <summary>基础教程</summary>
+        <ul class="doc-tree">
+          <li><a href="#chapter-ui">操作UI</a></li>
+          <li><a href="#chapter-basic">基础操作</a></li>
+        </ul>
+      </details>
+
+      <!-- 绘图工具 -->
+      <details class="doc-tree-group" open>
+        <summary>绘图工具</summary>
+        <ul class="doc-tree">
+          <li><a href="#chapter-canvas">画布使用</a></li>
+          <li><a href="#chapter-brush">画笔使用</a></li>
+          <li><a href="#chapter-bucket">油漆桶使用</a></li>
+          <li><a href="#chapter-dropper">吸管使用</a></li>
+          <li><a href="#chapter-select">选区使用</a></li>
+          <li><a href="#chapter-undo">撤回与回退</a></li>
+        </ul>
+      </details>
+
+      <!-- 工具详情 -->
+      <details class="doc-tree-group" open>
+        <summary>工具详情</summary>
+        <ul class="doc-tree">
+          <li><a href="#chapter-shortcuts">快捷键操作</a></li>
+          <li><a href="#chapter-gestures">手势操作</a></li>
+          <li><a href="#chapter-canvas-edit">画布的创建与编辑</a></li>
+          <li><a href="#chapter-bg">底图的设置与编辑</a></li>
+          <li><a href="#chapter-float-ref">参考图窗口</a></li>
+          <li><a href="#chapter-export">导出草图</a></li>
+          <li><a href="#chapter-import-pd">导入 PD 工程文件</a></li>
+          <li><a href="#chapter-display">显示设置</a></li>
+          <li><a href="#chapter-screen">全屏与简洁模式</a></li>
+          <li><a href="#chapter-palette">调色板</a></li>
+          <li><a href="#chapter-image-op">图像操作</a></li>
+          <li><a href="#chapter-colorcard">色卡管理</a></li>
+          <li><a href="#chapter-color-manage">颜色管理</a></li>
+        </ul>
+      </details>
+
+      <!-- 色卡制作 -->
+      <details class="doc-tree-group" open>
+        <summary>色卡制作-平板端</summary>
+        <ul class="doc-tree">
+          <li><a href="#chapter-make-colorcard">色卡制作</a></li>
+        </ul>
+      </details>
+    </aside>
+
+    <main class="doc-main">
+      <section class="doc-hero">
+        <div class="doc-hero__tag">Documentation</div>
+        <div class="doc-hero__header">
+          <div>
+            <h1>拼豆色卡使用说明</h1>
+            <p>由-闷香红烧鱼-个人制作，本网站完全免费使用。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 通用信息 -->
+      <article class="doc-content">
+        <!-- 网页简介 -->
+        <section class="doc-section" id="chapter-intro">
+          <span class="doc-section__eyebrow">Page 1</span>
+          <h2 class="doc-section__title">网页简介</h2>
+          <p class="doc-paragraph">
+            本网站由 <strong>闷香红烧鱼</strong> 独立开发，完全免费使用ヾ(≧▽≦*)o
+          </p>
+          <p class="doc-paragraph">
+            核心功能为快速生成拼豆色卡，也可辅助绘制简易像素画；请注意，它并不具备专业级像素绘图能力 ::>_<::
+          </p>
+
+          <h3 class="doc-section__subtitle">开发历程</h3>
+          <ul class="doc-list">
+            <li>2025 年 9 月立项，历时一个月完成 v1.0 并上线内测。</li>
+            <li>随后三周持续维护，发布首个公开版 v1.6。</li>
+            <li>再用三周对功能与体验进行大幅重构与优化，推出全面升级版 v2.0。</li>
+            <li>经过一个月的调试，平板端进入公开测试阶段。</li>
+          </ul>
+        </section>
+        <hr />
+        <!-- Bug 反馈与功能建议 -->
+        <section class="doc-section" id="chapter-feedback">
+          <span class="doc-section__eyebrow">Page 2</span>
+          <h2 class="doc-section__title">Bug 反馈与功能建议</h2>
+          <p class="doc-paragraph">
+            感谢大家的支持与鼓励！v2.0 开发期间，众多功能和 Bug 正是依赖你们的及时反馈才得以快速修正。
+
+          </p>
+          <p class="doc-paragraph">
+            后续我会持续维护与迭代。如果在新使用过程中遇到严重 Bug，或有任何改进建议，欢迎通过以下渠道联系：
+          </p>
+          <ul class="doc-list doc-list--unordered">
+            <li>
+              <a href="https://space.bilibili.com/609170202" target="_blank" rel="noopener noreferrer">
+                B站 · 闷香红烧鱼
+              </a>
+            </li>
+            <li>
+              <a href="https://www.xiaohongshu.com/user/profile/65f420e30000000005008498" target="_blank"
+                rel="noopener noreferrer">
+                小红书 · 闷香红烧鱼
+              </a>
+            </li>
+          </ul>
+          <div class="doc-callout">
+            提示：留言时请尽量描述操作步骤、浏览器版本与报错现象，方便程序员快速定位问题。
+          </div>
+        </section>
+      </article>
+
+      <!-- 基础教程 -->
+      <article class="doc-content">
+        <!-- 操作 UI -->
+        <section class="doc-section" id="chapter-ui">
+          <span class="doc-section__eyebrow">Page 1</span>
+          <h2 class="doc-section__title">操作 UI</h2>
+          <p class="doc-paragraph">
+            普通模式下，界面被划分为三大区域：左右工具栏（红框）、绘制画布（蓝框）与底部信息栏（绿框）。
+          </p>
+          <figure class="doc-image">
+            <img src="./doc-image/UI-position.png" alt="界面区域划分示意" />
+            <figcaption class="doc-image__caption">图：界面区域总览</figcaption>
+          </figure>
+
+          <h3 class="doc-section__subtitle">工具栏</h3>
+
+          <details class="doc-tree-group" close>
+            <summary>左侧工具栏(可展开)</summary>
+            <ul class="doc-list doc-list--unordered">
+              <li>新建画布/扩裁画布</li>
+              <li>导入或校准底图</li>
+              <li>打开参考窗口</li>
+              <li>导出草图</li>
+              <li>导入 PD 工程文件</li>
+              <li>显示模式设置</li>
+              <li>全屏 / 简洁模式开关</li>
+              <li>查看使用手册与更新日志</li>
+            </ul>
+            <figure class="doc-image">
+              <img src="./doc-image/UI-left-toolbar.png" alt="左侧工具栏" />
+              <figcaption class="doc-image__caption">图：左侧工具栏</figcaption>
+            </figure>
+          </details>
+
+          <details class="doc-tree-group" close>
+            <summary>右侧工具栏(可展开)</summary>
+            <ul class="doc-list doc-list--unordered">
+              <li>画笔</li>
+              <li>油漆桶</li>
+              <li>吸管</li>
+              <li>选区</li>
+              <li>调色板</li>
+              <li>图像操作</li>
+              <li>色卡管理</li>
+              <li>颜色管理</li>
+            </ul>
+            <figure class="doc-image">
+              <img src="./doc-image/UI-right-toolbar.png" alt="右侧工具栏" />
+              <figcaption class="doc-image__caption">图：右侧工具栏</figcaption>
+            </figure>
+          </details>
+
+          <h3 class="doc-section__subtitle">操作 Tip</h3>
+          <p class="doc-paragraph">鼠标悬停任意工具按钮，即可弹出功能提示。</p>
+          <figure class="doc-image">
+            <img src="./doc-image/UI-tool-tips.png" alt="工具提示示意" />
+            <figcaption class="doc-image__caption">图：工具提示</figcaption>
+          </figure>
+
+          <h3 class="doc-section__subtitle">信息栏</h3>
+          <p class="doc-paragraph">
+            底部信息栏实时显示画布基础信息，从左到右依次为：画布大小、使用色卡、底图状态、画布创建时间、当前选中颜色。
+          </p>
+          <figure class="doc-image">
+            <img src="./doc-image/UI-bottom.png" alt="底部信息栏" />
+            <figcaption class="doc-image__caption">图：底部信息栏</figcaption>
+          </figure>
+        </section>
+
+        <hr />
+
+        <!-- 基础操作 -->
+        <section class="doc-section" id="chapter-basic">
+          <span class="doc-section__eyebrow">Page 2</span>
+          <h2 class="doc-section__title">基础操作</h2>
+          <p class="doc-section__subtitle">仅需三步即可生成专属色卡</p>
+          <ol class="doc-list">
+            <li>
+              <p class="doc-paragraph"><strong>创建画布</strong></p>
+              <figure class="doc-image">
+                <img src="./doc-image/BASEUSE-create.png" alt="创建画布" style="width: 50%; margin: auto;" />
+                <figcaption class="doc-image__caption">图 1：新建画布</figcaption>
+              </figure>
+            </li>
+            <li>
+              <p class="doc-paragraph"><strong>使用工具绘图</strong></p>
+              <figure class="doc-image">
+                <img src="./doc-image/BASEUSE-draw.png" alt="使用工具绘图" style="width: 50%; margin: auto;" />
+                <figcaption class="doc-image__caption">图 2：绘制图案</figcaption>
+              </figure>
+            </li>
+            <li>
+              <p class="doc-paragraph"><strong>导出文件</strong></p>
+              <figure class="doc-image">
+                <img src="./doc-image/BASEUSE-import-setting.png" alt="导出设置" />
+                <figcaption class="doc-image__caption">图 3-1：导出设置</figcaption>
+              </figure>
+              <figure class="doc-image">
+                <img src="./doc-image/BASEUSE-import-image.png" alt="导出成品" style="width: 50%;margin: auto;" />
+                <figcaption class="doc-image__caption">图 3-2：导出成品</figcaption>
+              </figure>
+            </li>
+          </ol>
+        </section>
+      </article>
+
+      <!-- 绘图工具 -->
+      <article class="doc-content">
+        <!-- 画布 -->
+        <section class="doc-section" id="chapter-canvas">
+          <span class="doc-section__eyebrow">Page 1</span>
+          <h2 class="doc-section__title">画布使用</h2>
+          <p class="doc-paragraph">绘画的区域。</p>
+          <ul class="doc-list doc-list--unordered">
+            <li><strong>滚轮滚动</strong>：放大 / 缩小画布。</li>
+            <li><strong>长按滚轮</strong>：拖动画布。</li>
+            <li><strong>双击滚轮</strong>：还原画布至初始位置。</li>
+          </ul>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-canvas.gif" alt="画布手势演示" />
+            <figcaption class="doc-image__caption">图：画布手势演示</figcaption>
+          </figure>
+        </section>
+
+        <hr />
+
+        <!-- 画笔 -->
+        <section class="doc-section" id="chapter-brush">
+          <span class="doc-section__eyebrow">Page 2</span>
+          <h2 class="doc-section__title">画笔使用</h2>
+          <p class="doc-paragraph">快捷键：<kbd>1</kbd></p>
+          <p class="doc-paragraph">用于最基础的像素绘制。</p>
+          <ul class="doc-list doc-list--unordered">
+            <li><strong>左键</strong>：绘制。</li>
+            <li><strong>右键</strong>：擦除。</li>
+          </ul>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-pencil.gif" alt="画笔演示" style="width: 40%;" />
+            <figcaption class="doc-image__caption">图：画笔绘制与擦除</figcaption>
+          </figure>
+        </section>
+
+        <hr />
+
+        <!-- 油漆桶 -->
+        <section class="doc-section" id="chapter-bucket">
+          <span class="doc-section__eyebrow">Page 3</span>
+          <h2 class="doc-section__title">油漆桶使用</h2>
+          <p class="doc-paragraph">快捷键：<kbd>2</kbd></p>
+          <p class="doc-paragraph">用于大面积像素填充。</p>
+          <ul class="doc-list doc-list--unordered">
+            <li><strong>左键</strong>：填充。</li>
+            <li><strong>右键</strong>：擦除填充。</li>
+          </ul>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-bucket.gif" alt="油漆桶演示" style="width: 40%;" />
+            <figcaption class="doc-image__caption">图：油漆桶填充与擦除</figcaption>
+          </figure>
+        </section>
+
+        <hr />
+
+        <!-- 吸管 -->
+        <section class="doc-section" id="chapter-dropper">
+          <span class="doc-section__eyebrow">Page 4</span>
+          <h2 class="doc-section__title">吸管使用</h2>
+          <p class="doc-paragraph">快捷键：<kbd>3</kbd></p>
+          <p class="doc-paragraph">用于快速拾取画布已有颜色。</p>
+          <ul class="doc-list doc-list--unordered">
+            <li><strong>左键</strong>：吸取颜色。</li>
+          </ul>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-eyedropper.gif" alt="吸管演示" style="width: 40%;" />
+            <figcaption class="doc-image__caption">图：吸管取色</figcaption>
+          </figure>
+        </section>
+
+        <hr />
+
+        <!-- 选区 -->
+        <section class="doc-section" id="chapter-select">
+          <span class="doc-section__eyebrow">Page 5</span>
+          <h2 class="doc-section__title">选区使用</h2>
+          <p class="doc-paragraph">快捷键：<kbd>4</kbd></p>
+          <p class="doc-paragraph">用于对画布局部区域进行编辑。</p>
+          <ul class="doc-list doc-list--unordered">
+            <li><strong>长按左键</strong>：添加选区。</li>
+            <li><strong>双击左键</strong>：反选全部。</li>
+            <li><strong>长按右键</strong>：减去选区。</li>
+            <li><strong>双击右键</strong>：清空全部选区。</li>
+            <li><strong>长按滚轮</strong>：拖动已有选区位置。</li>
+          </ul>
+          <div class="doc-callout">提示：存在选区时，所有绘制操作仅作用于被选中的像素。</div>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-selection.gif" alt="选取演示" style="width: 40%;" />
+            <figcaption class="doc-image__caption">图：选取添加、减选与拖动</figcaption>
+          </figure>
+        </section>
+
+        <hr />
+
+        <!-- 撤回与回退 -->
+        <section class="doc-section" id="chapter-undo">
+          <span class="doc-section__eyebrow">Page 6</span>
+          <h2 class="doc-section__title">撤回与回退</h2>
+          <p class="doc-paragraph">
+            撤回：<kbd>Alt</kbd> + <kbd>Z</kbd><br>
+            回退：<kbd>Alt</kbd> + <kbd>X</kbd>
+          </p>
+          <ul class="doc-list doc-list--unordered">
+            <li><strong>撤回</strong>：回退至上一步操作。</li>
+            <li><strong>回退</strong>：恢复被撤回的一步操作。</li>
+          </ul>
+
+          <div class="doc-callout">
+            注意：撤回 / 回退历史记录有限，无法无限回溯，请及时保存关键进度。
+          </div>
+
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-undo-redo.gif" alt="撤回与回退演示" style="width: 40%;" />
+            <figcaption class="doc-image__caption">图：撤回与回退演示</figcaption>
+          </figure>
+        </section>
+      </article>
+
+      <!-- 工具详情 -->
+      <article class="doc-content">
+        <!-- 快捷键操作 -->
+        <section class="doc-section" id="chapter-shortcuts">
+          <span class="doc-section__eyebrow">Page 1</span>
+          <h2 class="doc-section__title">快捷键操作</h2>
+
+          <blockquote class="doc-quote">
+            以下快捷键仅在画布处于激活状态且未聚焦任何输入框时生效。
+          </blockquote>
+
+          <table style="width:100%;border-collapse:collapse;margin-top:12px;font-size:14px;">
+            <thead>
+              <tr style="border-bottom:1px solid var(--doc-border);">
+                <th style="text-align:left;padding:8px 0;">快捷键</th>
+                <th style="text-align:left;padding:8px 0;">功能</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>1</code></td>
+                <td>切换到<strong>画笔</strong>工具</td>
+              </tr>
+              <tr>
+                <td><code>2</code></td>
+                <td>切换到<strong>油漆桶</strong>工具</td>
+              </tr>
+              <tr>
+                <td><code>3</code></td>
+                <td>切换到<strong>吸管</strong>工具</td>
+              </tr>
+              <tr>
+                <td><code>4</code></td>
+                <td>切换到<strong>选区</strong>工具</td>
+              </tr>
+              <tr>
+                <td><code>Alt + S</code></td>
+                <td>以默认选项快速保存（pixel-canvas-宽x高.png，含色号、坐标轴、默认背景、光效全开）</td>
+              </tr>
+              <tr>
+                <td><code>Alt + Z</code></td>
+                <td>撤回一步</td>
+              </tr>
+              <tr>
+                <td><code>Alt + X</code></td>
+                <td>回退 / 重做一步</td>
+              </tr>
+              <tr>
+                <td><code>Alt + W</code></td>
+                <td>底图编辑模式 开/关</td>
+              </tr>
+              <tr>
+                <td><code>Alt + A</code></td>
+                <td>全屏模式切换</td>
+              </tr>
+              <tr>
+                <td><code>Alt + Q</code></td>
+                <td>简洁模式 开/关</td>
+              </tr>
+              <tr>
+                <td><code>Alt + R</code></td>
+                <td>打开 / 关闭“画布设置”面板</td>
+              </tr>
+              <tr>
+                <td><code>Alt + T</code></td>
+                <td>打开 / 关闭“底图设置”面板（导入 / 校准底图）</td>
+              </tr>
+              <tr>
+                <td><code>Alt + Y</code></td>
+                <td>参考图窗口 开/关</td>
+              </tr>
+              <tr>
+                <td><code>Alt + U</code></td>
+                <td>导出草图窗口 开/关</td>
+              </tr>
+              <tr>
+                <td><code>Alt + I</code></td>
+                <td>显示设置面板 开/关</td>
+              </tr>
+              <tr>
+                <td><code>Alt + O</code></td>
+                <td>查看更新说明</td>
+              </tr>
+              <tr>
+                <td><code>Alt + P</code></td>
+                <td>打开使用手册页面（manual.html）</td>
+              </tr>
+              <tr>
+                <td><code>Alt + F</code></td>
+                <td>调色板窗口 开/关</td>
+              </tr>
+              <tr>
+                <td><code>Alt + G</code></td>
+                <td>图像操作面板 开/关</td>
+              </tr>
+              <tr>
+                <td><code>Alt + H</code></td>
+                <td>色卡管理面板 开/关</td>
+              </tr>
+              <tr>
+                <td><code>Alt + V</code></td>
+                <td>打开颜色管理窗口</td>
+              </tr>
+
+              <tr>
+                <td><code>Alt + B</code></td>
+                <td>打开颜色高亮窗口</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <hr />
+
+        <!-- 手势操作 -->
+        <section class="doc-section" id="chapter-gestures">
+          <span class="doc-section__eyebrow">Page 2</span>
+          <h2 class="doc-section__title">手势操作</h2>
+
+          <h3 class="doc-section__subtitle">画布</h3>
+          <ul class="doc-list doc-list--unordered">
+            <li><strong>滚轮滚动</strong>：放大 / 缩小画布。</li>
+            <li><strong>长按滚轮</strong>：拖动画布。</li>
+            <li><strong>双击滚轮</strong>：还原画布至初始位置。</li>
+          </ul>
+
+          <h3 class="doc-section__subtitle">画笔</h3>
+          <ul class="doc-list doc-list--unordered">
+            <li><strong>左键</strong>：绘制。</li>
+            <li><strong>右键</strong>：擦除。</li>
+          </ul>
+
+          <h3 class="doc-section__subtitle">油漆桶</h3>
+          <ul class="doc-list doc-list--unordered">
+            <li><strong>左键</strong>：填充。</li>
+            <li><strong>右键</strong>：擦除填充。</li>
+          </ul>
+
+          <h3 class="doc-section__subtitle">吸管</h3>
+          <ul class="doc-list doc-list--unordered">
+            <li><strong>左键</strong>：吸取颜色。</li>
+          </ul>
+
+          <h3 class="doc-section__subtitle">选区</h3>
+          <ul class="doc-list doc-list--unordered">
+            <li><strong>长按左键</strong>：添加选区。</li>
+            <li><strong>双击左键</strong>：反选全部。</li>
+            <li><strong>长按右键</strong>：减去选区。</li>
+            <li><strong>双击右键</strong>：清空全部选区。</li>
+            <li><strong>长按滚轮</strong>：拖动已有选区位置。</li>
+          </ul>
+
+          <h3 class="doc-section__subtitle">底图编辑</h3>
+          <ul class="doc-list doc-list--unordered">
+            <li><strong>长按左键</strong>：拖动底图。</li>
+            <li><strong>滚轮滚动</strong>：底图缩放。</li>
+          </ul>
+
+          <h3 class="doc-section__subtitle">参考窗口</h3>
+          <ul class="doc-list doc-list--unordered">
+            <li><strong>顶部长按左键</strong>：拖动窗口。</li>
+            <li><strong>右下角长按左键</strong>：改变窗口大小。</li>
+          </ul>
+
+          <h3 class="doc-section__subtitle">导出草图预览窗口</h3>
+          <ul class="doc-list doc-list--unordered">
+            <li><strong>长按左键</strong>：拖动预览图。</li>
+            <li><strong>滚轮滚动</strong>：预览图缩放。</li>
+          </ul>
+
+          <h3 class="doc-section__subtitle">调色板窗口</h3>
+          <ul class="doc-list doc-list--unordered">
+            <li><strong>顶部长按左键</strong>：拖动窗口。</li>
+            <li><strong>右下角长按左键</strong>：改变窗口大小。</li>
+          </ul>
+        </section>
+
+        <hr />
+
+        <!-- 画布的创建与编辑 -->
+        <section class="doc-section" id="chapter-canvas-edit">
+          <span class="doc-section__eyebrow">Page 3</span>
+          <h2 class="doc-section__title">画布的创建与编辑</h2>
+          <p class="doc-paragraph">快捷键：<kbd>Alt</kbd> + <kbd>R</kbd></p>
+
+          <h3 class="doc-section__subtitle">基础设置</h3>
+          <ul class="doc-list doc-list--unordered">
+            <li><strong>宽度</strong> / <strong>高度</strong>：画布基础面积。</li>
+            <li><strong>像素比例</strong>：画布 1×1 格 = 原图 N×N 像素（N ≥ 5）。</li>
+          </ul>
+          <div class="doc-callout">
+            计算公式：<em>N</em> = 原图像素 ÷ 画布比例
+          </div>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-create.png" alt="新建画布面板" />
+            <figcaption class="doc-image__caption">图：新建画布面板</figcaption>
+          </figure>
+
+          <div class="doc-grid">
+            <article class="doc-card">
+              <p class="doc-card__title">原图 160×160</p>
+              <img src="./doc-image/TOOL-create-testPixel.png" alt="原图" style="height: 90%" />
+            </article>
+            <article class="doc-card">
+              <p class="doc-card__title">导入后 16×16（N=10）</p>
+              <img src="./doc-image/BASEUSE-draw.png" alt="导入后" style="height: auto" />
+            </article>
+          </div>
+          <div class="doc-quote">建议：N 取整数倍，确保像素边缘对齐。</div>
+
+          <h3 class="doc-section__subtitle">扩裁画布</h3>
+          <p class="doc-paragraph">路径：<em>新建画布 / 扩裁画布 → 扩裁画布</em>，可在保留绘图的前提下修改画布尺寸。</p>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-create-ex-cr.png" alt="扩裁画布" />
+            <figcaption class="doc-image__caption">图：扩裁画布面板</figcaption>
+          </figure>
+
+          <h3 class="doc-section__subtitle">根据图片生成草图</h3>
+          <div class="doc-callout">
+            上传的图片仅在本地处理，网页不会保存任何用户上传的图片！
+          </div>
+          <p class="doc-paragraph">路径：<em>新建画布 / 扩裁画布 → 根据图片生成草图</em>，一键像素化并生成草图。</p>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-img2img.png" alt="图片生成草图入口" />
+          </figure>
+
+          <h4 class="doc-section__subtitle">三步速成</h4>
+          <ol class="doc-list">
+            <li>
+              <p class="doc-paragraph">导入图片</p>
+              <img src="./doc-image/TOOL-i2i-import.png" alt="导入图片" />
+            </li>
+            <li>
+              <p class="doc-paragraph">选择色卡</p>
+              <img src="./doc-image/TOOL-i2i-choose.png" alt="选择色卡" />
+            </li>
+            <li>
+              <p class="doc-paragraph">生成草图</p>
+              <img src="./doc-image/TOOL-i2i-create.png" alt="生成草图" />
+              <img src="./doc-image/TOOL-i2i-result.png" alt="生成结果" />
+            </li>
+          </ol>
+
+          <h4 class="doc-section__subtitle">参数说明</h4>
+          <ul class="doc-list doc-list--unordered">
+            <li><strong>转换比率</strong>：越高越精细。</li>
+          </ul>
+          <div class="doc-grid">
+            <article class="doc-card">
+              <p class="doc-card__title">100% 转换比率</p>
+              <img src="./doc-image/TOOL-i2i-transper100.png" alt="100%" style="height: auto;" />
+            </article>
+            <article class="doc-card">
+              <p class="doc-card__title">50% 转换比率</p>
+              <img src="./doc-image/TOOL-i2i-transper50.png" alt="50%" style="height: 85%;" />
+            </article>
+          </div>
+
+          <ul class="doc-list doc-list--unordered">
+            <li><strong>基准线位置</strong>：裁剪框定位。</li>
+            <li><strong>裁剪尺寸</strong>：可锁定比例。</li>
+            <li><strong>选择色卡</strong>：指定生成用色卡。</li>
+            <li><strong>像素比例</strong>：同基础设置。</li>
+            <li><strong>抖动仿色设置</strong>：让颜色过渡更贴近原图。</li>
+          </ul>
+
+          <table style="width:100%;margin-top:12px;font-size:14px;border-collapse:collapse;">
+            <thead>
+              <tr style="border-bottom:1px solid var(--doc-border);">
+                <th style="text-align:left;padding:6px 0;">选项</th>
+                <th style="text-align:left;padding:6px 0;">效果说明</th>
+                <th style="text-align:left;padding:6px 0;text-align: center;">示意图</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>无抖动</code></td>
+                <td>无仿色，适合纯像素块</td>
+                <td><img src="./doc-image/TOOL-i2i-NOD.png" alt="无抖动" style="height:180px;" /></td>
+              </tr>
+              <tr>
+                <td><code>FS 抖动</code></td>
+                <td>基础抖动，颜色更还原</td>
+                <td><img src="./doc-image/TOOL-i2i-FSD.png" alt="FS抖动" style="height:180px;" /></td>
+              </tr>
+              <tr>
+                <td><code>蓝噪声抖动</code></td>
+                <td>高级有序抖动</td>
+                <td><img src="./doc-image/TOOL-i2i-BND.png" alt="蓝噪声抖动" style="height:180px;" /></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p class="doc-paragraph">转换完成后，点击下方按钮即可导出成品。</p>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-i2i-create.png" alt="导出按钮" />
+          </figure>
+        </section>
+
+        <hr />
+
+        <!-- 底图的设置与编辑 -->
+        <section class="doc-section" id="chapter-bg">
+          <span class="doc-section__eyebrow">Page 4</span>
+          <h2 class="doc-section__title">底图的设置与编辑</h2>
+          <p class="doc-paragraph">
+            打开底图编辑窗口：<kbd>Alt</kbd> + <kbd>T</kbd><br>
+            切换底图编辑模式：<kbd>Alt</kbd> + <kbd>W</kbd>
+          </p>
+
+          <h3 class="doc-section__subtitle">基础设置</h3>
+          <ul class="doc-list doc-list--unordered">
+            <li><strong>导入底图</strong>：将图片作为画布底部参考。</li>
+            <li><strong>移除底图</strong>：删除当前底图。</li>
+            <li><strong>进入底图编辑</strong>：切换为底图编辑模式手势。</li>
+            <li><strong>底图居中</strong>：使底图重置至居中位置。</li>
+            <li><strong>贴合 xx</strong>：使底图对指定位置进行对齐。</li>
+            <li><strong>底图模式</strong>：设置底图的图层位置。</li>
+            <li><strong>底图缩放</strong>：底图大小可在 1 % – 200 % 之间调节。</li>
+          </ul>
+
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-Refer.png" alt="底图设置面板" />
+            <figcaption class="doc-image__caption">图：底图设置面板</figcaption>
+          </figure>
+
+          <h3 class="doc-section__subtitle">操作手势</h3>
+          <ol class="doc-list">
+            <li><strong>长按左键</strong>：拖动底图。</li>
+            <li><strong>滚轮滚动</strong>：底图缩放。</li>
+          </ol>
+        </section>
+
+        <hr />
+
+        <!-- 参考图窗口 -->
+        <section class="doc-section" id="chapter-float-ref">
+          <span class="doc-section__eyebrow">Page 5</span>
+          <h2 class="doc-section__title">参考图窗口</h2>
+          <p class="doc-paragraph">快捷键：<kbd>Alt</kbd> + <kbd>Y</kbd></p>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-floatrefer.png" alt="参考图窗口" />
+            <figcaption class="doc-image__caption">图：参考图窗口总览</figcaption>
+          </figure>
+
+          <h3 class="doc-section__subtitle">参考图设置</h3>
+          <ul class="doc-list doc-list--unordered">
+            <li>点击窗口上方 <strong>[+]</strong> 添加参考图。</li>
+            <li>点击参考图上的 <strong>“作为底图”</strong> 即可将其转为底图。</li>
+            <li>点击 <strong>删除</strong> 去掉当前参考图。</li>
+          </ul>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-floatrefer-add.png" alt="添加参考图" />
+            <figcaption class="doc-image__caption">图：添加参考图</figcaption>
+          </figure>
+
+          <h3 class="doc-section__subtitle">窗口设置</h3>
+          <ul class="doc-list doc-list--unordered">
+            <li>拖动右下角可改变窗口大小。</li>
+            <li>长按窗口顶部可拖动窗口位置。</li>
+            <li>点击 <strong>[−]</strong> 缩小图窗，点击 <strong>[↩]</strong> 恢复。</li>
+          </ul>
+          <div class="doc-grid">
+            <figure class="doc-image">
+              <img src="./doc-image/TOOL-floatrefer-resize.png" alt="调整大小" style="height: auto;" />
+              <figcaption class="doc-image__caption">图：调整大小</figcaption>
+            </figure>
+            <figure class="doc-image">
+              <img src="./doc-image/TOOL-floatrefer-trans.png" alt="拖动位置" style="height: auto;" />
+              <figcaption class="doc-image__caption">图：拖动位置</figcaption>
+            </figure>
+          </div>
+          <div class="doc-grid">
+            <figure class="doc-image">
+              <img src="./doc-image/TOOL-floatrefer-tosmall.png" alt="最小化" style="height: auto;" />
+              <figcaption class="doc-image__caption">图：最小化</figcaption>
+            </figure>
+            <figure class="doc-image">
+              <img src="./doc-image/TOOL-floatrefer-tobig.png" alt="恢复" style="margin:240px auto 0;height: auto;" />
+              <figcaption class="doc-image__caption">图：恢复窗口</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- 导出草图 -->
+        <section class="doc-section" id="chapter-export">
+          <span class="doc-section__eyebrow">Page 6</span>
+          <h2 class="doc-section__title">导出草图</h2>
+          <p class="doc-paragraph">快捷键：<kbd>Alt</kbd> + <kbd>U</kbd></p>
+          <p class="doc-paragraph">
+            导出窗口可自定义色号、坐标系、背景等内容，并支持高亮指定颜色单独输出。
+          </p>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-export.png" alt="导出总面板" />
+            <figcaption class="doc-image__caption">图：导出总面板</figcaption>
+          </figure>
+
+          <h3 class="doc-section__subtitle">预览界面</h3>
+
+          <p class="doc-callout">因窗口压缩，预览图模糊属正常现象，不影响最终清晰度。</p>
+          <h3 class="doc-section__subtitle">操作手势</h3>
+          <ol class="doc-list">
+            <li><strong>长按左键</strong>：拖动预览图。</li>
+            <li><strong>滚轮滚动</strong>：预览图缩放。</li>
+          </ol>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-export-preview.png" alt="预览操作" style="width: 50%;" />
+            <figcaption class="doc-image__caption">图：预览操作示意</figcaption>
+          </figure>
+
+          <h3 class="doc-section__subtitle">渲染设置</h3>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-export-setting.png" alt="渲染设置" style="width: 30%;" />
+            <figcaption class="doc-image__caption">图：渲染设置区域</figcaption>
+          </figure>
+
+          <h4 class="doc-section__subtitle">导出格式</h4>
+          <ul class="doc-list doc-list--unordered">
+            <li>支持 PNG / JPG / SVG / PDF / .pd 工程文件。</li>
+            <li>高亮颜色导出时仅限 PNG、JPG。</li>
+            <li>.pd 格式用于后续恢复工程再编辑。</li>
+          </ul>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-export-format.png" alt="格式选择" />
+            <figcaption class="doc-image__caption">图：格式选择</figcaption>
+          </figure>
+
+          <h4 class="doc-section__subtitle">背景设置</h4>
+          <ul class="doc-list doc-list--unordered">
+            <li><strong>纯色背景</strong>：可自定义颜色。</li>
+            <li><strong>透明背景</strong>：不可选颜色，直接留空。</li>
+          </ul>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-export-background.png" alt="背景设置" />
+            <figcaption class="doc-image__caption">图：背景设置</figcaption>
+          </figure>
+
+          <h4 class="doc-section__subtitle">信息内容</h4>
+          <div class="doc-grid">
+            <article class="doc-card">
+              <p class="doc-card__title">包含色号</p>
+              <p class="doc-card__meta">在图中显示每个像素色号</p>
+            </article>
+            <article class="doc-card">
+              <p class="doc-card__title">包含坐标轴</p>
+              <p class="doc-card__meta">渲染坐标轴</p>
+            </article>
+            <article class="doc-card">
+              <p class="doc-card__title">亮光色</p>
+              <p class="doc-card__meta">默认开启，渲染光变后颜色</p>
+            </article>
+            <article class="doc-card">
+              <p class="doc-card__title">温感色</p>
+              <p class="doc-card__meta">默认开启，渲染温变后颜色</p>
+            </article>
+          </div>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-export-render.png" alt="信息内容开关" />
+            <figcaption class="doc-image__caption">图：信息内容开关</figcaption>
+          </figure>
+
+          <h3 class="doc-section__subtitle">高亮颜色导出</h3>
+          <ul class="doc-list doc-list--unordered">
+            <li><strong>导出选中颜色</strong>：仅高亮当前在颜色面板选中的色号。</li>
+            <li><strong>导出全部高亮颜色</strong>：批量生成每张色号单独高亮图，打包为 .zip。</li>
+          </ul>
+          <div class="doc-grid">
+            <figure class="doc-image" style="height: 500px;">
+              <img src="./doc-image/TOOL-export-highlight.png" alt="高亮选项" style="height: 90%;" />
+              <figcaption class="doc-image__caption">图：高亮选项</figcaption>
+            </figure>
+            <figure class="doc-image">
+              <img src="./doc-image/TOOL-export-allExport.png" alt="批量导出" style="height: 89%;" />
+              <figcaption class="doc-image__caption">图：批量导出</figcaption>
+            </figure>
+          </div>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-export-highlight-preview.png" alt="高亮预览" style="width: 60%;" />
+            <figcaption class="doc-image__caption">图：高亮颜色预览效果</figcaption>
+          </figure>
+        </section>
+
+        <hr />
+
+        <!-- 导入 PD 工程文件 -->
+        <section class="doc-section" id="chapter-import-pd">
+          <span class="doc-section__eyebrow">Page 7</span>
+          <h2 class="doc-section__title">导入 PD 工程文件</h2>
+          <p class="doc-paragraph">
+            <code>.pd</code> 工程文件为本站自定义格式，可在任意浏览器内恢复完整草图，支持跨网页传输。
+          </p>
+
+          <h3 class="doc-section__subtitle">导入步骤</h3>
+          <ol class="doc-list">
+            <li>在导入文件窗口点击 <strong>导入 .pd 文件</strong>。</li>
+          </ol>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-import.png" alt="导入入口" />
+            <figcaption class="doc-image__caption">图：导入入口</figcaption>
+          </figure>
+
+          <ol class="doc-list" start="2">
+            <li>选择后缀为 <code>.pd</code> 的文件。</li>
+          </ol>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-import-pd.png" alt="选择文件" />
+            <figcaption class="doc-image__caption">图：选择 .pd 文件</figcaption>
+          </figure>
+
+          <ol class="doc-list" start="3">
+            <li>按需选择导入方式。</li>
+          </ol>
+
+          <details class="doc-tree-group" open>
+            <summary>覆盖式导入</summary>
+            <ul class="doc-list doc-list--unordered">
+              <li>以新建画布方式打开，<strong>当前画布信息会被完全覆盖</strong>，请谨慎操作。</li>
+              <li>若文件色卡已存在，可直接切换；否则强制使用当前色卡。</li>
+            </ul>
+            <figure class="doc-image">
+              <img src="./doc-image/TOOL-import-window.png" alt="覆盖式导入" />
+              <figcaption class="doc-image__caption">图：覆盖式导入确认</figcaption>
+            </figure>
+          </details>
+
+          <details class="doc-tree-group" open>
+            <summary>拓展式导入</summary>
+            <ul class="doc-list doc-list--unordered">
+              <li>将 .pd 内容追加到当前画布右侧，画布宽度自动扩展。</li>
+              <li>色卡一致时直接合并；不一致时自动映射为当前色卡。</li>
+            </ul>
+            <figure class="doc-image">
+              <img src="./doc-image/TOOL-import-window-add.png" alt="拓展式导入" />
+              <figcaption class="doc-image__caption">图：拓展式导入示意</figcaption>
+            </figure>
+          </details>
+
+          <div class="doc-callout">
+            提示：导入前请先确认当前色卡，避免颜色映射后产生偏差。
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- 显示设置 -->
+        <section class="doc-section" id="chapter-display">
+          <span class="doc-section__eyebrow">Page 8</span>
+          <h2 class="doc-section__title">显示设置</h2>
+          <p class="doc-paragraph">快捷键：<kbd>Alt</kbd> + <kbd>I</kbd></p>
+          <p class="doc-paragraph">调整画布显示效果与辅助工具，实时生效。</p>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-display.png" alt="显示设置面板" />
+            <figcaption class="doc-image__caption">图：显示设置面板</figcaption>
+          </figure>
+
+          <h3 class="doc-section__subtitle">自动贴合底图颜色 / 显示色号</h3>
+          <ul class="doc-list doc-list--unordered">
+            <li><strong>自动贴合底图颜色</strong>：绘制时自动拾取底图对应位置最接近的色号；画布透明度不影响选色。</li>
+            <li><strong>显示色号</strong>：在每个像素中心叠加显示所用色号。</li>
+          </ul>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-display-draw-colornum.png" alt="色号与贴合示意" style="width: 40%;" />
+            <figcaption class="doc-image__caption">图：左-显示色号开启;中-自动贴合开启；</figcaption>
+          </figure>
+
+          <h3 class="doc-section__subtitle">画布光效</h3>
+          <p class="doc-paragraph">切换光效模式，可即时预览光变 / 温变像素在不同环境下的最终颜色。</p>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-display-lighting.png" alt="光效选项" />
+          </figure>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-display-lighting.gif" alt="光效切换动画" />
+            <figcaption class="doc-image__caption">图：光效实时切换动画</figcaption>
+          </figure>
+
+          <h3 class="doc-section__subtitle">像素形状</h3>
+          <p class="doc-paragraph">在<strong>实心方形</strong>与<strong>空心圆</strong>之间切换，仅影响视觉样式，不改变数据。</p>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-display-shap.png" alt="形状选项" />
+          </figure>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-display-shap-Lsquare-Rcircle.png" alt="形状对比" style="width: 50%;" />
+            <figcaption class="doc-image__caption">图：左-实心方形；右-空心圆</figcaption>
+          </figure>
+
+          <h3 class="doc-section__subtitle">画布缩放 / 画布透明度</h3>
+          <ul class="doc-list doc-list--unordered">
+            <li><strong>缩放比例</strong>：1 % – 400 % 无级调节。</li>
+            <li><strong>画布透明度</strong>：1 % – 100 %，低于 100 % 时画布呈半透明，便于对照底图。</li>
+          </ul>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-display-scale-opacity.png" alt="缩放与透明度滑块" />
+            <figcaption class="doc-image__caption">图：缩放与透明度滑块</figcaption>
+          </figure>
+
+          <h3 class="doc-section__subtitle">坐标轴编辑</h3>
+          <ul class="doc-list doc-list--unordered">
+            <li><strong>坐标轴透明度</strong>：1 % – 100 %，仅影响数字标签，不影响网格线。</li>
+            <li><strong>坐标轴加粗</strong>：自定义 X / Y 轴大分区间隔。</li>
+          </ul>
+          <div class="doc-grid" style="height: 350px">
+            <figure class="doc-image" style="height: 60%;">
+              <img src="./doc-image/TOOL-display-axis.png" alt="普通坐标轴" style="height: 90%;" />
+              <figcaption class="doc-image__caption">图：普通坐标轴</figcaption>
+            </figure>
+            <figure class="doc-image" style="height: 60%;">
+              <img src="./doc-image/TOOL-display-axis-strong.png" alt="加粗分区坐标轴" style="height: 90%;" />
+              <figcaption class="doc-image__caption">图：加粗分区坐标轴</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- 全屏与简洁模式 -->
+        <section class="doc-section" id="chapter-screen">
+          <span class="doc-section__eyebrow">Page 9</span>
+          <h2 class="doc-section__title">全屏与简洁模式</h2>
+
+          <p class="doc-paragraph">
+            全屏：<kbd>Alt</kbd> + <kbd>A</kbd><br>
+            简洁模式：<kbd>Alt</kbd> + <kbd>Q</kbd>
+          </p>
+
+          <div class="doc-callout">
+            注意：全屏快捷键请勿快速连按，否则会导致按键失效；若出现此情况，等待 5 秒即可恢复。
+          </div>
+
+          <ul class="doc-list doc-list--unordered">
+            <li><strong>全屏模式</strong>：将工作区域放大至整个屏幕，隐藏浏览器地址栏与系统任务栏，获得最大可视区域。</li>
+            <li><strong>简洁模式</strong>：仅保留主要工具栏与画布，隐藏次要面板与装饰元素，界面更干净。</li>
+          </ul>
+
+          <div class="doc-quote">两者可分别开启，互不冲突。</div>
+
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-screen-full+easy.png" alt="全屏与简洁模式结合" />
+            <figcaption class="doc-image__caption">图：全屏与简洁模式结合</figcaption>
+          </figure>
+        </section>
+
+        <hr />
+
+        <!-- 调色板 -->
+        <section class="doc-section" id="chapter-palette">
+          <span class="doc-section__eyebrow">Page 10</span>
+          <h2 class="doc-section__title">调色板</h2>
+          <p class="doc-paragraph">快捷键：<kbd>Alt</kbd> + <kbd>F</kbd></p>
+          <p class="doc-paragraph">调色板用于切换绘制颜色，支持常规色与特殊色快速选取。</p>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-palette.png" alt="调色板面板" />
+            <figcaption class="doc-image__caption">图：调色板面板</figcaption>
+          </figure>
+
+          <h3 class="doc-section__subtitle">特殊色选择</h3>
+          <p class="doc-paragraph">
+            当色卡包含<strong>透明 / 温变 / 光变 / 夜光 / 珠光</strong>等特殊色时，可在面板中的
+            <strong>[特殊色]</strong> 下拉框中一键筛选。
+          </p>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-palette-sp.png" alt="特殊色筛选" />
+            <figcaption class="doc-image__caption">图：特殊色筛选示例</figcaption>
+          </figure>
+
+          <h3 class="doc-section__subtitle">窗口操作</h3>
+          <ul class="doc-list doc-list--unordered">
+            <li><strong>拖动右下角</strong>：改变窗口大小。</li>
+            <li><strong>长按窗口顶部</strong>：拖动窗口位置。</li>
+          </ul>
+          <div class="doc-grid">
+            <figure class="doc-image">
+              <img src="./doc-image/TOOL-palette-resize.png" alt="调整大小" style="height: 95%;" />
+              <figcaption class="doc-image__caption">图：调整大小</figcaption>
+            </figure>
+            <figure class="doc-image">
+              <img src="./doc-image/TOOL-palette-trans.png" alt="拖动位置" style="height: 94.3%;" />
+              <figcaption class="doc-image__caption">图：拖动位置</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- 图像操作 -->
+        <section class="doc-section" id="chapter-image-op">
+          <span class="doc-section__eyebrow">Page 11</span>
+          <h2 class="doc-section__title">图像操作</h2>
+          <p class="doc-paragraph">快捷键：<kbd>Alt</kbd> + <kbd>G</kbd></p>
+          <p class="doc-paragraph">
+            提供图像翻转、旋转及对称绘制功能，可快速生成对称图案或调整画面方向。
+          </p>
+
+          <div class="doc-grid">
+            <figure class="doc-image">
+              <img src="./doc-image/TOOL-canvasset-rotate.gif" alt="旋转与翻转" style="height: 95%;" />
+              <figcaption class="doc-image__caption">图：水平 / 垂直翻转 & 90° 旋转</figcaption>
+            </figure>
+            <figure class="doc-image">
+              <img src="./doc-image/TOOL-canvasset-symmetry.gif" alt="对称绘制" style="height: 95%;" />
+              <figcaption class="doc-image__caption">图：对称绘制</figcaption>
+            </figure>
+          </div>
+
+          <div class="doc-callout">
+            提示：对称绘制开启后，所有绘制操作将沿设定轴线实时镜像，适合快速制作轴对称图案。
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- 色卡管理 -->
+        <section class="doc-section" id="chapter-colorcard">
+          <span class="doc-section__eyebrow">Page 12</span>
+          <h2 class="doc-section__title">色卡管理</h2>
+          <p class="doc-paragraph">快捷键：<kbd>Alt</kbd> + <kbd>H</kbd></p>
+          <p class="doc-paragraph">在此窗口可切换、重置、新增或删除色卡，支持默认色卡与自定义色卡混合使用。</p>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-colorcard.png" alt="色卡管理面板" />
+            <figcaption class="doc-image__caption">图：色卡管理面板</figcaption>
+          </figure>
+
+          <h3 class="doc-section__subtitle">默认色卡</h3>
+          <p class="doc-paragraph">已内置以下主流品牌色卡：</p>
+          <ul class="doc-list doc-list--unordered">
+            <li>DMC</li>
+            <li>卡卡家</li>
+            <li>漫漫家</li>
+            <li>盼盼拼豆</li>
+            <li>Coco</li>
+            <li>MARD</li>
+          </ul>
+          <div class="doc-quote">
+            注意：所有颜色数据来源于公开资料或人工比对实物，可能与实际肉眼观感存在差异，请以实物为准！
+          </div>
+
+          <h3 class="doc-section__subtitle">自定义色卡</h3>
+          <ul class="doc-list doc-list--unordered">
+            <li>支持 JSON、CSV 格式导入。</li>
+            <li>可通过网页内置简易编辑器或手动编写配置文件完成色卡制作。</li>
+            <li>详细步骤见 <a href="#chapter-make-colorcard">说明书 → 色卡制作</a>。</li>
+          </ul>
+        </section>
+
+        <hr />
+
+        <!-- 颜色管理 -->
+        <section class="doc-section" id="chapter-color-manage">
+          <span class="doc-section__eyebrow">Page 13</span>
+          <h2 class="doc-section__title">颜色管理</h2>
+          <p class="doc-paragraph">
+            颜色管理窗口：<kbd>Alt</kbd> + <kbd>V</kbd><br>
+            颜色高亮窗口：<kbd>Alt</kbd> + <kbd>B</kbd>
+          </p>
+
+          <h3 class="doc-section__subtitle">颜色管理窗口</h3>
+          <p class="doc-paragraph">可临时<strong>禁用 / 启用</strong>指定色号；被禁止的色号无法在调色盘中使用(已绘制像素不会被清除)</p>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-colorman-color.png" alt="颜色管理面板" />
+            <figcaption class="doc-image__caption">图：颜色管理面板</figcaption>
+          </figure>
+
+          <h3 class="doc-section__subtitle">颜色高亮窗口</h3>
+          <p class="doc-paragraph">可将已绘制像素按色号<strong>高亮显示</strong>，仅用于视觉检查，不影响导出效果。</p>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-colorman-highlight.png" alt="高亮设置" />
+            <figcaption class="doc-image__caption">图：高亮设置</figcaption>
+          </figure>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-colorman-highlight-use.png" alt="高亮效果" style="width: 40%;" />
+            <figcaption class="doc-image__caption">图：高亮显示效果</figcaption>
+          </figure>
+          <p class="doc-paragraph">上方的替换颜色可一键将高亮的所有颜色替换为其它颜色。</p>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-colorman-highlight-replace.png" alt="高亮颜色替换" />
+            <figcaption class="doc-image__caption">图：高亮颜色替换</figcaption>
+          </figure>
+        </section>
+      </article>
+
+      <!-- 色卡制作 -->
+      <article class="doc-content">
+        <section class="doc-section" id="chapter-make-colorcard">
+          <span class="doc-section__eyebrow">Page 1</span>
+          <h2 class="doc-section__title">色卡制作</h2>
+          <p class="doc-paragraph">网站提供专用色卡编辑器，路径：<em>色卡管理 → 制作色卡。</em></p>
+          <figure class="doc-image">
+            <img src="./doc-image/WEB-makecard-entry.png" alt="色卡编辑器入口" style="width: 30%;" />
+            <figcaption class="doc-image__caption">图：色卡编辑器入口</figcaption>
+          </figure>
+          <figure class="doc-image">
+            <img src="./doc-image/WEB-makecard.png" alt="色卡编辑器界面" />
+            <figcaption class="doc-image__caption">图：色卡编辑器界面</figcaption>
+          </figure>
+
+          <h3 class="doc-section__subtitle">颜色规格定义</h3>
+          <p class="doc-paragraph">左上角栏可指定颜色类型、色号及色值。支持以下六种规格：</p>
+          <ul class="doc-list doc-list--unordered">
+            <li><strong>普通色（normal）</strong>：单色，RGB 格式。</li>
+            <li><strong>珠光色（pearlescent）</strong>：单色，RGBA 格式。</li>
+            <li><strong>光变色（light）</strong>：双色渐变，RGBA ×2；仅填写 颜色一 时默认 透明 → 颜色一。</li>
+            <li><strong>温变色（temperature）</strong>：双色渐变，RGBA ×2；仅填写 颜色一 时默认 透明 → 颜色一。</li>
+            <li><strong>透明色（transparent）</strong>：单色，RGBA 格式。</li>
+            <li><strong>夜光色（glow）</strong>：单色，RGBA 格式。</li>
+          </ul>
+
+          <h3 class="doc-section__subtitle">试色画布</h3>
+          <p class="doc-paragraph">右侧画布提供实时试色功能，可切换光效模式以验证特殊色表现。</p>
+          <ul class="doc-list doc-list--unordered">
+            <li>点击已添加颜色或颜色制作栏即可更换画笔色。</li>
+            <li>顶部按钮 <em>使用当前编辑颜色</em> 可快速应用正在编辑的色值；<em>清空画布</em> 重置试色区域。</li>
+          </ul>
+          <div class="doc-callout">提示：若底部状态栏提示“无 无活动颜色”，表示当前选中为白色 RGB(255, 255, 255)。</div>
+          <figure class="doc-image">
+            <img src="./doc-image/WEB-makecard-use.png" alt="试色画布" />
+            <figcaption class="doc-image__caption">图：试色画布与光效切换</figcaption>
+          </figure>
+
+          <h3 class="doc-section__subtitle">色卡列表管理</h3>
+          <p class="doc-paragraph">左下角列表展示当前已添加颜色，支持二次编辑或删除。</p>
+
+          <h3 class="doc-section__subtitle">导入与导出</h3>
+          <p class="doc-paragraph">顶部左侧三个按钮分别对应“导入继续编辑”“导出 JSON”“导出 CSV”。导出前请在弹窗内输入色卡名称。</p>
+          <figure class="doc-image">
+            <img src="./doc-image/WEB-makecard-export-import.png" alt="导入导出按钮" />
+            <figcaption class="doc-image__caption">图：导入 / 导出按钮组</figcaption>
+          </figure>
+
+          <h3 class="doc-section__subtitle">文件格式规范</h3>
+          <div class="doc-callout">使用*星号*包裹的内容为自定义输入内容，用[中括号]包裹的内容是固定选择内容，// 双斜线后跟着的内容为注释</div>
+          <p class="doc-paragraph">如需手动构建色卡，请遵循以下字段约定。</p>
+
+          <details class="doc-tree-group" open>
+            <summary>JSON 规范</summary>
+            <pre class="code-block json"><code>{
+<span class="json-key">"*色号*"</span>: {
+  <span class="json-key">&nbsp;&nbsp;&nbsp;"num"</span>: <span class="json-string">"*色号*"</span>,
+  <span class="json-key">&nbsp;&nbsp;&nbsp;"type"</span>: <span class="json-string">"[normal|pearlescent|light|temperature|transparent|glow]"</span>,
+  <span class="json-key">&nbsp;&nbsp;&nbsp;"color"</span>: <span class="json-string">"*RGBA/RGB*"</span>,
+  <span class="json-key">&nbsp;&nbsp;&nbsp;"color1"</span>: <span class="json-string">"*RGBA/RGB*"</span>,
+  <span class="json-key">&nbsp;&nbsp;&nbsp;"color2"</span>: <span class="json-string">"*RGBA*"</span>
+},
+<span class="json-comment">// 示例(002，温变色，粉色 → 绿色)</span>
+<span class="json-key">"002"</span>: {
+  <span class="json-key">&nbsp;&nbsp;&nbsp;"num"</span>: <span class="json-string">"002"</span>,
+  <span class="json-key">&nbsp;&nbsp;&nbsp;"type"</span>: <span class="json-string">"temperature"</span>,
+  <span class="json-key">&nbsp;&nbsp;&nbsp;"color"</span>: <span class="json-string">"rgb(230, 210, 255)"</span>,
+  <span class="json-key">&nbsp;&nbsp;&nbsp;"color1"</span>: <span class="json-string">"rgb(230, 210, 255)"</span>,
+  <span class="json-key">&nbsp;&nbsp;&nbsp;"color2"</span>: <span class="json-string">"rgb(159, 249, 162)"</span>
+}</code></pre>
+          </details>
+
+          <details class="doc-tree-group" open>
+            <summary>CSV 规范</summary>
+            <pre
+              class="code-block csv"><code><span class="csv-header">num,type,color1,color2</span>
+<span class="csv-value">*色号*</span>, <span class="csv-value">[normal|pearlescent|light|temperature|transparent|glow]</span>, <span class="csv-value">*RGBA/RGB*</span>, <span class="csv-value">*RGBA*</span>
+<span class="csv-comment">// color1 仅 normal 仅可填写RGB</span>
+<span class="csv-comment">// color2 仅 light|temperature 可选填</span>
+<span class="csv-comment">// 示例(002，温变色，粉色 → 绿色)</span>
+<span class="csv-value">002</span>, <span class="csv-value">temperature</span>, <span class="csv-value">rgb(230, 210, 255)</span>, <span class="csv-value">rgb(159, 249, 162)</span></code></pre>
+          </details>
+        </section>
+      </article>
+    </main>
+  </div>
+  <script>
+
+    document.addEventListener('DOMContentLoaded', function () {
+
+      const sections = document.querySelectorAll('.doc-section');
+
+      const navLinks = document.querySelectorAll('.doc-tree li a');
+
+      sections.forEach((section, index) => {
+        const id = section.getAttribute('id');
+      });
+
+      navLinks.forEach((link, index) => {
+        const href = link.getAttribute('href');
+      });
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          const sectionId = entry.target.getAttribute('id');
+          if (entry.isIntersecting) {
+
+            const currentId = entry.target.getAttribute('id');
+
+            navLinks.forEach(link => {
+              link.classList.remove('is-active');
+            });
+
+            const correspondingLink = document.querySelector(`.doc-tree li a[href="#${currentId}"]`);
+            if (correspondingLink) {
+              correspondingLink.classList.add('is-active');
+            } else {
+            }
+          }
+        });
+        const activeLinks = document.querySelectorAll('.doc-tree li a.is-active');
+        activeLinks.forEach(link => {
+        });
+      }, {
+
+        threshold: [0, 0.1, 0.5, 0.9, 1],
+        rootMargin: '-20% 0px -60% 0px'
+      });
+
+      sections.forEach(section => {
+        observer.observe(section);
+      });
+
+      navLinks.forEach(link => {
+        link.addEventListener('click', function (e) {
+          e.preventDefault();
+          const targetHref = this.getAttribute('href');
+          const targetSection = document.querySelector(targetHref);
+          if (targetSection) {
+
+            targetSection.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start'
+            });
+
+            setTimeout(() => {
+              navLinks.forEach(l => l.classList.remove('is-active'));
+              this.classList.add('is-active');
+            }, 500);
+          } else {
+          }
+        });
+      });
+
+      let scrollTimeout;
+      window.addEventListener('scroll', function () {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+          let closestSection = null;
+          let closestDistance = Infinity;
+          sections.forEach(section => {
+            const rect = section.getBoundingClientRect();
+            const distanceFromTop = Math.abs(rect.top);
+            if (distanceFromTop < closestDistance && rect.top <= 100) {
+              closestDistance = distanceFromTop;
+              closestSection = section;
+            }
+          });
+          if (closestSection) {
+            const currentId = closestSection.getAttribute('id');
+            navLinks.forEach(link => {
+              link.classList.remove('is-active');
+            });
+            const correspondingLink = document.querySelector(`.doc-tree li a[href="#${currentId}"]`);
+            if (correspondingLink) {
+              correspondingLink.classList.add('is-active');
+            }
+          }
+        }, 100);
+      });
+    });
+  </script>
+</body>
+
+</html>

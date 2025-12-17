@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>拼豆色卡说明书</title>
+  <title>拼豆色卡说明书-电脑端</title>
   <link rel="icon" type="image/png" sizes="16x16" href="./icon/BOOK.png">
   <link rel="stylesheet" href="./css/reset.css">
   <link rel="stylesheet" href="./css/manual-docs.css">
@@ -19,6 +19,14 @@
         <ul class="doc-tree">
           <li><a href="#chapter-intro">网页简介</a></li>
           <li><a href="#chapter-feedback">Bug 反馈与功能建议</a></li>
+        </ul>
+      </details>
+
+      <!-- 使用端切换 -->
+      <details class="doc-tree-group" open>
+        <summary>使用端切换</summary>
+        <ul class="doc-tree">
+          <li><a href="#to-tablet">平板端</a></li>
         </ul>
       </details>
 
@@ -78,8 +86,11 @@
         <div class="doc-hero__tag">Documentation</div>
         <div class="doc-hero__header">
           <div>
-            <h1>拼豆色卡使用说明</h1>
+            <h1>拼豆色卡使用说明-电脑端</h1>
             <p>由-闷香红烧鱼-个人制作，本网站完全免费使用。</p>
+            <div class="doc-callout" style="margin-top: 10px;">
+              注意：该页面为电脑端使用说明，如需查看平板端使用说明，可在 本页面->使用端切换 查看详细操作
+            </div>
           </div>
         </div>
       </section>
@@ -94,15 +105,15 @@
             本网站由 <strong>闷香红烧鱼</strong> 独立开发，完全免费使用ヾ(≧▽≦*)o
           </p>
           <p class="doc-paragraph">
-            核心功能为快速生成拼豆色卡，也可辅助绘制简易像素画；请注意，它并不具备专业级像素绘图能力 ::>_<::
-          </p>
+            核心功能为快速生成拼豆色卡，也可辅助绘制简易像素画；请注意，它并不具备专业级像素绘图能力 ::>_<:: </p>
 
-          <h3 class="doc-section__subtitle">开发历程</h3>
-          <ul class="doc-list">
-            <li>2025 年 9 月立项，历时一个月完成 v1.0 并上线内测。</li>
-            <li>随后三周持续维护，发布首个公开版 v1.6。</li>
-            <li>再用三周对功能与体验进行大幅重构与优化，推出全面升级版 v2.0。</li>
-          </ul>
+              <h3 class="doc-section__subtitle">开发历程</h3>
+              <ul class="doc-list">
+                <li>2025 年 9 月立项，历时一个月完成 v1.0 并上线内测。</li>
+                <li>随后三周持续维护，发布首个公开版 v1.6。</li>
+                <li>再用三周对功能与体验进行大幅重构与优化，推出全面升级版 v2.0。</li>
+                <li>经过一个月的调试，平板端进入公开测试阶段。</li>
+              </ul>
         </section>
         <hr />
         <!-- Bug 反馈与功能建议 -->
@@ -111,7 +122,6 @@
           <h2 class="doc-section__title">Bug 反馈与功能建议</h2>
           <p class="doc-paragraph">
             感谢大家的支持与鼓励！v2.0 开发期间，众多功能和 Bug 正是依赖你们的及时反馈才得以快速修正。
-
           </p>
           <p class="doc-paragraph">
             后续我会持续维护与迭代。如果在新使用过程中遇到严重 Bug，或有任何改进建议，欢迎通过以下渠道联系：
@@ -128,10 +138,38 @@
                 小红书 · 闷香红烧鱼
               </a>
             </li>
+            <li>
+              <a href="https://github.com/MXBraisedFish/pindou-draw" target="_blank" rel="noopener noreferrer">
+                Github · MXBraisedFish
+              </a>
+            </li>
           </ul>
           <div class="doc-callout">
-            提示：留言时请尽量描述操作步骤、浏览器版本与报错现象，方便我快速定位问题。
+            提示：留言时请尽量描述操作步骤、浏览器版本与报错现象，方便程序员快速定位问题。
           </div>
+        </section>
+      </article>
+
+      <!-- 使用端切换 -->
+      <article class="doc-content">
+        <!-- 平板端 -->
+        <section class="doc-section" id="to-tablet">
+          <span class="doc-section__eyebrow">Page 1</span>
+          <h2 class="doc-section__title">平板端</h2>
+          <p class="doc-paragraph">可通过 左侧工具栏 -> 全屏和简洁模式开关 -> 改为平板端操作与显示 将绘画操作切换为平板端</p>
+          <p class="doc-paragraph">切换为平板端后在左侧的工具栏重新打开说明书即可切换为平板端</p>
+          <p class="doc-paragraph">点击此处可快速切换
+            <a href="./manual-tablet.html" target="_self" rel="noopener noreferrer">
+              平板端说明书
+            </a>
+          </p>
+          <div class="doc-callout">
+            注意：平板端目前处于测试版本，当前使用可能会遇到不可预知的Bug，请谨慎使用，若您遇到Bug请及时汇报(小红书、B站、Github仓库)。
+          </div>
+          <figure class="doc-image">
+            <img src="./doc-image/TO-tablet-where.gif" alt="如何切换至平板端" />
+            <figcaption class="doc-image__caption">图：平板端切换演示</figcaption>
+          </figure>
         </section>
       </article>
 

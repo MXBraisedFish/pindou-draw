@@ -99,6 +99,30 @@
   transform: translateX(0);
 }
 
+.tablet-usage-toast {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  z-index: 120;
+  transform: translate(-50%, -8px);
+  max-width: min(420px, calc(100vw - 24px));
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(30, 41, 59, 0.92);
+  color: #ffffff;
+  font-size: 14px;
+  line-height: 1.35;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.tablet-usage-toast.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
 .toolbar-button.is-active {
   background-color: #e8f0fe;
   color: #1a73e8;
@@ -157,6 +181,16 @@
 .toolbar-bottom .toolbar-button[data-tooltip]:hover::after,
 .toolbar-bottom .toolbar-button[data-tooltip]:focus-visible::after {
   transform: translate(-50%, 0);
+}
+
+body.tablet-mode .toolbar-button[data-tooltip]:hover::after,
+body.tablet-mode .toolbar-button[data-tooltip]:focus::after,
+body.tablet-mode .toolbar-button[data-tooltip]:focus-visible::after {
+  opacity: 0;
+}
+
+body.tablet-mode .toolbar-button.tablet-tooltip-visible::after {
+  opacity: 1;
 }
 
 body.simple-mode-active .toolbar-left {
