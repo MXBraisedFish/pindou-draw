@@ -189,7 +189,10 @@ body.tablet-mode .toolbar-button[data-tooltip]:focus-visible::after {
   opacity: 0;
 }
 
-body.tablet-mode .toolbar-button.tablet-tooltip-visible::after {
+body.tablet-mode .toolbar-button.tablet-tooltip-visible::after,
+body.tablet-mode .toolbar-button.tablet-tooltip-visible:hover::after,
+body.tablet-mode .toolbar-button.tablet-tooltip-visible:focus::after,
+body.tablet-mode .toolbar-button.tablet-tooltip-visible:focus-visible::after {
   opacity: 1;
 }
 

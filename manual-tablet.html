@@ -22,6 +22,14 @@
         </ul>
       </details>
 
+      <!-- 使用端切换 -->
+      <details class="doc-tree-group" open>
+        <summary>使用端切换</summary>
+        <ul class="doc-tree">
+          <li><a href="#to-tablet">电脑端</a></li>
+        </ul>
+      </details>
+
       <!-- 基础教程 -->
       <details class="doc-tree-group" open>
         <summary>基础教程</summary>
@@ -66,7 +74,7 @@
 
       <!-- 色卡制作 -->
       <details class="doc-tree-group" open>
-        <summary>色卡制作-平板端</summary>
+        <summary>色卡制作</summary>
         <ul class="doc-tree">
           <li><a href="#chapter-make-colorcard">色卡制作</a></li>
         </ul>
@@ -78,8 +86,14 @@
         <div class="doc-hero__tag">Documentation</div>
         <div class="doc-hero__header">
           <div>
-            <h1>拼豆色卡使用说明</h1>
+            <h1>拼豆色卡使用说明-平板端</h1>
             <p>由-闷香红烧鱼-个人制作，本网站完全免费使用。</p>
+            <div class="doc-callout" style="margin-top: 10px;">
+              注意：该页面为平板端使用说明，如需查看电脑端使用说明，可在 本页面->使用端切换 查看详细操作。
+            </div>
+            <div class="doc-callout" style="margin-top: 10px;">
+              注意：平板端目前处于测试版本，当前使用可能会遇到不可预知的Bug，请谨慎使用，若您遇到Bug请及时汇报(小红书、B站、Github仓库)。
+            </div>
           </div>
         </div>
       </section>
@@ -94,16 +108,15 @@
             本网站由 <strong>闷香红烧鱼</strong> 独立开发，完全免费使用ヾ(≧▽≦*)o
           </p>
           <p class="doc-paragraph">
-            核心功能为快速生成拼豆色卡，也可辅助绘制简易像素画；请注意，它并不具备专业级像素绘图能力 ::>_<::
-          </p>
+            核心功能为快速生成拼豆色卡，也可辅助绘制简易像素画；请注意，它并不具备专业级像素绘图能力 ::>_<:: </p>
 
-          <h3 class="doc-section__subtitle">开发历程</h3>
-          <ul class="doc-list">
-            <li>2025 年 9 月立项，历时一个月完成 v1.0 并上线内测。</li>
-            <li>随后三周持续维护，发布首个公开版 v1.6。</li>
-            <li>再用三周对功能与体验进行大幅重构与优化，推出全面升级版 v2.0。</li>
-            <li>经过一个月的调试，平板端进入公开测试阶段。</li>
-          </ul>
+              <h3 class="doc-section__subtitle">开发历程</h3>
+              <ul class="doc-list">
+                <li>2025 年 9 月立项，历时一个月完成 v1.0 并上线内测。</li>
+                <li>随后三周持续维护，发布首个公开版 v1.6。</li>
+                <li>再用三周对功能与体验进行大幅重构与优化，推出全面升级版 v2.0。</li>
+                <li>经过一个月的调试，平板端进入公开测试阶段。</li>
+              </ul>
         </section>
         <hr />
         <!-- Bug 反馈与功能建议 -->
@@ -112,7 +125,6 @@
           <h2 class="doc-section__title">Bug 反馈与功能建议</h2>
           <p class="doc-paragraph">
             感谢大家的支持与鼓励！v2.0 开发期间，众多功能和 Bug 正是依赖你们的及时反馈才得以快速修正。
-
           </p>
           <p class="doc-paragraph">
             后续我会持续维护与迭代。如果在新使用过程中遇到严重 Bug，或有任何改进建议，欢迎通过以下渠道联系：
@@ -129,10 +141,35 @@
                 小红书 · 闷香红烧鱼
               </a>
             </li>
+            <li>
+              <a href="https://github.com/MXBraisedFish/pindou-draw" target="_blank" rel="noopener noreferrer">
+                Github · MXBraisedFish
+              </a>
+            </li>
           </ul>
           <div class="doc-callout">
             提示：留言时请尽量描述操作步骤、浏览器版本与报错现象，方便程序员快速定位问题。
           </div>
+        </section>
+      </article>
+
+      <!-- 使用端切换 -->
+      <article class="doc-content">
+        <!-- 平板端 -->
+        <section class="doc-section" id="to-tablet">
+          <span class="doc-section__eyebrow">Page 1</span>
+          <h2 class="doc-section__title">电脑端</h2>
+          <p class="doc-paragraph">可通过 左侧工具栏 -> 全屏和简洁模式开关 -> 改为电脑端操作与显示 将绘画操作切换为电脑端</p>
+          <p class="doc-paragraph">切换为电脑端后在左侧的工具栏重新打开说明书即可切换为电脑端说明书</p>
+          <p class="doc-paragraph">点击此处可快速切换
+            <a href="./manual-tablet.html" target="_self" rel="noopener noreferrer">
+              电脑端说明书
+            </a>
+          </p>
+          <figure class="doc-image">
+            <img src="./doc-tablet-image/TO-tablet-where.gif" alt="如何切换至平板端" />
+            <figcaption class="doc-image__caption">图：平板端切换演示</figcaption>
+          </figure>
         </section>
       </article>
 
@@ -143,10 +180,10 @@
           <span class="doc-section__eyebrow">Page 1</span>
           <h2 class="doc-section__title">操作 UI</h2>
           <p class="doc-paragraph">
-            普通模式下，界面被划分为三大区域：左右工具栏（红框）、绘制画布（蓝框）与底部信息栏（绿框）。
+            主界面被划分为三大区域：左右下工具栏（红框）、绘制画布（蓝框）与底部信息栏（绿框）。
           </p>
           <figure class="doc-image">
-            <img src="./doc-image/UI-position.png" alt="界面区域划分示意" />
+            <img src="./doc-tablet-image/UI-position.png" alt="界面区域划分示意" />
             <figcaption class="doc-image__caption">图：界面区域总览</figcaption>
           </figure>
 
@@ -165,7 +202,7 @@
               <li>查看使用手册与更新日志</li>
             </ul>
             <figure class="doc-image">
-              <img src="./doc-image/UI-left-toolbar.png" alt="左侧工具栏" />
+              <img src="./doc-tablet-image/UI-left-toolbar.png" alt="左侧工具栏" />
               <figcaption class="doc-image__caption">图：左侧工具栏</figcaption>
             </figure>
           </details>
@@ -183,15 +220,28 @@
               <li>颜色管理</li>
             </ul>
             <figure class="doc-image">
-              <img src="./doc-image/UI-right-toolbar.png" alt="右侧工具栏" />
+              <img src="./doc-tablet-image/UI-right-toolbar.png" alt="右侧工具栏" />
               <figcaption class="doc-image__caption">图：右侧工具栏</figcaption>
+            </figure>
+          </details>
+
+          <details class="doc-tree-group" close>
+            <summary>下方工具栏(可展开)</summary>
+            <ul class="doc-list doc-list--unordered">
+              <li>撤回</li>
+              <li>移动模式</li>
+              <li>重做</li>
+            </ul>
+            <figure class="doc-image">
+              <img src="./doc-tablet-image/UI-bottom-toolbar.png" alt="下方工具栏" />
+              <figcaption class="doc-image__caption">图：下方工具栏</figcaption>
             </figure>
           </details>
 
           <h3 class="doc-section__subtitle">操作 Tip</h3>
           <p class="doc-paragraph">鼠标悬停任意工具按钮，即可弹出功能提示。</p>
           <figure class="doc-image">
-            <img src="./doc-image/UI-tool-tips.png" alt="工具提示示意" />
+            <img src="./doc-tablet-image/UI-tool-tips.png" alt="工具提示示意" />
             <figcaption class="doc-image__caption">图：工具提示</figcaption>
           </figure>
 
@@ -200,7 +250,7 @@
             底部信息栏实时显示画布基础信息，从左到右依次为：画布大小、使用色卡、底图状态、画布创建时间、当前选中颜色。
           </p>
           <figure class="doc-image">
-            <img src="./doc-image/UI-bottom.png" alt="底部信息栏" />
+            <img src="./doc-tablet-image/UI-bottom.png" alt="底部信息栏" />
             <figcaption class="doc-image__caption">图：底部信息栏</figcaption>
           </figure>
         </section>
@@ -216,25 +266,25 @@
             <li>
               <p class="doc-paragraph"><strong>创建画布</strong></p>
               <figure class="doc-image">
-                <img src="./doc-image/BASEUSE-create.png" alt="创建画布" style="width: 50%; margin: auto;" />
+                <img src="./doc-tablet-image/BASEUSE-create.png" alt="创建画布" style="width: 50%; margin: auto;" />
                 <figcaption class="doc-image__caption">图 1：新建画布</figcaption>
               </figure>
             </li>
             <li>
               <p class="doc-paragraph"><strong>使用工具绘图</strong></p>
               <figure class="doc-image">
-                <img src="./doc-image/BASEUSE-draw.png" alt="使用工具绘图" style="width: 50%; margin: auto;" />
+                <img src="./doc-tablet-image/BASEUSE-draw.png" alt="使用工具绘图" style="width: 50%; margin: auto;" />
                 <figcaption class="doc-image__caption">图 2：绘制图案</figcaption>
               </figure>
             </li>
             <li>
               <p class="doc-paragraph"><strong>导出文件</strong></p>
               <figure class="doc-image">
-                <img src="./doc-image/BASEUSE-import-setting.png" alt="导出设置" />
+                <img src="./doc-tablet-image/BASEUSE-import-setting.png" alt="导出设置" />
                 <figcaption class="doc-image__caption">图 3-1：导出设置</figcaption>
               </figure>
               <figure class="doc-image">
-                <img src="./doc-image/BASEUSE-import-image.png" alt="导出成品" style="width: 50%;margin: auto;" />
+                <img src="./doc-tablet-image/BASEUSE-import-image.png" alt="导出成品" style="width: 50%;margin: auto;" />
                 <figcaption class="doc-image__caption">图 3-2：导出成品</figcaption>
               </figure>
             </li>
@@ -255,7 +305,7 @@
             <li><strong>双击滚轮</strong>：还原画布至初始位置。</li>
           </ul>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-canvas.gif" alt="画布手势演示" />
+            <img src="./doc-tablet-image/TOOL-canvas.gif" alt="画布手势演示" />
             <figcaption class="doc-image__caption">图：画布手势演示</figcaption>
           </figure>
         </section>
@@ -273,7 +323,7 @@
             <li><strong>右键</strong>：擦除。</li>
           </ul>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-pencil.gif" alt="画笔演示" style="width: 40%;" />
+            <img src="./doc-tablet-image/TOOL-pencil.gif" alt="画笔演示" style="width: 40%;" />
             <figcaption class="doc-image__caption">图：画笔绘制与擦除</figcaption>
           </figure>
         </section>
@@ -291,7 +341,7 @@
             <li><strong>右键</strong>：擦除填充。</li>
           </ul>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-bucket.gif" alt="油漆桶演示" style="width: 40%;" />
+            <img src="./doc-tablet-image/TOOL-bucket.gif" alt="油漆桶演示" style="width: 40%;" />
             <figcaption class="doc-image__caption">图：油漆桶填充与擦除</figcaption>
           </figure>
         </section>
@@ -308,7 +358,7 @@
             <li><strong>左键</strong>：吸取颜色。</li>
           </ul>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-eyedropper.gif" alt="吸管演示" style="width: 40%;" />
+            <img src="./doc-tablet-image/TOOL-eyedropper.gif" alt="吸管演示" style="width: 40%;" />
             <figcaption class="doc-image__caption">图：吸管取色</figcaption>
           </figure>
         </section>
@@ -330,7 +380,7 @@
           </ul>
           <div class="doc-callout">提示：存在选区时，所有绘制操作仅作用于被选中的像素。</div>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-selection.gif" alt="选取演示" style="width: 40%;" />
+            <img src="./doc-tablet-image/TOOL-selection.gif" alt="选取演示" style="width: 40%;" />
             <figcaption class="doc-image__caption">图：选取添加、减选与拖动</figcaption>
           </figure>
         </section>
@@ -355,7 +405,7 @@
           </div>
 
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-undo-redo.gif" alt="撤回与回退演示" style="width: 40%;" />
+            <img src="./doc-tablet-image/TOOL-undo-redo.gif" alt="撤回与回退演示" style="width: 40%;" />
             <figcaption class="doc-image__caption">图：撤回与回退演示</figcaption>
           </figure>
         </section>
@@ -555,18 +605,18 @@
             计算公式：<em>N</em> = 原图像素 ÷ 画布比例
           </div>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-create.png" alt="新建画布面板" />
+            <img src="./doc-tablet-image/TOOL-create.png" alt="新建画布面板" />
             <figcaption class="doc-image__caption">图：新建画布面板</figcaption>
           </figure>
 
           <div class="doc-grid">
             <article class="doc-card">
               <p class="doc-card__title">原图 160×160</p>
-              <img src="./doc-image/TOOL-create-testPixel.png" alt="原图" style="height: 90%" />
+              <img src="./doc-tablet-image/TOOL-create-testPixel.png" alt="原图" style="height: 90%" />
             </article>
             <article class="doc-card">
               <p class="doc-card__title">导入后 16×16（N=10）</p>
-              <img src="./doc-image/BASEUSE-draw.png" alt="导入后" style="height: auto" />
+              <img src="./doc-tablet-image/BASEUSE-draw.png" alt="导入后" style="height: auto" />
             </article>
           </div>
           <div class="doc-quote">建议：N 取整数倍，确保像素边缘对齐。</div>
@@ -574,7 +624,7 @@
           <h3 class="doc-section__subtitle">扩裁画布</h3>
           <p class="doc-paragraph">路径：<em>新建画布 / 扩裁画布 → 扩裁画布</em>，可在保留绘图的前提下修改画布尺寸。</p>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-create-ex-cr.png" alt="扩裁画布" />
+            <img src="./doc-tablet-image/TOOL-create-ex-cr.png" alt="扩裁画布" />
             <figcaption class="doc-image__caption">图：扩裁画布面板</figcaption>
           </figure>
 
@@ -584,23 +634,23 @@
           </div>
           <p class="doc-paragraph">路径：<em>新建画布 / 扩裁画布 → 根据图片生成草图</em>，一键像素化并生成草图。</p>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-img2img.png" alt="图片生成草图入口" />
+            <img src="./doc-tablet-image/TOOL-img2img.png" alt="图片生成草图入口" />
           </figure>
 
           <h4 class="doc-section__subtitle">三步速成</h4>
           <ol class="doc-list">
             <li>
               <p class="doc-paragraph">导入图片</p>
-              <img src="./doc-image/TOOL-i2i-import.png" alt="导入图片" />
+              <img src="./doc-tablet-image/TOOL-i2i-import.png" alt="导入图片" />
             </li>
             <li>
               <p class="doc-paragraph">选择色卡</p>
-              <img src="./doc-image/TOOL-i2i-choose.png" alt="选择色卡" />
+              <img src="./doc-tablet-image/TOOL-i2i-choose.png" alt="选择色卡" />
             </li>
             <li>
               <p class="doc-paragraph">生成草图</p>
-              <img src="./doc-image/TOOL-i2i-create.png" alt="生成草图" />
-              <img src="./doc-image/TOOL-i2i-result.png" alt="生成结果" />
+              <img src="./doc-tablet-image/TOOL-i2i-create.png" alt="生成草图" />
+              <img src="./doc-tablet-image/TOOL-i2i-result.png" alt="生成结果" />
             </li>
           </ol>
 
@@ -611,11 +661,11 @@
           <div class="doc-grid">
             <article class="doc-card">
               <p class="doc-card__title">100% 转换比率</p>
-              <img src="./doc-image/TOOL-i2i-transper100.png" alt="100%" style="height: auto;" />
+              <img src="./doc-tablet-image/TOOL-i2i-transper100.png" alt="100%" style="height: auto;" />
             </article>
             <article class="doc-card">
               <p class="doc-card__title">50% 转换比率</p>
-              <img src="./doc-image/TOOL-i2i-transper50.png" alt="50%" style="height: 85%;" />
+              <img src="./doc-tablet-image/TOOL-i2i-transper50.png" alt="50%" style="height: 85%;" />
             </article>
           </div>
 
@@ -639,24 +689,24 @@
               <tr>
                 <td><code>无抖动</code></td>
                 <td>无仿色，适合纯像素块</td>
-                <td><img src="./doc-image/TOOL-i2i-NOD.png" alt="无抖动" style="height:180px;" /></td>
+                <td><img src="./doc-tablet-image/TOOL-i2i-NOD.png" alt="无抖动" style="height:180px;" /></td>
               </tr>
               <tr>
                 <td><code>FS 抖动</code></td>
                 <td>基础抖动，颜色更还原</td>
-                <td><img src="./doc-image/TOOL-i2i-FSD.png" alt="FS抖动" style="height:180px;" /></td>
+                <td><img src="./doc-tablet-image/TOOL-i2i-FSD.png" alt="FS抖动" style="height:180px;" /></td>
               </tr>
               <tr>
                 <td><code>蓝噪声抖动</code></td>
                 <td>高级有序抖动</td>
-                <td><img src="./doc-image/TOOL-i2i-BND.png" alt="蓝噪声抖动" style="height:180px;" /></td>
+                <td><img src="./doc-tablet-image/TOOL-i2i-BND.png" alt="蓝噪声抖动" style="height:180px;" /></td>
               </tr>
             </tbody>
           </table>
 
           <p class="doc-paragraph">转换完成后，点击下方按钮即可导出成品。</p>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-i2i-create.png" alt="导出按钮" />
+            <img src="./doc-tablet-image/TOOL-i2i-create.png" alt="导出按钮" />
           </figure>
         </section>
 
@@ -683,7 +733,7 @@
           </ul>
 
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-Refer.png" alt="底图设置面板" />
+            <img src="./doc-tablet-image/TOOL-Refer.png" alt="底图设置面板" />
             <figcaption class="doc-image__caption">图：底图设置面板</figcaption>
           </figure>
 
@@ -702,7 +752,7 @@
           <h2 class="doc-section__title">参考图窗口</h2>
           <p class="doc-paragraph">快捷键：<kbd>Alt</kbd> + <kbd>Y</kbd></p>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-floatrefer.png" alt="参考图窗口" />
+            <img src="./doc-tablet-image/TOOL-floatrefer.png" alt="参考图窗口" />
             <figcaption class="doc-image__caption">图：参考图窗口总览</figcaption>
           </figure>
 
@@ -713,7 +763,7 @@
             <li>点击 <strong>删除</strong> 去掉当前参考图。</li>
           </ul>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-floatrefer-add.png" alt="添加参考图" />
+            <img src="./doc-tablet-image/TOOL-floatrefer-add.png" alt="添加参考图" />
             <figcaption class="doc-image__caption">图：添加参考图</figcaption>
           </figure>
 
@@ -725,21 +775,21 @@
           </ul>
           <div class="doc-grid">
             <figure class="doc-image">
-              <img src="./doc-image/TOOL-floatrefer-resize.png" alt="调整大小" style="height: auto;" />
+              <img src="./doc-tablet-image/TOOL-floatrefer-resize.png" alt="调整大小" style="height: auto;" />
               <figcaption class="doc-image__caption">图：调整大小</figcaption>
             </figure>
             <figure class="doc-image">
-              <img src="./doc-image/TOOL-floatrefer-trans.png" alt="拖动位置" style="height: auto;" />
+              <img src="./doc-tablet-image/TOOL-floatrefer-trans.png" alt="拖动位置" style="height: auto;" />
               <figcaption class="doc-image__caption">图：拖动位置</figcaption>
             </figure>
           </div>
           <div class="doc-grid">
             <figure class="doc-image">
-              <img src="./doc-image/TOOL-floatrefer-tosmall.png" alt="最小化" style="height: auto;" />
+              <img src="./doc-tablet-image/TOOL-floatrefer-tosmall.png" alt="最小化" style="height: auto;" />
               <figcaption class="doc-image__caption">图：最小化</figcaption>
             </figure>
             <figure class="doc-image">
-              <img src="./doc-image/TOOL-floatrefer-tobig.png" alt="恢复" style="margin:240px auto 0;height: auto;" />
+              <img src="./doc-tablet-image/TOOL-floatrefer-tobig.png" alt="恢复" style="margin:240px auto 0;height: auto;" />
               <figcaption class="doc-image__caption">图：恢复窗口</figcaption>
             </figure>
           </div>
@@ -756,7 +806,7 @@
             导出窗口可自定义色号、坐标系、背景等内容，并支持高亮指定颜色单独输出。
           </p>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-export.png" alt="导出总面板" />
+            <img src="./doc-tablet-image/TOOL-export.png" alt="导出总面板" />
             <figcaption class="doc-image__caption">图：导出总面板</figcaption>
           </figure>
 
@@ -769,13 +819,13 @@
             <li><strong>滚轮滚动</strong>：预览图缩放。</li>
           </ol>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-export-preview.png" alt="预览操作" style="width: 50%;" />
+            <img src="./doc-tablet-image/TOOL-export-preview.png" alt="预览操作" style="width: 50%;" />
             <figcaption class="doc-image__caption">图：预览操作示意</figcaption>
           </figure>
 
           <h3 class="doc-section__subtitle">渲染设置</h3>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-export-setting.png" alt="渲染设置" style="width: 30%;" />
+            <img src="./doc-tablet-image/TOOL-export-setting.png" alt="渲染设置" style="width: 30%;" />
             <figcaption class="doc-image__caption">图：渲染设置区域</figcaption>
           </figure>
 
@@ -786,7 +836,7 @@
             <li>.pd 格式用于后续恢复工程再编辑。</li>
           </ul>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-export-format.png" alt="格式选择" />
+            <img src="./doc-tablet-image/TOOL-export-format.png" alt="格式选择" />
             <figcaption class="doc-image__caption">图：格式选择</figcaption>
           </figure>
 
@@ -796,7 +846,7 @@
             <li><strong>透明背景</strong>：不可选颜色，直接留空。</li>
           </ul>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-export-background.png" alt="背景设置" />
+            <img src="./doc-tablet-image/TOOL-export-background.png" alt="背景设置" />
             <figcaption class="doc-image__caption">图：背景设置</figcaption>
           </figure>
 
@@ -820,7 +870,7 @@
             </article>
           </div>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-export-render.png" alt="信息内容开关" />
+            <img src="./doc-tablet-image/TOOL-export-render.png" alt="信息内容开关" />
             <figcaption class="doc-image__caption">图：信息内容开关</figcaption>
           </figure>
 
@@ -831,16 +881,16 @@
           </ul>
           <div class="doc-grid">
             <figure class="doc-image" style="height: 500px;">
-              <img src="./doc-image/TOOL-export-highlight.png" alt="高亮选项" style="height: 90%;" />
+              <img src="./doc-tablet-image/TOOL-export-highlight.png" alt="高亮选项" style="height: 90%;" />
               <figcaption class="doc-image__caption">图：高亮选项</figcaption>
             </figure>
             <figure class="doc-image">
-              <img src="./doc-image/TOOL-export-allExport.png" alt="批量导出" style="height: 89%;" />
+              <img src="./doc-tablet-image/TOOL-export-allExport.png" alt="批量导出" style="height: 89%;" />
               <figcaption class="doc-image__caption">图：批量导出</figcaption>
             </figure>
           </div>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-export-highlight-preview.png" alt="高亮预览" style="width: 60%;" />
+            <img src="./doc-tablet-image/TOOL-export-highlight-preview.png" alt="高亮预览" style="width: 60%;" />
             <figcaption class="doc-image__caption">图：高亮颜色预览效果</figcaption>
           </figure>
         </section>
@@ -860,7 +910,7 @@
             <li>在导入文件窗口点击 <strong>导入 .pd 文件</strong>。</li>
           </ol>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-import.png" alt="导入入口" />
+            <img src="./doc-tablet-image/TOOL-import.png" alt="导入入口" />
             <figcaption class="doc-image__caption">图：导入入口</figcaption>
           </figure>
 
@@ -868,7 +918,7 @@
             <li>选择后缀为 <code>.pd</code> 的文件。</li>
           </ol>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-import-pd.png" alt="选择文件" />
+            <img src="./doc-tablet-image/TOOL-import-pd.png" alt="选择文件" />
             <figcaption class="doc-image__caption">图：选择 .pd 文件</figcaption>
           </figure>
 
@@ -883,7 +933,7 @@
               <li>若文件色卡已存在，可直接切换；否则强制使用当前色卡。</li>
             </ul>
             <figure class="doc-image">
-              <img src="./doc-image/TOOL-import-window.png" alt="覆盖式导入" />
+              <img src="./doc-tablet-image/TOOL-import-window.png" alt="覆盖式导入" />
               <figcaption class="doc-image__caption">图：覆盖式导入确认</figcaption>
             </figure>
           </details>
@@ -895,7 +945,7 @@
               <li>色卡一致时直接合并；不一致时自动映射为当前色卡。</li>
             </ul>
             <figure class="doc-image">
-              <img src="./doc-image/TOOL-import-window-add.png" alt="拓展式导入" />
+              <img src="./doc-tablet-image/TOOL-import-window-add.png" alt="拓展式导入" />
               <figcaption class="doc-image__caption">图：拓展式导入示意</figcaption>
             </figure>
           </details>
@@ -914,7 +964,7 @@
           <p class="doc-paragraph">快捷键：<kbd>Alt</kbd> + <kbd>I</kbd></p>
           <p class="doc-paragraph">调整画布显示效果与辅助工具，实时生效。</p>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-display.png" alt="显示设置面板" />
+            <img src="./doc-tablet-image/TOOL-display.png" alt="显示设置面板" />
             <figcaption class="doc-image__caption">图：显示设置面板</figcaption>
           </figure>
 
@@ -924,27 +974,27 @@
             <li><strong>显示色号</strong>：在每个像素中心叠加显示所用色号。</li>
           </ul>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-display-draw-colornum.png" alt="色号与贴合示意" style="width: 40%;" />
+            <img src="./doc-tablet-image/TOOL-display-draw-colornum.png" alt="色号与贴合示意" style="width: 40%;" />
             <figcaption class="doc-image__caption">图：左-显示色号开启;中-自动贴合开启；</figcaption>
           </figure>
 
           <h3 class="doc-section__subtitle">画布光效</h3>
           <p class="doc-paragraph">切换光效模式，可即时预览光变 / 温变像素在不同环境下的最终颜色。</p>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-display-lighting.png" alt="光效选项" />
+            <img src="./doc-tablet-image/TOOL-display-lighting.png" alt="光效选项" />
           </figure>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-display-lighting.gif" alt="光效切换动画" />
+            <img src="./doc-tablet-image/TOOL-display-lighting.gif" alt="光效切换动画" />
             <figcaption class="doc-image__caption">图：光效实时切换动画</figcaption>
           </figure>
 
           <h3 class="doc-section__subtitle">像素形状</h3>
           <p class="doc-paragraph">在<strong>实心方形</strong>与<strong>空心圆</strong>之间切换，仅影响视觉样式，不改变数据。</p>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-display-shap.png" alt="形状选项" />
+            <img src="./doc-tablet-image/TOOL-display-shap.png" alt="形状选项" />
           </figure>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-display-shap-Lsquare-Rcircle.png" alt="形状对比" style="width: 50%;" />
+            <img src="./doc-tablet-image/TOOL-display-shap-Lsquare-Rcircle.png" alt="形状对比" style="width: 50%;" />
             <figcaption class="doc-image__caption">图：左-实心方形；右-空心圆</figcaption>
           </figure>
 
@@ -954,7 +1004,7 @@
             <li><strong>画布透明度</strong>：1 % – 100 %，低于 100 % 时画布呈半透明，便于对照底图。</li>
           </ul>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-display-scale-opacity.png" alt="缩放与透明度滑块" />
+            <img src="./doc-tablet-image/TOOL-display-scale-opacity.png" alt="缩放与透明度滑块" />
             <figcaption class="doc-image__caption">图：缩放与透明度滑块</figcaption>
           </figure>
 
@@ -965,11 +1015,11 @@
           </ul>
           <div class="doc-grid" style="height: 350px">
             <figure class="doc-image" style="height: 60%;">
-              <img src="./doc-image/TOOL-display-axis.png" alt="普通坐标轴" style="height: 90%;" />
+              <img src="./doc-tablet-image/TOOL-display-axis.png" alt="普通坐标轴" style="height: 90%;" />
               <figcaption class="doc-image__caption">图：普通坐标轴</figcaption>
             </figure>
             <figure class="doc-image" style="height: 60%;">
-              <img src="./doc-image/TOOL-display-axis-strong.png" alt="加粗分区坐标轴" style="height: 90%;" />
+              <img src="./doc-tablet-image/TOOL-display-axis-strong.png" alt="加粗分区坐标轴" style="height: 90%;" />
               <figcaption class="doc-image__caption">图：加粗分区坐标轴</figcaption>
             </figure>
           </div>
@@ -999,7 +1049,7 @@
           <div class="doc-quote">两者可分别开启，互不冲突。</div>
 
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-screen-full+easy.png" alt="全屏与简洁模式结合" />
+            <img src="./doc-tablet-image/TOOL-screen-full+easy.png" alt="全屏与简洁模式结合" />
             <figcaption class="doc-image__caption">图：全屏与简洁模式结合</figcaption>
           </figure>
         </section>
@@ -1013,7 +1063,7 @@
           <p class="doc-paragraph">快捷键：<kbd>Alt</kbd> + <kbd>F</kbd></p>
           <p class="doc-paragraph">调色板用于切换绘制颜色，支持常规色与特殊色快速选取。</p>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-palette.png" alt="调色板面板" />
+            <img src="./doc-tablet-image/TOOL-palette.png" alt="调色板面板" />
             <figcaption class="doc-image__caption">图：调色板面板</figcaption>
           </figure>
 
@@ -1023,7 +1073,7 @@
             <strong>[特殊色]</strong> 下拉框中一键筛选。
           </p>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-palette-sp.png" alt="特殊色筛选" />
+            <img src="./doc-tablet-image/TOOL-palette-sp.png" alt="特殊色筛选" />
             <figcaption class="doc-image__caption">图：特殊色筛选示例</figcaption>
           </figure>
 
@@ -1034,11 +1084,11 @@
           </ul>
           <div class="doc-grid">
             <figure class="doc-image">
-              <img src="./doc-image/TOOL-palette-resize.png" alt="调整大小" style="height: 95%;" />
+              <img src="./doc-tablet-image/TOOL-palette-resize.png" alt="调整大小" style="height: 95%;" />
               <figcaption class="doc-image__caption">图：调整大小</figcaption>
             </figure>
             <figure class="doc-image">
-              <img src="./doc-image/TOOL-palette-trans.png" alt="拖动位置" style="height: 94.3%;" />
+              <img src="./doc-tablet-image/TOOL-palette-trans.png" alt="拖动位置" style="height: 94.3%;" />
               <figcaption class="doc-image__caption">图：拖动位置</figcaption>
             </figure>
           </div>
@@ -1057,11 +1107,11 @@
 
           <div class="doc-grid">
             <figure class="doc-image">
-              <img src="./doc-image/TOOL-canvasset-rotate.gif" alt="旋转与翻转" style="height: 95%;" />
+              <img src="./doc-tablet-image/TOOL-canvasset-rotate.gif" alt="旋转与翻转" style="height: 95%;" />
               <figcaption class="doc-image__caption">图：水平 / 垂直翻转 & 90° 旋转</figcaption>
             </figure>
             <figure class="doc-image">
-              <img src="./doc-image/TOOL-canvasset-symmetry.gif" alt="对称绘制" style="height: 95%;" />
+              <img src="./doc-tablet-image/TOOL-canvasset-symmetry.gif" alt="对称绘制" style="height: 95%;" />
               <figcaption class="doc-image__caption">图：对称绘制</figcaption>
             </figure>
           </div>
@@ -1080,7 +1130,7 @@
           <p class="doc-paragraph">快捷键：<kbd>Alt</kbd> + <kbd>H</kbd></p>
           <p class="doc-paragraph">在此窗口可切换、重置、新增或删除色卡，支持默认色卡与自定义色卡混合使用。</p>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-colorcard.png" alt="色卡管理面板" />
+            <img src="./doc-tablet-image/TOOL-colorcard.png" alt="色卡管理面板" />
             <figcaption class="doc-image__caption">图：色卡管理面板</figcaption>
           </figure>
 
@@ -1120,23 +1170,23 @@
           <h3 class="doc-section__subtitle">颜色管理窗口</h3>
           <p class="doc-paragraph">可临时<strong>禁用 / 启用</strong>指定色号；被禁止的色号无法在调色盘中使用(已绘制像素不会被清除)</p>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-colorman-color.png" alt="颜色管理面板" />
+            <img src="./doc-tablet-image/TOOL-colorman-color.png" alt="颜色管理面板" />
             <figcaption class="doc-image__caption">图：颜色管理面板</figcaption>
           </figure>
 
           <h3 class="doc-section__subtitle">颜色高亮窗口</h3>
           <p class="doc-paragraph">可将已绘制像素按色号<strong>高亮显示</strong>，仅用于视觉检查，不影响导出效果。</p>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-colorman-highlight.png" alt="高亮设置" />
+            <img src="./doc-tablet-image/TOOL-colorman-highlight.png" alt="高亮设置" />
             <figcaption class="doc-image__caption">图：高亮设置</figcaption>
           </figure>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-colorman-highlight-use.png" alt="高亮效果" style="width: 40%;" />
+            <img src="./doc-tablet-image/TOOL-colorman-highlight-use.png" alt="高亮效果" style="width: 40%;" />
             <figcaption class="doc-image__caption">图：高亮显示效果</figcaption>
           </figure>
           <p class="doc-paragraph">上方的替换颜色可一键将高亮的所有颜色替换为其它颜色。</p>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-colorman-highlight-replace.png" alt="高亮颜色替换" />
+            <img src="./doc-tablet-image/TOOL-colorman-highlight-replace.png" alt="高亮颜色替换" />
             <figcaption class="doc-image__caption">图：高亮颜色替换</figcaption>
           </figure>
         </section>
@@ -1149,11 +1199,11 @@
           <h2 class="doc-section__title">色卡制作</h2>
           <p class="doc-paragraph">网站提供专用色卡编辑器，路径：<em>色卡管理 → 制作色卡。</em></p>
           <figure class="doc-image">
-            <img src="./doc-image/WEB-makecard-entry.png" alt="色卡编辑器入口" style="width: 30%;" />
+            <img src="./doc-tablet-image/WEB-makecard-entry.png" alt="色卡编辑器入口" style="width: 30%;" />
             <figcaption class="doc-image__caption">图：色卡编辑器入口</figcaption>
           </figure>
           <figure class="doc-image">
-            <img src="./doc-image/WEB-makecard.png" alt="色卡编辑器界面" />
+            <img src="./doc-tablet-image/WEB-makecard.png" alt="色卡编辑器界面" />
             <figcaption class="doc-image__caption">图：色卡编辑器界面</figcaption>
           </figure>
 
@@ -1176,7 +1226,7 @@
           </ul>
           <div class="doc-callout">提示：若底部状态栏提示“无 无活动颜色”，表示当前选中为白色 RGB(255, 255, 255)。</div>
           <figure class="doc-image">
-            <img src="./doc-image/WEB-makecard-use.png" alt="试色画布" />
+            <img src="./doc-tablet-image/WEB-makecard-use.png" alt="试色画布" />
             <figcaption class="doc-image__caption">图：试色画布与光效切换</figcaption>
           </figure>
 
@@ -1186,7 +1236,7 @@
           <h3 class="doc-section__subtitle">导入与导出</h3>
           <p class="doc-paragraph">顶部左侧三个按钮分别对应“导入继续编辑”“导出 JSON”“导出 CSV”。导出前请在弹窗内输入色卡名称。</p>
           <figure class="doc-image">
-            <img src="./doc-image/WEB-makecard-export-import.png" alt="导入导出按钮" />
+            <img src="./doc-tablet-image/WEB-makecard-export-import.png" alt="导入导出按钮" />
             <figcaption class="doc-image__caption">图：导入 / 导出按钮组</figcaption>
           </figure>
 
