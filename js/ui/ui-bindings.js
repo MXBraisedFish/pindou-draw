@@ -639,7 +639,7 @@ function initializeTabletMode() {
       } catch (error) { }
     }
     if (!prev && matches) {
-      window.alert('平板端目前处于测试版本，当前使用可能会遇到不可预知的Bug，请谨慎使用，若您遇到Bug请及时向我汇报');
+      window.alert('平板端目前处于测试版本，当前使用可能会遇到不可预知的Bug，请谨慎使用，若您遇到Bug请及时向作者汇报(小红书、b站、github)');
     }
     if (matches && state.simpleMode) {
       setSimpleMode(false);
