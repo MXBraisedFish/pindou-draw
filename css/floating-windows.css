@@ -33,6 +33,13 @@
   cursor: grab;
 }
 
+body.tablet-mode #referenceHeader,
+body.tablet-mode #referenceResizer,
+body.tablet-mode #referenceWindow.is-dragging,
+body.tablet-mode #referenceWindow.is-resizing {
+  touch-action: none;
+}
+
 .floating-window__header:active {
   cursor: grabbing;
 }

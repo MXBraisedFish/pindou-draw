@@ -9,6 +9,7 @@ let previewTouchGesture = { pinchActive: false, startDistance: 0, startScale: 1,
 let exportInProgress = false;
 const HIGHLIGHT_IMAGE_FORMATS = new Set(['image/png', 'image/jpeg']);
 let colorInputTimer = null;
+let filenameInputTimer = null;
 let previewRenderHandle = null;
 let previewRenderCancel = null;
 let pendingPreviewSnapshot = null;
@@ -55,6 +56,32 @@ function renderPreviewCanvas() {
     
     
     updateScaleDisplay();
+}
+
+function syncPreviewCanvasSize() {
+    if (!elements.exportPreviewCanvas) return false;
+    const previewContainer = elements.exportPreviewCanvas.closest('.preview-stage') ?? elements.exportPreviewCanvas.parentElement;
+    if (!previewContainer) return false;
+
+    const styles = window.getComputedStyle(previewContainer);
+    const paddingX = parseFloat(styles.paddingLeft || '0') + parseFloat(styles.paddingRight || '0');
+    const paddingY = parseFloat(styles.paddingTop || '0') + parseFloat(styles.paddingBottom || '0');
+    const innerWidth = previewContainer.clientWidth - paddingX;
+    const innerHeight = previewContainer.clientHeight - paddingY;
+
+    if (!Number.isFinite(innerWidth) || !Number.isFinite(innerHeight) || innerWidth < 2 || innerHeight < 2) {
+        return false;
+    }
+
+    const ratioX = Math.max(1, Math.floor(innerWidth));
+    const ratioY = Math.max(1, Math.floor(innerHeight));
+    if (elements.exportPreviewCanvas.width !== ratioX) {
+        elements.exportPreviewCanvas.width = ratioX;
+    }
+    if (elements.exportPreviewCanvas.height !== ratioY) {
+        elements.exportPreviewCanvas.height = ratioY;
+    }
+    return true;
 }
 
 function updateScaleDisplay() {
@@ -132,6 +159,8 @@ function bindExportSettingsEvents() {
     elements.exportFilename?.addEventListener('input', (event) => {
         state.exportSettings.filename = event.target.value.trim();
         updateFilenamePreview();
+        clearTimeout(filenameInputTimer);
+        filenameInputTimer = setTimeout(() => updateExportPreview(), 150);
     });
 
     document.addEventListener('highlightColorsChanged', () => {
@@ -265,6 +294,7 @@ function handlePreviewTouchEnd(event) {
     previewState.isDragging = false;
 }
 function resetPreviewView() {
+    syncPreviewCanvasSize();
     calculateInitialView();
     renderPreviewCanvas();
 }
@@ -351,6 +381,7 @@ function updateRadioSelection(name, value) {
 }
 function buildPreviewSnapshot() {
     const exportSettings = state.exportSettings || {};
+    const filename = (exportSettings.filename || 'pixel-art').trim() || 'pixel-art';
     const settings = {
         format: exportSettings.format || 'image/png',
         includeCodes: Boolean(exportSettings.includeCodes),
@@ -358,7 +389,8 @@ function buildPreviewSnapshot() {
         includeLightColors: exportSettings.includeLightColors !== false,
         includeTemperatureColors: exportSettings.includeTemperatureColors !== false,
         backgroundType: exportSettings.backgroundType || 'solid',
-        backgroundColor: (exportSettings.backgroundColor || '#ffffff').toUpperCase()
+        backgroundColor: (exportSettings.backgroundColor || '#ffffff').toUpperCase(),
+        filename
     };
 
     const selectedSet = typeof exportHighlightManager.getSelectedColors === 'function'
@@ -377,6 +409,7 @@ function buildPreviewSnapshot() {
         settings.includeTemperatureColors ? 1 : 0,
         settings.backgroundType,
         settings.backgroundColor,
+        filename,
         hasHighlight ? 1 : 0,
         effectiveSelection.join('|'),
         state.historyIndex
@@ -462,28 +495,11 @@ function generateExportPreview(snapshot) {
     previewState.sourceCanvas = tempCanvas;
     lastPreviewSignature = snapshot.signature;
 
-    const previewContainer = elements.exportPreviewCanvas.closest('.preview-stage') ?? elements.exportPreviewCanvas.parentElement;
-    if (previewContainer) {
-        const styles = window.getComputedStyle(previewContainer);
-        const paddingX = parseFloat(styles.paddingLeft || '0') + parseFloat(styles.paddingRight || '0');
-        const paddingY = parseFloat(styles.paddingTop || '0') + parseFloat(styles.paddingBottom || '0');
-        const innerWidth = previewContainer.clientWidth - paddingX;
-        const innerHeight = previewContainer.clientHeight - paddingY;
-        const ratioX = Math.max(1, Math.floor(innerWidth));
-        const ratioY = Math.max(1, Math.floor(innerHeight));
-        elements.exportPreviewCanvas.width = ratioX;
-        elements.exportPreviewCanvas.height = ratioY;
-        elements.exportPreviewCanvas.style.width = `${ratioX}px`;
-        elements.exportPreviewCanvas.style.height = `${ratioY}px`;
-    } else {
-        elements.exportPreviewCanvas.width = 400;
-        elements.exportPreviewCanvas.height = 300;
-        elements.exportPreviewCanvas.style.width = '400px';
-        elements.exportPreviewCanvas.style.height = '300px';
+    const sized = syncPreviewCanvasSize();
+    if (sized) {
+        calculateInitialView();
+        renderPreviewCanvas();
     }
-
-    calculateInitialView();
-    renderPreviewCanvas();
     elements.exportPreviewCanvas.style.opacity = '1';
 }
 function calculateInitialView() {
@@ -519,6 +535,10 @@ function updateFilenamePreview() {
     const baseElement = document.querySelector('.filename-base');
     if (baseElement) {
         baseElement.textContent = state.exportSettings.filename || 'pixel-art';
+    }
+    const previewTitle = document.getElementById('exportPreviewFilenameTitle');
+    if (previewTitle) {
+        previewTitle.textContent = state.exportSettings.filename || 'pixel-art';
     }
     updateFilenameSuffix();
 }
@@ -728,6 +748,17 @@ function updateExportTabletViewTabsUI() {
     const view = elements.exportWindow.dataset.tabletExportView === 'settings' ? 'settings' : 'preview';
     previewBtn.setAttribute('aria-selected', view === 'preview' ? 'true' : 'false');
     settingsBtn.setAttribute('aria-selected', view === 'settings' ? 'true' : 'false');
+
+    if (view === 'preview') {
+        const raf = typeof requestAnimationFrame === 'function' ? requestAnimationFrame : (fn) => setTimeout(fn, 0);
+        raf(() => {
+            if (!state.exportVisible) return;
+            if (!previewState.sourceCanvas) return;
+            if (!syncPreviewCanvasSize()) return;
+            calculateInitialView();
+            renderPreviewCanvas();
+        });
+    }
 }
 function handleKeydown(ev) {
     ev.key === 'Escape' && state.exportVisible && toggleExportWindow(false);

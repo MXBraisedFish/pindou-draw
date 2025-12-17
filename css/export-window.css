@@ -53,6 +53,11 @@
   border-bottom: 2px solid #1a73e8;
 }
 
+.export-preview-filename {
+  font-weight: 700;
+  color: #1a73e8;
+}
+
 .preview-container {
   flex: 1 1 auto;
   min-height: 0;

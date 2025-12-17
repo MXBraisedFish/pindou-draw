@@ -500,6 +500,7 @@ export function prepareCanvasInteractions() {
     } catch (_) { }
   };
   const isTabletTouchPointer = (ev) => state.isTabletMode && ev.pointerType === 'touch';
+  const isTabletDirectPointer = (ev) => state.isTabletMode && (ev.pointerType === 'touch' || ev.pointerType === 'pen');
   const recordTabletPointer = (ev) => {
     if (!isTabletTouchPointer(ev)) return;
     tabletGestureState.pointers.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
@@ -592,8 +593,8 @@ export function prepareCanvasInteractions() {
         return;
       }
     }
-    const isTabletTouch = isTabletTouchPointer(ev);
-    if (state.moveModeEnabled && state.isTabletMode && isTabletTouch) {
+    const isTabletDirect = isTabletDirectPointer(ev);
+    if (state.moveModeEnabled && state.isTabletMode && isTabletDirect) {
       pointerState = {
         type: 'pending',
         pointerId: ev.pointerId,
@@ -738,7 +739,7 @@ export function prepareCanvasInteractions() {
 function handleSelectionPointerDown(ev) {
   if (state.isTabletMode && state.moveModeEnabled) return false;
   const coords = getCanvasCoordinates(ev);
-  const isTabletSelection = state.isTabletMode && ev.pointerType === 'touch';
+  const isTabletSelection = state.isTabletMode && (ev.pointerType === 'touch' || ev.pointerType === 'pen');
   if (isTabletSelection) {
     if (!coords) return true;
     if (state.selectionToolMode === 'add') {

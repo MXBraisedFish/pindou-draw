@@ -428,8 +428,18 @@ function bindWindowControls() {
 }
 
 function bindProjectControls() {
-  elements.importProjectBtn?.addEventListener('click', () => elements.projectFileInput?.click());
-  elements.projectFileInput?.addEventListener('change', handleProjectFileImport);
+  const originalAccept = elements.projectFileInput?.getAttribute('accept') ?? '';
+  elements.importProjectBtn?.addEventListener('click', () => {
+    if (!elements.projectFileInput) return;
+    elements.projectFileInput.accept = state.isTabletMode ? '*/*' : originalAccept;
+    elements.projectFileInput.click();
+  });
+  elements.projectFileInput?.addEventListener('change', (ev) => {
+    if (elements.projectFileInput) {
+      elements.projectFileInput.accept = originalAccept;
+    }
+    handleProjectFileImport(ev);
+  });
 }
 
 function handleBaseScaleRangeInput(event) {

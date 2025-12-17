@@ -384,7 +384,7 @@ function beginInteractionWithPointer(pointerId, mode, clientX, clientY) {
   pointerCancelHandler = handlePointerUp.bind(this);
 
   
-  window.addEventListener('pointermove', pointerMoveHandler, { passive: true });
+  window.addEventListener('pointermove', pointerMoveHandler, { passive: false });
   window.addEventListener('pointerup', pointerUpHandler, { passive: true });
   window.addEventListener('pointercancel', pointerCancelHandler, { passive: true });
 
@@ -404,6 +404,10 @@ function handlePointerMove(ev) {
 
   if (ev.pointerId !== activePointer.id) {
     return;
+  }
+
+  if (state.isTabletMode && ev.pointerType !== 'mouse') {
+    ev.preventDefault();
   }
 
   const dx = ev.clientX - activePointer.startX;
@@ -467,15 +471,8 @@ function cleanupInteraction() {
 }
 function handlePointerUp(ev) {
   
-  if (!activePointer || (ev.pointerId !== activePointer.id && activePointer.id !== undefined)) {
-    cleanupInteraction();
-    return;
-  }
-
-  try {
-    ev.target.releasePointerCapture(ev.pointerId);
-  } catch { }
-
+  if (!activePointer) return;
+  if (ev.pointerId !== activePointer.id) return;
   cleanupInteraction();
 }
 function handleViewportResize() {
