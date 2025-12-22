@@ -7,7 +7,7 @@ const STORAGE_KEY = 'local-save-slots-v1';
 const AUTOSAVE_COUNTDOWN_KEY = 'autosave-countdown-visible';
 const SLOT_COUNT = 10;
 const AUTOSAVE_SLOT = 0;
-const AUTOSAVE_INTERVAL_MS = 10 * 1000;
+const AUTOSAVE_INTERVAL_MS = 5 * 60 * 1000;
 const THUMBNAIL_SIZE = 220;
 const EMPTY_ASSET_PATH = 'svg/\u65e0.svg';
 
