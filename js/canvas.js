@@ -1295,13 +1295,13 @@ function updateDisplayModeToast(mode = state.displayMode ?? 'standard') {
   const toast = elements.displayModeToast;
   if (!toast) return;
   const normalized = typeof mode === 'string' && mode ? mode : 'standard';
-  const label = DISPLAY_MODE_HINTS[normalized] || '画布光效：标准/白昼';
-  const shouldShow = Boolean(label !== '画布光效：标准/白昼');
+  const label = DISPLAY_MODE_HINTS[normalized] || '画布光效：标准模式';
+  const shouldShow = Boolean(label !== '画布光效：标准模式');
   if (shouldShow) {
     toast.textContent = label;
     toast.dataset.mode = normalized;
   } else {
-    toast.textContent = '画布光效：标准/白昼';
+    toast.textContent = '画布光效：标准模式';
     toast.removeAttribute('data-mode');
   }
   toast.classList.toggle('is-visible', shouldShow);
