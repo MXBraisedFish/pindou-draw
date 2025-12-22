@@ -5,6 +5,10 @@
   z-index: 50;
 }
 
+body.tablet-mode .modal-window__dialog .modal-window__body {
+  height: 100%;
+}
+
 .modal-window__footer {
   position: inherit;
   
@@ -19,6 +23,20 @@
   overflow-y: auto;
   max-height: 640px;
   padding-right: 8px;
+}
+
+body.tablet-mode #updateWindow .modal-window__body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: calc(100vh - 220px);
+  overflow: hidden;
+}
+
+body.tablet-mode #updateWindow .update-feed {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
 }
 
 .update-hero {
