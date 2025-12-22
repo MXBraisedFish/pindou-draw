@@ -31,7 +31,6 @@
   padding: 0;
   border-radius: 16px;
   width: min(1000px, 96vw);
-  
   max-height: calc(100vh - 80px);
   display: flex;
   flex-direction: column;
@@ -50,7 +49,7 @@
   padding: 0;
   border-radius: 16px;
   width: min(720px, 94vw);
-  max-height: calc(100vh - 80px);
+  max-height: calc(100vh - 50px);
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);

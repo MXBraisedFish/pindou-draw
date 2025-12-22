@@ -6,6 +6,14 @@
   gap: 12px;
 }
 
+.button-row--stacked {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.button-row__full {
+  width: 100%;
+}
+
 .focus-mode-actions {
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 }
@@ -43,6 +51,12 @@
 
 .ghost-button:hover {
   background: #f1f3f4;
+}
+
+.ghost-button.is-disabled,
+.primary-button.is-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .button-grid {

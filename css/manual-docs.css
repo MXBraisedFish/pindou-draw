@@ -303,7 +303,7 @@ a:hover {
 .doc-section__subtitle {
   margin: 0;
   color: var(--doc-muted);
-  font-size: 16px;
+  font-size: 22px;
 }
 
 .doc-paragraph {

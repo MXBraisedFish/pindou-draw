@@ -7,7 +7,7 @@ import {
   saveHistory,
   validateCanvasSize
 } from './canvas.js';
-import { applyPalette, updateCurrentColorInfo } from './palette.js';
+import { applyPalette, ensurePaletteInLibraryFromPd, updateCurrentColorInfo } from './palette.js';
 import { resetSelection } from './selection.js';
 import { parseColor, rgbToLab, deltaELab } from './utils.js';
 import { TEXT } from './language.js';
@@ -59,6 +59,11 @@ export async function importProjectFile(file) {
     return;
   }
 
+  const ensureResult = ensurePaletteInLibraryFromPd(payload.palette);
+  if (ensureResult?.id) {
+    payload.palette.id = ensureResult.id;
+  }
+
   const paletteInfo = buildPaletteInfo(payload);
   const extendOptions = buildExtendOptions(payload);
 
@@ -74,9 +79,7 @@ export async function importProjectFile(file) {
 
   if (!decision) return;
 
-  const effectivePaletteStrategy = (paletteInfo.hasFilePalette && paletteInfo.hasLibraryMatch)
-    ? decision.paletteStrategy
-    : 'current';
+  const effectivePaletteStrategy = paletteInfo.hasFilePalette ? decision.paletteStrategy : 'current';
 
   if (decision.mode === 'new') {
     if (isCanvasDirty() && !window.confirm('导入新的 .pd 项目会覆盖当前画布，确定继续吗？')) {
@@ -102,6 +105,17 @@ export async function importProjectFile(file) {
   }
 
   if (decision.mode === 'extend') {
+    if (paletteInfo.hasFilePalette) {
+      const shouldUsePdPalette = ensureResult?.created
+        ? true
+        : window.confirm('检测到 .pd 文件包含色卡。\n\n确定：使用 .pd 文件色卡后再扩展（会将当前画布颜色转换到该色卡）。\n取消：使用当前色卡直接扩展（.pd 内容会转换到当前色卡）。');
+      if (shouldUsePdPalette && ensureResult?.id) {
+        const entry = state.paletteLibrary.get(ensureResult.id);
+        if (entry?.data) {
+          applyPalette(entry.data, entry.name, { libraryId: ensureResult.id, persistSelection: true, convertCanvas: true });
+        }
+      }
+    }
     const success = extendCanvasWithPayload(payload, decision.extendDirection);
     if (success) {
       window.alert('.pd 内容已扩展到当前画布。');

@@ -79,7 +79,7 @@
   position: fixed;
   left: 0;
   top: 0;
-  z-index: 120;
+  z-index: 9999;
   max-width: min(320px, calc(100vw - 24px));
   padding: 10px 12px;
   border-radius: 12px;
@@ -103,7 +103,7 @@
   position: fixed;
   top: 12px;
   left: 50%;
-  z-index: 120;
+  z-index: 9999;
   transform: translate(-50%, -8px);
   max-width: min(420px, calc(100vw - 24px));
   padding: 10px 12px;
@@ -153,7 +153,40 @@
   border-radius: 8px;
   white-space: nowrap;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
-  z-index: 10;
+  z-index: 9999;
+}
+
+#tabletToolbarTooltipOverlay {
+  position: fixed;
+  z-index: 9999;
+  max-width: min(280px, calc(100vw - 24px));
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(26, 32, 44, 0.92);
+  color: #ffffff;
+  font-size: 12px;
+  white-space: nowrap;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  transform: translate(0, -50%);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+#tabletToolbarTooltipOverlay.is-visible {
+  opacity: 1;
+}
+
+#tabletToolbarTooltipOverlay.placement-left {
+  transform: translate(-100%, -50%);
+}
+
+#tabletToolbarTooltipOverlay.placement-right {
+  transform: translate(0, -50%);
+}
+
+#tabletToolbarTooltipOverlay.placement-top {
+  transform: translate(-50%, -100%);
 }
 
 .toolbar-left .toolbar-button[data-tooltip]::after {

@@ -29,6 +29,7 @@ import {
 } from '../base-image.js';
 import { toggleReferenceWindow } from '../reference.js';
 import { toggleExportWindow } from '../export-window.js';
+import { getAutosaveCountdownEnabled, initializeLocalStorageFeature, setAutosaveCountdownEnabled } from '../local-storage.js';
 import {
   handlePaletteFile,
   handleDeletePalette,
@@ -51,6 +52,12 @@ let manualHintShown = false;
 let tabletUsageHideTimer = null;
 let tabletTooltipHideTimer = null;
 let tabletTooltipActiveBtn = null;
+let tabletTooltipOverlayEl = null;
+let tabletFullscreenDesired = false;
+let tabletFullscreenExitFailures = [];
+let tabletFullscreenReenterBound = false;
+let lastFullscreenToggleIntent = null;
+let lastFullscreenToggleTime = 0;
 
 export function initializeUIBindings() {
   initializeTabletMode();
@@ -71,6 +78,8 @@ export function initializeUIBindings() {
   bindTabletUsageToast();
   bindTabletToolbarTooltipAutoHide();
   bindDocsLinkRouting();
+  bindTabletFullscreenResilience();
+  initializeLocalStorageFeature();
 }
 
 function bindManualHintToast() {
@@ -146,6 +155,54 @@ function showTabletUsageToast() {
 }
 
 function bindTabletToolbarTooltipAutoHide() {
+  const ensureOverlay = () => {
+    if (tabletTooltipOverlayEl) return tabletTooltipOverlayEl;
+    const el = document.createElement('div');
+    el.id = 'tabletToolbarTooltipOverlay';
+    el.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(el);
+    tabletTooltipOverlayEl = el;
+    return el;
+  };
+
+  const hideOverlay = () => {
+    if (!tabletTooltipOverlayEl) return;
+    tabletTooltipOverlayEl.classList.remove('is-visible', 'placement-left', 'placement-right', 'placement-top');
+    tabletTooltipOverlayEl.textContent = '';
+    tabletTooltipOverlayEl.setAttribute('aria-hidden', 'true');
+  };
+
+  const showOverlayForButton = (btn) => {
+    const tooltip = btn?.dataset?.tooltip;
+    if (!tooltip) return;
+    const overlay = ensureOverlay();
+    overlay.textContent = tooltip;
+    overlay.setAttribute('aria-hidden', 'false');
+
+    const rect = btn.getBoundingClientRect();
+    const gap = 12;
+    const isLeft = !!btn.closest('.toolbar-left');
+    const isRight = !!btn.closest('.toolbar-right');
+    const isBottom = !!btn.closest('.toolbar-bottom');
+
+    overlay.classList.remove('placement-left', 'placement-right', 'placement-top');
+    if (isBottom) {
+      overlay.classList.add('placement-top');
+      overlay.style.left = `${Math.round(rect.left + rect.width / 2)}px`;
+      overlay.style.top = `${Math.round(rect.top - gap)}px`;
+    } else if (isRight) {
+      overlay.classList.add('placement-left');
+      overlay.style.left = `${Math.round(rect.left - gap)}px`;
+      overlay.style.top = `${Math.round(rect.top + rect.height / 2)}px`;
+    } else {
+      overlay.classList.add('placement-right');
+      overlay.style.left = `${Math.round(rect.right + gap)}px`;
+      overlay.style.top = `${Math.round(rect.top + rect.height / 2)}px`;
+    }
+
+    overlay.classList.add('is-visible');
+  };
+
   const hide = () => {
     if (tabletTooltipHideTimer) {
       clearTimeout(tabletTooltipHideTimer);
@@ -155,6 +212,7 @@ function bindTabletToolbarTooltipAutoHide() {
       tabletTooltipActiveBtn.classList.remove('tablet-tooltip-visible');
       tabletTooltipActiveBtn = null;
     }
+    hideOverlay();
   };
 
   document.addEventListener('tablet:change', (ev) => {
@@ -176,10 +234,12 @@ function bindTabletToolbarTooltipAutoHide() {
       hide();
       btn.classList.add('tablet-tooltip-visible');
       tabletTooltipActiveBtn = btn;
+      showOverlayForButton(btn);
       tabletTooltipHideTimer = setTimeout(() => {
         if (tabletTooltipActiveBtn !== btn) return;
         btn.classList.remove('tablet-tooltip-visible');
         tabletTooltipActiveBtn = null;
+        hideOverlay();
       }, 1500);
     });
   });
@@ -267,6 +327,12 @@ function bindCanvasControls() {
     redrawCanvas();
     renderSelectionLayers();
   });
+  if (elements.autosaveCountdownToggle) {
+    elements.autosaveCountdownToggle.checked = getAutosaveCountdownEnabled();
+    elements.autosaveCountdownToggle.addEventListener('change', (event) => {
+      setAutosaveCountdownEnabled(Boolean(event.target.checked));
+    });
+  }
   elements.displayModeRadios?.forEach((radio) => {
     radio.addEventListener('change', handleDisplayModeChange);
   });
@@ -333,13 +399,25 @@ function bindPaletteControls() {
   elements.paletteFilter?.addEventListener('input', renderPalette);
   elements.deletePaletteBtn?.addEventListener('click', handleDeletePalette);
   elements.paletteHistorySelect?.addEventListener('change', handlePaletteSelectionChange);
+  const syncCreatePaletteState = () => {
+    if (!elements.createPaletteBtn) return;
+    const disabled = state.isTabletMode;
+    elements.createPaletteBtn.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+    elements.createPaletteBtn.classList.toggle('is-disabled', disabled);
+  };
   elements.createPaletteBtn?.addEventListener('click', () => {
+    if (state.isTabletMode) {
+      window.alert('制作色卡仅支持电脑端，请在电脑上使用该功能。');
+      return;
+    }
     try {
       window.open('./color-maker.html', '_blank', 'noopener');
     } catch (error) {
       console.warn('无法打开色卡制作工具', error);
     }
   });
+  document.addEventListener('tablet:change', syncCreatePaletteState);
+  syncCreatePaletteState();
 }
 
 function bindGridOverlayControls() {
@@ -427,6 +505,15 @@ function bindGridOverlayControls() {
 
 function bindWindowControls() {
   elements.toggleReferenceBtn?.addEventListener('click', toggleReferenceWindow);
+  // export actions
+  elements.openExportWindowBtn?.addEventListener('click', () => {
+    if (!state.width || !state.height) {
+      window.alert('请先创建画布后再导出。');
+      return;
+    }
+    closeAllPanels({ refocusTool: false });
+    toggleExportWindow(true);
+  });
   elements.exportBtn?.addEventListener('click', () => {
     if (state.width && state.height) {
       toggleExportWindow(true);
@@ -693,10 +780,18 @@ function closeTabletPalettePanelIfVisible() {
 
 function bindFocusModeControls() {
   const toggleFullscreen = () => {
+    const now = Date.now();
+    lastFullscreenToggleTime = now;
     if (document.fullscreenElement) {
+      lastFullscreenToggleIntent = 'exit';
+      if (state.isTabletMode) tabletFullscreenDesired = false;
       document.exitFullscreen?.();
     } else {
-      document.documentElement?.requestFullscreen?.();
+      lastFullscreenToggleIntent = 'enter';
+      if (state.isTabletMode) tabletFullscreenDesired = true;
+      try {
+        document.documentElement?.requestFullscreen?.();
+      } catch (_) { }
     }
   };
   elements.focusFullscreenBtn?.addEventListener('click', toggleFullscreen);
@@ -709,6 +804,83 @@ function bindFocusModeControls() {
   document.addEventListener('fullscreenchange', updateFullscreenButtonState);
   updateFullscreenButtonState();
   initializeSimpleModeUI();
+}
+
+function bindTabletFullscreenResilience() {
+  if (tabletFullscreenReenterBound || typeof document === 'undefined') return;
+
+  const shouldAttempt = () => state.isTabletMode && tabletFullscreenDesired && !document.fullscreenElement;
+
+  const registerExitFailure = () => {
+    const now = Date.now();
+    tabletFullscreenExitFailures = tabletFullscreenExitFailures.filter((t) => now - t < 10000);
+    tabletFullscreenExitFailures.push(now);
+    return tabletFullscreenExitFailures.length;
+  };
+
+  const scheduleGestureReenter = () => {
+    if (!shouldAttempt()) return;
+    const handler = () => {
+      if (!shouldAttempt()) return;
+      try {
+        document.documentElement?.requestFullscreen?.();
+      } catch (_) { }
+    };
+    window.addEventListener('pointerdown', handler, { once: true, capture: true });
+  };
+
+  const tryAutoReenter = () => {
+    if (!shouldAttempt()) return;
+    const attempts = registerExitFailure();
+    if (attempts >= 3) {
+      tabletFullscreenDesired = false;
+      return;
+    }
+    try {
+      const result = document.documentElement?.requestFullscreen?.();
+      if (result && typeof result.catch === 'function') {
+        result.catch(() => scheduleGestureReenter());
+      } else {
+        scheduleGestureReenter();
+      }
+    } catch (_) {
+      scheduleGestureReenter();
+    }
+  };
+
+  document.addEventListener('fullscreenchange', () => {
+    if (!state.isTabletMode) return;
+    const isFullscreen = Boolean(document.fullscreenElement);
+    if (isFullscreen) return;
+    if (!tabletFullscreenDesired) return;
+
+    // 如果是用户刚刚点击按钮主动退出，则不要自动恢复。
+    const recent = Date.now() - lastFullscreenToggleTime < 1200;
+    if (recent && lastFullscreenToggleIntent === 'exit') return;
+
+    tryAutoReenter();
+  });
+
+  // 某些移动端在弹窗/文件选择器/下载确认后会退出全屏，回到前台时再尝试恢复。
+  window.addEventListener('focus', () => {
+    if (!shouldAttempt()) return;
+    scheduleGestureReenter();
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+    if (!shouldAttempt()) return;
+    scheduleGestureReenter();
+  });
+
+  document.addEventListener('tablet:change', (ev) => {
+    if (!ev?.detail?.enabled) {
+      tabletFullscreenDesired = false;
+      tabletFullscreenExitFailures = [];
+      return;
+    }
+  });
+
+  tabletFullscreenReenterBound = true;
 }
 
 function initializeTabletMode() {
@@ -1039,8 +1211,8 @@ function enhanceToolbarTooltips() {
     { selector: '[data-panel-target="canvas-settings"]', tooltip: '新建画布/扩裁画布' },
     { selector: '[data-panel-target="base-settings"]', tooltip: '导入或校准底图' },
     { selector: '#toggleReferenceBtn', tooltip: '打开参考图窗口', ariaLabel: '参考窗口' },
-    { selector: '[data-panel-target="export-tools"]', tooltip: '导出草图' },
-    { selector: '[data-panel-target="import-tools"]', tooltip: '导入PD工程文件' },
+    { selector: '[data-panel-target="export-tools"]', tooltip: '导出文件或本地保存' },
+    { selector: '[data-panel-target="import-tools"]', tooltip: '导入文件或本地读取' },
     { selector: '[data-panel-target="display-settings"]', tooltip: '显示模式设置' },
     { selector: '[data-panel-target="focus-mode"]', tooltip: '全屏和简洁模式开关' },
     { selector: '[data-panel-target="manual"]', tooltip: '查看使用手册与更新日志' },

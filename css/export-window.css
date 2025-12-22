@@ -3,12 +3,13 @@
   flex-direction: column;
   height: min(90vh, 860px);
   max-height: calc(100vh - 300px);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .export-layout {
   display: grid;
-  grid-template-columns: 3.2fr 1.9fr 2fr;
+  grid-template-columns: minmax(520px, 3.2fr) minmax(340px, 1.9fr) minmax(360px, 2fr);
   gap: 24px;
   height: 100%;
   flex: 1 1 auto;
@@ -366,6 +367,7 @@
   align-items: center;
   justify-content: center;
   text-align: center;
+  white-space: nowrap;
 }
 
 .highlight-list-content {
@@ -373,6 +375,24 @@
   min-height: 0;
   overflow-y: auto;
   background: #ffffff;
+}
+
+/* Export highlight list: keep header aligned with scroll content */
+#highlightColorList.highlight-list {
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+#highlightColorList .highlight-list-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+#highlightColorList .highlight-list-content {
+  overflow: visible;
+  flex: 0 0 auto;
 }
 
 .highlight-color-item {
@@ -551,34 +571,6 @@
   border: 0;
 }
 
-@media (max-width: 1280px) {
-  .export-layout {
-    grid-template-columns: 1.4fr 1fr;
-    grid-auto-rows: auto;
-  }
-
-  .export-highlight-section {
-    grid-column: span 2;
-  }
-
-  .form-field--wide {
-    grid-column: span 1;
-  }
-}
-
-@media (max-width: 960px) {
-  .export-layout {
-    grid-template-columns: 1fr;
-    grid-auto-rows: auto;
-  }
-
-  .export-preview-section,
-  .export-settings-section,
-  .export-highlight-section {
-    max-width: none;
-  }
-}
-
 /* Tablet-only export window: split preview/settings views */
 .export-tablet-tabs {
   display: none;
@@ -608,6 +600,7 @@ body.tablet-mode #exportWindow.modal-window {
 body.tablet-mode #exportWindow .modal-window__body {
   height: calc(100vh - 200px);
   max-height: calc(100vh - 200px);
+  overflow: hidden;
 }
 
 body.tablet-mode #exportWindow .export-tablet-tabs {
@@ -635,7 +628,7 @@ body.tablet-mode #exportWindow[data-tablet-export-view="settings"] .export-previ
 }
 
 body.tablet-mode #exportWindow[data-tablet-export-view="settings"] .export-layout {
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(320px, 0.85fr) minmax(380px, 1.15fr);
 }
 
 body.tablet-mode #exportWindow[data-tablet-export-view="settings"] .export-settings-section {
@@ -644,4 +637,40 @@ body.tablet-mode #exportWindow[data-tablet-export-view="settings"] .export-setti
 
 body.tablet-mode #exportWindow[data-tablet-export-view="settings"] .export-highlight-section {
   grid-column: 2;
+  gap: 12px;
+  overflow: auto;
+}
+
+body.tablet-mode #exportWindow[data-tablet-export-view="settings"] .export-highlight-section .highlight-list-header,
+body.tablet-mode #exportWindow[data-tablet-export-view="settings"] .export-highlight-section .highlight-color-item {
+  grid-template-columns: 64px repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+body.tablet-mode #exportWindow[data-tablet-export-view="settings"] #highlightColorList.highlight-list {
+  flex: 1 1 auto;
+  min-height: 240px;
+}
+
+body.tablet-mode #exportWindow[data-tablet-export-view="settings"] .export-highlight-section .highlight-controls {
+  gap: 10px;
+}
+
+body.tablet-mode #exportWindow[data-tablet-export-view="settings"] .export-highlight-section .highlight-summary {
+  padding: 6px 2px;
+}
+
+body.tablet-mode #exportWindow[data-tablet-export-view="settings"] .export-highlight-section .highlight-actions {
+  margin-top: 0;
+  gap: 8px;
+}
+
+body.tablet-mode #exportWindow[data-tablet-export-view="settings"] .export-highlight-section .highlight-note {
+  font-size: 12px;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }

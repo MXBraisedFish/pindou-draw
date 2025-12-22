@@ -284,8 +284,8 @@ body.tablet-mode #resizeCanvasOverlay.overlay {
 
 body.tablet-mode #resizeCanvasOverlay .resize-overlay-dialog {
   width: min(720px, 92vw);
-  height: calc(100vh - 220px);
-  max-height: calc(100vh - 220px);
+  height: calc(100vh - 120px);
+  max-height: calc(100vh - 120px);
   margin: 10px auto;
   display: flex;
   flex-direction: column;

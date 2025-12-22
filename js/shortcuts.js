@@ -8,6 +8,7 @@ import { toggleExportWindow } from './export-window.js';
 import { toggleUpdate } from './update.js';
 import { toggleColorManagement } from './palette.js';
 import { openCanvasHighlightWindow } from './canvas-highlight.js';
+import { openLocalStorageWindowByMode } from './local-storage.js';
 
 const DIGIT_SHORTCUTS = {
   '1': () => setTool('pencil'),
@@ -27,6 +28,9 @@ const ALT_SHORTCUTS = {
   t: () => togglePanel('base-settings'),
   y: () => toggleReferenceWindow(),
   u: () => toggleExportWindow(),
+  n: () => openLocalStorageWindowByMode('save'),
+  m: () => openLocalStorageWindowByMode('load'),
+  d: openProjectImportFile,
   i: () => togglePanel('display-settings'),
   o: () => toggleUpdate(),
   p: openManualPage,
@@ -86,7 +90,13 @@ function handleKeyDown(event) {
 
   const altLike = event.altKey || event.metaKey;
   if (altLike && !event.ctrlKey) {
-    const handler = ALT_SHORTCUTS[key];
+    let handler = ALT_SHORTCUTS[key];
+    if (!handler && typeof event.code === 'string') {
+      const codeKey = event.code.toLowerCase();
+      if (codeKey.startsWith('key')) {
+        handler = ALT_SHORTCUTS[codeKey.slice(3)];
+      }
+    }
     if (!handler) return;
     event.preventDefault();
     handler();
@@ -193,8 +203,15 @@ export function getShortcutHelp() {
     'Ctrl+G': '图像操作面板',
     'Ctrl+H': '色卡管理面板',
     'Ctrl+V': '颜色管理窗口',
+    'Alt+N': '本地保存窗口',
+    'Alt+M': '本地读取窗口',
+    'Alt+D': '导入 .pd 文件',
     'Alt+B': '画布高亮管理窗口'
   };
+}
+
+function openProjectImportFile() {
+  elements.importProjectBtn?.click();
 }
 
 export function disableShortcuts() {

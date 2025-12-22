@@ -24,6 +24,7 @@ import { resolveResolutionValue } from './resolution.js';
 import { initializeCanvasHighlight } from '../canvas-highlight.js';
 import { applyLocalization } from './localization.js';
 import { initializePhotoSketch } from '../photo-sketch.js';
+import { emergencyAutosave } from '../local-storage.js';
 
 export async function initializeApp() {
   applyLocalization();
@@ -36,8 +37,8 @@ export async function initializeApp() {
   initializePhotoSketch();
   initializeShortcuts();
 
-  loadPaletteLibrary();
   await loadDefaultPalettes();
+  loadPaletteLibrary();
   restoreLastPalette();
   initializeColorManagement();
   initializePaletteWindow();
@@ -69,10 +70,7 @@ function shouldWarnBeforeUnload() {
 
 function handleBeforeUnload(event) {
   if (!shouldWarnBeforeUnload()) return;
-
-  if (!state.exportVisible) {
-    setTimeout(() => toggleExportWindow(true), 0);
-  }
+  emergencyAutosave();
 
   event.preventDefault();
   event.returnValue = '';

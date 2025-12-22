@@ -63,6 +63,7 @@
           <li><a href="#chapter-float-ref">参考图窗口</a></li>
           <li><a href="#chapter-export">导出草图</a></li>
           <li><a href="#chapter-import-pd">导入 PD 工程文件</a></li>
+          <li><a href="#chapter-localsave">本地存储</a></li>
           <li><a href="#chapter-display">显示设置</a></li>
           <li><a href="#chapter-screen">全屏与简洁模式</a></li>
           <li><a href="#chapter-palette">调色板</a></li>
@@ -115,6 +116,7 @@
                 <li>经过一个月的调试，平板端进入公开测试阶段。</li>
               </ul>
         </section>
+
         <hr />
         <!-- Bug 反馈与功能建议 -->
         <section class="doc-section" id="chapter-feedback">
@@ -195,8 +197,8 @@
               <li>新建画布/扩裁画布</li>
               <li>导入或校准底图</li>
               <li>打开参考窗口</li>
-              <li>导出草图</li>
-              <li>导入 PD 工程文件</li>
+              <li>导出文件或本地保存</li>
+              <li>导入文件或本地读取</li>
               <li>显示模式设置</li>
               <li>全屏 / 简洁模式开关</li>
               <li>查看使用手册与更新日志</li>
@@ -253,14 +255,14 @@
             <li>
               <p class="doc-paragraph"><strong>创建画布</strong></p>
               <figure class="doc-image">
-                <img src="./doc-image/BASEUSE-create.png" alt="创建画布"  />
+                <img src="./doc-image/BASEUSE-create.png" alt="创建画布" />
                 <figcaption class="doc-image__caption">图 1：新建画布</figcaption>
               </figure>
             </li>
             <li>
               <p class="doc-paragraph"><strong>使用工具绘图</strong></p>
               <figure class="doc-image">
-                <img src="./doc-image/BASEUSE-draw.png" alt="使用工具绘图"  />
+                <img src="./doc-image/BASEUSE-draw.png" alt="使用工具绘图" />
                 <figcaption class="doc-image__caption">图 2：绘制图案</figcaption>
               </figure>
             </li>
@@ -271,7 +273,7 @@
                 <figcaption class="doc-image__caption">图 3-1：导出设置</figcaption>
               </figure>
               <figure class="doc-image">
-                <img src="./doc-image/BASEUSE-import-image.png" alt="导出成品"  />
+                <img src="./doc-image/BASEUSE-import-image.png" alt="导出成品" />
                 <figcaption class="doc-image__caption">图 3-2：导出成品</figcaption>
               </figure>
             </li>
@@ -310,7 +312,7 @@
             <li><strong>右键</strong>：擦除。</li>
           </ul>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-pencil.gif" alt="画笔演示"  />
+            <img src="./doc-image/TOOL-pencil.gif" alt="画笔演示" />
             <figcaption class="doc-image__caption">图：画笔绘制与擦除</figcaption>
           </figure>
         </section>
@@ -328,7 +330,7 @@
             <li><strong>右键</strong>：擦除填充。</li>
           </ul>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-bucket.gif" alt="油漆桶演示"  />
+            <img src="./doc-image/TOOL-bucket.gif" alt="油漆桶演示" />
             <figcaption class="doc-image__caption">图：油漆桶填充与擦除</figcaption>
           </figure>
         </section>
@@ -345,7 +347,7 @@
             <li><strong>左键</strong>：吸取颜色。</li>
           </ul>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-eyedropper.gif" alt="吸管演示"  />
+            <img src="./doc-image/TOOL-eyedropper.gif" alt="吸管演示" />
             <figcaption class="doc-image__caption">图：吸管取色</figcaption>
           </figure>
         </section>
@@ -367,7 +369,7 @@
           </ul>
           <div class="doc-callout">提示：存在选区时，所有绘制操作仅作用于被选中的像素。</div>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-selection.gif" alt="选区演示"  />
+            <img src="./doc-image/TOOL-selection.gif" alt="选区演示" />
             <figcaption class="doc-image__caption">图：选区添加、减选与拖动</figcaption>
           </figure>
         </section>
@@ -392,7 +394,7 @@
           </div>
 
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-undo-redo.gif" alt="撤回与回退演示"  />
+            <img src="./doc-image/TOOL-undo-redo.gif" alt="撤回与回退演示" />
             <figcaption class="doc-image__caption">图：撤回与回退演示</figcaption>
           </figure>
         </section>
@@ -409,11 +411,11 @@
             以下快捷键仅在画布处于激活状态且未聚焦任何输入框时生效。
           </blockquote>
 
-          <table >
+          <table>
             <thead>
-              <tr >
-                <th >快捷键</th>
-                <th >功能</th>
+              <tr>
+                <th style="text-align: left; width: 200px;">快捷键</th>
+                <th style="text-align: left;">功能</th>
               </tr>
             </thead>
             <tbody>
@@ -447,7 +449,7 @@
               </tr>
               <tr>
                 <td><code>Alt + W</code></td>
-                <td>底图编辑模式 开/关</td>
+                <td>底图编辑模式 开/关 (仅在有底图时生效)</td>
               </tr>
               <tr>
                 <td><code>Alt + A</code></td>
@@ -463,15 +465,11 @@
               </tr>
               <tr>
                 <td><code>Alt + T</code></td>
-                <td>打开 / 关闭“底图设置”面板（导入 / 校准底图）</td>
+                <td>打开 / 关闭“底图设置”面板</td>
               </tr>
               <tr>
                 <td><code>Alt + Y</code></td>
                 <td>参考图窗口 开/关</td>
-              </tr>
-              <tr>
-                <td><code>Alt + U</code></td>
-                <td>导出草图窗口 开/关</td>
               </tr>
               <tr>
                 <td><code>Alt + I</code></td>
@@ -483,7 +481,7 @@
               </tr>
               <tr>
                 <td><code>Alt + P</code></td>
-                <td>打开使用手册页面（manual.html）</td>
+                <td>打开使用手册页面-电脑端</td>
               </tr>
               <tr>
                 <td><code>Alt + F</code></td>
@@ -498,13 +496,24 @@
                 <td>色卡管理面板 开/关</td>
               </tr>
               <tr>
+                <td><code>Alt + U</code></td>
+                <td>打开“导出草图”窗口</td>
+              </tr>
+              <tr>
                 <td><code>Alt + V</code></td>
                 <td>打开颜色管理窗口</td>
               </tr>
-
               <tr>
                 <td><code>Alt + B</code></td>
                 <td>打开颜色高亮窗口</td>
+              </tr>
+              <tr>
+                <td><code>Alt + N</code></td>
+                <td>打开本地保存窗口</td>
+              </tr>
+              <tr>
+                <td><code>Alt + M</code></td>
+                <td>打开本地读取窗口</td>
               </tr>
             </tbody>
           </table>
@@ -599,11 +608,11 @@
           <div class="doc-grid">
             <article class="doc-card">
               <p class="doc-card__title">原图 160×160</p>
-              <img src="./doc-image/TOOL-create-testPixel.png" alt="原图"  />
+              <img src="./doc-image/TOOL-create-testPixel.png" alt="原图" />
             </article>
             <article class="doc-card">
               <p class="doc-card__title">导入后 16×16（N=10）</p>
-              <img src="./doc-image/BASEUSE-draw.png" alt="导入后"  />
+              <img src="./doc-image/BASEUSE-draw.png" alt="导入后" />
             </article>
           </div>
           <div class="doc-quote">建议：N 取整数倍，确保像素边缘对齐。</div>
@@ -648,11 +657,11 @@
           <div class="doc-grid">
             <article class="doc-card">
               <p class="doc-card__title">100% 转换比率</p>
-              <img src="./doc-image/TOOL-i2i-transper100.png" alt="100%"  />
+              <img src="./doc-image/TOOL-i2i-transper100.png" alt="100%" />
             </article>
             <article class="doc-card">
               <p class="doc-card__title">50% 转换比率</p>
-              <img src="./doc-image/TOOL-i2i-transper50.png" alt="50%"  />
+              <img src="./doc-image/TOOL-i2i-transper50.png" alt="50%" />
             </article>
           </div>
 
@@ -664,29 +673,29 @@
             <li><strong>抖动仿色设置</strong>：让颜色过渡更贴近原图。</li>
           </ul>
 
-          <table >
+          <table>
             <thead>
-              <tr >
-                <th >选项</th>
-                <th >效果说明</th>
-                <th >示意图</th>
+              <tr>
+                <th>选项</th>
+                <th>效果说明</th>
+                <th>示意图</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td><code>无抖动</code></td>
                 <td>无仿色，适合纯像素块</td>
-                <td><img src="./doc-image/TOOL-i2i-NOD.png" alt="无抖动"  /></td>
+                <td><img src="./doc-image/TOOL-i2i-NOD.png" alt="无抖动" /></td>
               </tr>
               <tr>
                 <td><code>FS 抖动</code></td>
                 <td>基础抖动，颜色更还原</td>
-                <td><img src="./doc-image/TOOL-i2i-FSD.png" alt="FS抖动"  /></td>
+                <td><img src="./doc-image/TOOL-i2i-FSD.png" alt="FS抖动" /></td>
               </tr>
               <tr>
                 <td><code>蓝噪声抖动</code></td>
                 <td>高级有序抖动</td>
-                <td><img src="./doc-image/TOOL-i2i-BND.png" alt="蓝噪声抖动"  /></td>
+                <td><img src="./doc-image/TOOL-i2i-BND.png" alt="蓝噪声抖动" /></td>
               </tr>
             </tbody>
           </table>
@@ -705,7 +714,7 @@
           <h2 class="doc-section__title">底图的设置与编辑</h2>
           <p class="doc-paragraph">
             打开底图编辑窗口：<kbd>Alt</kbd> + <kbd>T</kbd><br>
-            切换底图编辑模式：<kbd>Alt</kbd> + <kbd>W</kbd>
+            切换底图编辑模式：<kbd>Alt</kbd> + <kbd>W</kbd> (仅在有底图时生效)
           </p>
 
           <h3 class="doc-section__subtitle">基础设置</h3>
@@ -762,21 +771,21 @@
           </ul>
           <div class="doc-grid">
             <figure class="doc-image">
-              <img src="./doc-image/TOOL-floatrefer-resize.png" alt="调整大小"  />
+              <img src="./doc-image/TOOL-floatrefer-resize.png" alt="调整大小" />
               <figcaption class="doc-image__caption">图：调整大小</figcaption>
             </figure>
             <figure class="doc-image">
-              <img src="./doc-image/TOOL-floatrefer-trans.png" alt="拖动位置"  />
+              <img src="./doc-image/TOOL-floatrefer-trans.png" alt="拖动位置" />
               <figcaption class="doc-image__caption">图：拖动位置</figcaption>
             </figure>
           </div>
           <div class="doc-grid">
             <figure class="doc-image">
-              <img src="./doc-image/TOOL-floatrefer-tosmall.png" alt="最小化"  />
+              <img src="./doc-image/TOOL-floatrefer-tosmall.png" alt="最小化" />
               <figcaption class="doc-image__caption">图：最小化</figcaption>
             </figure>
             <figure class="doc-image">
-              <img src="./doc-image/TOOL-floatrefer-tobig.png" alt="恢复"  />
+              <img src="./doc-image/TOOL-floatrefer-tobig.png" alt="恢复" />
               <figcaption class="doc-image__caption">图：恢复窗口</figcaption>
             </figure>
           </div>
@@ -793,6 +802,10 @@
             导出窗口可自定义色号、坐标系、背景等内容，并支持高亮指定颜色单独输出。
           </p>
           <figure class="doc-image">
+            <img src="./doc-image/TOOL-export-where.png" alt="导出按钮" />
+            <figcaption class="doc-image__caption">图：导出按钮</figcaption>
+          </figure>
+          <figure class="doc-image">
             <img src="./doc-image/TOOL-export.png" alt="导出总面板" />
             <figcaption class="doc-image__caption">图：导出总面板</figcaption>
           </figure>
@@ -806,13 +819,13 @@
             <li><strong>滚轮滚动</strong>：预览图缩放。</li>
           </ol>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-export-preview.png" alt="预览操作"  />
+            <img src="./doc-image/TOOL-export-preview.png" alt="预览操作" />
             <figcaption class="doc-image__caption">图：预览操作示意</figcaption>
           </figure>
 
           <h3 class="doc-section__subtitle">渲染设置</h3>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-export-setting.png" alt="渲染设置"  />
+            <img src="./doc-image/TOOL-export-setting.png" alt="渲染设置" />
             <figcaption class="doc-image__caption">图：渲染设置区域</figcaption>
           </figure>
 
@@ -867,17 +880,17 @@
             <li><strong>导出全部高亮颜色</strong>：批量生成每张色号单独高亮图，打包为 .zip。</li>
           </ul>
           <div class="doc-grid">
-            <figure class="doc-image" >
-              <img src="./doc-image/TOOL-export-highlight.png" alt="高亮选项"  />
+            <figure class="doc-image">
+              <img src="./doc-image/TOOL-export-highlight.png" alt="高亮选项" />
               <figcaption class="doc-image__caption">图：高亮选项</figcaption>
             </figure>
             <figure class="doc-image">
-              <img src="./doc-image/TOOL-export-allExport.png" alt="批量导出"  />
+              <img src="./doc-image/TOOL-export-allExport.png" alt="批量导出" />
               <figcaption class="doc-image__caption">图：批量导出</figcaption>
             </figure>
           </div>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-export-highlight-preview.png" alt="高亮预览"  />
+            <img src="./doc-image/TOOL-export-highlight-preview.png" alt="高亮预览" />
             <figcaption class="doc-image__caption">图：高亮颜色预览效果</figcaption>
           </figure>
         </section>
@@ -888,16 +901,22 @@
         <section class="doc-section" id="chapter-import-pd">
           <span class="doc-section__eyebrow">Page 7</span>
           <h2 class="doc-section__title">导入 PD 工程文件</h2>
+          <p class="doc-paragraph">快捷键：<kbd>Alt</kbd> + <kbd>D</kbd></p>
           <p class="doc-paragraph">
             <code>.pd</code> 工程文件为本站自定义格式，可在任意浏览器内恢复完整草图，支持跨网页传输。
           </p>
+
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-import-where.png" alt="导入按钮" />
+            <figcaption class="doc-image__caption">图：导入按钮</figcaption>
+          </figure>
 
           <h3 class="doc-section__subtitle">导入步骤</h3>
           <ol class="doc-list">
             <li>在导入文件窗口点击 <strong>导入 .pd 文件</strong>。</li>
           </ol>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-import.png" alt="导入入口" />
+            <img src="./doc-image/TOOL-import-where.png" alt="导入入口" />
             <figcaption class="doc-image__caption">图：导入入口</figcaption>
           </figure>
 
@@ -944,9 +963,82 @@
 
         <hr />
 
+        <!-- 本地存储 -->
+        <section class="doc-section" id="chapter-localsave">
+          <span class="doc-section__eyebrow">Page 8</span>
+          <h2 class="doc-section__title">本地存储</h2>
+
+          <p class="doc-paragraph">
+            本地保存：<kbd>Alt</kbd> + <kbd>N</kbd><br>
+            本地读取：<kbd>Alt</kbd> + <kbd>M</kbd>
+          </p>
+
+          <p class="doc-paragraph">
+            网页支持部分的本地存储，用于快捷保存和恢复。
+          </p>
+
+          <div class="doc-callout">
+            注意：本地存储仅适用于短期临时存储，数据可能会因浏览器数据清理或其他原因导致删除，如需长期存储请导出为PD文件防止丢失。
+          </div>
+
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-local-export.png" alt="本地保存入口" />
+            <figcaption class="doc-image__caption">图：本地读取入口</figcaption>
+          </figure>
+
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-local-import.png" alt="本地读取入口" />
+            <figcaption class="doc-image__caption">图：本地读取入口</figcaption>
+          </figure>
+
+          <h3 class="doc-section__subtitle">自动保存</h3>
+          <p class="doc-paragraph">网页<strong>每五分钟</strong>会自动保存当前的绘画数据，自动保存成功会在右下角提示或显示距离下次保存倒计时。</p>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-local-open.gif" alt="自动保存提示(显示倒计时)" />
+            <figcaption class="doc-image__caption">图：自动保存提示(显示倒计时)-1分钟为演示</figcaption>
+          </figure>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-local-close.gif" alt="自动保存提示(不显示倒计时)" />
+            <figcaption class="doc-image__caption">图：自动保存提示(不显示倒计时)</figcaption>
+          </figure>
+          <p class="doc-paragraph">在触发误退出提醒时，也会进行一次自动保存。</p>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-local-auto.gif" alt="退出自动保存" />
+            <figcaption class="doc-image__caption">图：退出自动保存</figcaption>
+          </figure>
+          <p class="doc-paragraph">倒计时可在 左侧工具栏 -> 显示设置 -> 自动保存倒计时显示 开关。</p>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-local-switch.gif" alt="自动保存提示(不显示倒计时)" />
+            <figcaption class="doc-image__caption">图：倒计时开关</figcaption>
+          </figure>
+
+          <h3 class="doc-section__subtitle">手动保存</h3>
+          <p class="doc-paragraph">通过 左侧工具栏 -> 导出文件或本地保存 -> 保存在本地 打开保存窗口。</p>
+          <p class="doc-paragraph">点击窗口内对应的存储位置即可保存或覆盖保存，或通过存储位置下方的“删除保存”按钮删除当前存储内容。</p>
+
+          <div class="doc-callout">
+            注意：第一格为自动保存存储位置，不可手动保存，但可手动删除
+          </div>
+
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-local-export-window.png" alt="手动保存窗口" />
+            <figcaption class="doc-image__caption">图：手动保存窗口</figcaption>
+          </figure>
+
+          <h3 class="doc-section__subtitle">本地读取</h3>
+          <p class="doc-paragraph">通过 左侧工具栏 -> 导入文件或本地读取 -> 读取本地存储 打开保读取窗口。</p>
+          <p class="doc-paragraph">点击窗口内对应的存储位置下方的“读取”按钮读取当前存储内容。</p>
+          <figure class="doc-image">
+            <img src="./doc-image/TOOL-local-import-window.png" alt="读取窗口" />
+            <figcaption class="doc-image__caption">图：读取窗口</figcaption>
+          </figure>
+        </section>
+
+        <hr />
+
         <!-- 显示设置 -->
         <section class="doc-section" id="chapter-display">
-          <span class="doc-section__eyebrow">Page 8</span>
+          <span class="doc-section__eyebrow">Page 9</span>
           <h2 class="doc-section__title">显示设置</h2>
           <p class="doc-paragraph">快捷键：<kbd>Alt</kbd> + <kbd>I</kbd></p>
           <p class="doc-paragraph">调整画布显示效果与辅助工具，实时生效。</p>
@@ -961,7 +1053,7 @@
             <li><strong>显示色号</strong>：在每个像素中心叠加显示所用色号。</li>
           </ul>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-display-draw-colornum.png" alt="色号与贴合示意"  />
+            <img src="./doc-image/TOOL-display-draw-colornum.png" alt="色号与贴合示意" />
             <figcaption class="doc-image__caption">图：左-显示色号开启;中-自动贴合开启;右-底图显示</figcaption>
           </figure>
 
@@ -981,7 +1073,7 @@
             <img src="./doc-image/TOOL-display-shap.png" alt="形状选项" />
           </figure>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-display-shap-Lsquare-Rcircle.png" alt="形状对比"  />
+            <img src="./doc-image/TOOL-display-shap-Lsquare-Rcircle.png" alt="形状对比" />
             <figcaption class="doc-image__caption">图：左-实心方形；右-空心圆</figcaption>
           </figure>
 
@@ -1000,13 +1092,13 @@
             <li><strong>坐标轴透明度</strong>：1 % – 100 %，仅影响数字标签，不影响网格线。</li>
             <li><strong>坐标轴加粗</strong>：自定义 X / Y 轴大分区间隔。</li>
           </ul>
-          <div class="doc-grid" >
-            <figure class="doc-image" >
-              <img src="./doc-image/TOOL-display-axis.png" alt="普通坐标轴"  />
+          <div class="doc-grid">
+            <figure class="doc-image">
+              <img src="./doc-image/TOOL-display-axis.png" alt="普通坐标轴" />
               <figcaption class="doc-image__caption">图：普通坐标轴</figcaption>
             </figure>
-            <figure class="doc-image" >
-              <img src="./doc-image/TOOL-display-axis-strong.png" alt="加粗分区坐标轴"  />
+            <figure class="doc-image">
+              <img src="./doc-image/TOOL-display-axis-strong.png" alt="加粗分区坐标轴" />
               <figcaption class="doc-image__caption">图：加粗分区坐标轴</figcaption>
             </figure>
           </div>
@@ -1016,7 +1108,7 @@
 
         <!-- 全屏与简洁模式 -->
         <section class="doc-section" id="chapter-screen">
-          <span class="doc-section__eyebrow">Page 9</span>
+          <span class="doc-section__eyebrow">Page 10</span>
           <h2 class="doc-section__title">全屏与简洁模式</h2>
 
           <p class="doc-paragraph">
@@ -1045,7 +1137,7 @@
 
         <!-- 调色板 -->
         <section class="doc-section" id="chapter-palette">
-          <span class="doc-section__eyebrow">Page 10</span>
+          <span class="doc-section__eyebrow">Page 11</span>
           <h2 class="doc-section__title">调色板</h2>
           <p class="doc-paragraph">快捷键：<kbd>Alt</kbd> + <kbd>F</kbd></p>
           <p class="doc-paragraph">调色板用于切换绘制颜色，支持常规色与特殊色快速选取。</p>
@@ -1071,11 +1163,11 @@
           </ul>
           <div class="doc-grid">
             <figure class="doc-image">
-              <img src="./doc-image/TOOL-palette-resize.png" alt="调整大小"  />
+              <img src="./doc-image/TOOL-palette-resize.png" alt="调整大小" />
               <figcaption class="doc-image__caption">图：调整大小</figcaption>
             </figure>
             <figure class="doc-image">
-              <img src="./doc-image/TOOL-palette-trans.png" alt="拖动位置"  />
+              <img src="./doc-image/TOOL-palette-trans.png" alt="拖动位置" />
               <figcaption class="doc-image__caption">图：拖动位置</figcaption>
             </figure>
           </div>
@@ -1085,7 +1177,7 @@
 
         <!-- 图像操作 -->
         <section class="doc-section" id="chapter-image-op">
-          <span class="doc-section__eyebrow">Page 11</span>
+          <span class="doc-section__eyebrow">Page 12</span>
           <h2 class="doc-section__title">图像操作</h2>
           <p class="doc-paragraph">快捷键：<kbd>Alt</kbd> + <kbd>G</kbd></p>
           <p class="doc-paragraph">
@@ -1094,11 +1186,11 @@
 
           <div class="doc-grid">
             <figure class="doc-image">
-              <img src="./doc-image/TOOL-canvasset-rotate.gif" alt="旋转与翻转"  />
+              <img src="./doc-image/TOOL-canvasset-rotate.gif" alt="旋转与翻转" />
               <figcaption class="doc-image__caption">图：水平 / 垂直翻转 & 90° 旋转</figcaption>
             </figure>
             <figure class="doc-image">
-              <img src="./doc-image/TOOL-canvasset-symmetry.gif" alt="对称绘制"  />
+              <img src="./doc-image/TOOL-canvasset-symmetry.gif" alt="对称绘制" />
               <figcaption class="doc-image__caption">图：对称绘制</figcaption>
             </figure>
           </div>
@@ -1112,7 +1204,7 @@
 
         <!-- 色卡管理 -->
         <section class="doc-section" id="chapter-colorcard">
-          <span class="doc-section__eyebrow">Page 12</span>
+          <span class="doc-section__eyebrow">Page 13</span>
           <h2 class="doc-section__title">色卡管理</h2>
           <p class="doc-paragraph">快捷键：<kbd>Alt</kbd> + <kbd>H</kbd></p>
           <p class="doc-paragraph">在此窗口可切换、重置、新增或删除色卡，支持默认色卡与自定义色卡混合使用。</p>
@@ -1147,7 +1239,7 @@
 
         <!-- 颜色管理 -->
         <section class="doc-section" id="chapter-color-manage">
-          <span class="doc-section__eyebrow">Page 13</span>
+          <span class="doc-section__eyebrow">Page 14</span>
           <h2 class="doc-section__title">颜色管理</h2>
           <p class="doc-paragraph">
             颜色管理窗口：<kbd>Alt</kbd> + <kbd>V</kbd><br>
@@ -1168,7 +1260,7 @@
             <figcaption class="doc-image__caption">图：高亮设置</figcaption>
           </figure>
           <figure class="doc-image">
-            <img src="./doc-image/TOOL-colorman-highlight-use.png" alt="高亮效果"  />
+            <img src="./doc-image/TOOL-colorman-highlight-use.png" alt="高亮效果" />
             <figcaption class="doc-image__caption">图：高亮显示效果</figcaption>
           </figure>
           <p class="doc-paragraph">上方的替换颜色可一键将高亮的所有颜色替换为其它颜色。</p>
@@ -1186,7 +1278,7 @@
           <h2 class="doc-section__title">色卡制作</h2>
           <p class="doc-paragraph">网站提供专用色卡编辑器，路径：<em>色卡管理 → 制作色卡。</em></p>
           <figure class="doc-image">
-            <img src="./doc-image/WEB-makecard-entry.png" alt="色卡编辑器入口"  />
+            <img src="./doc-image/WEB-makecard-entry.png" alt="色卡编辑器入口" />
             <figcaption class="doc-image__caption">图：色卡编辑器入口</figcaption>
           </figure>
           <figure class="doc-image">

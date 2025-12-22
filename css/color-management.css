@@ -245,7 +245,7 @@ body.tablet-mode #colorManageWindow.modal-window {
 
 body.tablet-mode #colorManageWindow .modal-window__dialog {
   width: min(980px, 96vw);
-  max-height: calc(100vh - 200px);
+  max-height: calc(100vh - 120px);
 }
 
 body.tablet-mode #colorManageWindow .modal-window__header {
@@ -335,18 +335,18 @@ body.tablet-mode #canvasHighlightWindow.modal-window {
 
 body.tablet-mode #canvasHighlightWindow .modal-window__dialog {
   width: min(980px, 96vw);
-  max-height: calc(100vh - 200px);
+  max-height: calc(100vh - 100px);
 }
 
 body.tablet-mode #canvasHighlightWindow .modal-window__header {
-  padding: 14px 16px;
+  padding: 12px 14px;
 }
 
 body.tablet-mode #canvasHighlightWindow .modal-window__body {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  max-height: calc(100vh - 240px);
+  max-height: calc(100vh - 200px);
   overflow: hidden;
 }
 
@@ -357,11 +357,21 @@ body.tablet-mode #canvasHighlightWindow .highlight-window {
 }
 
 body.tablet-mode #canvasHighlightWindow .highlight-window__toolbar {
-  gap: 10px;
+  gap: 8px;
 }
 
 body.tablet-mode #canvasHighlightWindow .highlight-window__actions {
-  gap: 8px;
+  gap: 6px;
+}
+
+body.tablet-mode #canvasHighlightWindow .highlight-window__search {
+  gap: 4px;
+}
+
+body.tablet-mode #canvasHighlightWindow .highlight-window__toolbar .ghost-button,
+body.tablet-mode #canvasHighlightWindow .highlight-window__toolbar .primary-button {
+  padding: 8px 12px;
+  font-size: 12px;
 }
 
 body.tablet-mode #canvasHighlightWindow .highlight-window__content {
@@ -413,16 +423,25 @@ body.tablet-mode #canvasHighlightWindow .highlight-window__replacement-panel {
   gap: 10px;
   max-height: 100%;
   min-height: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
   align-self: stretch;
 }
 
 body.tablet-mode #canvasHighlightWindow .highlight-window__replacement-list {
-  max-height: none;
+  flex: 1 1 180px;
+  min-height: 140px;
   overflow-y: auto;
-  flex: 1;
-  min-height: 0;
+  scrollbar-gutter: stable;
   gap: 8px;
+}
+
+body.tablet-mode #canvasHighlightWindow .highlight-window__replacement-header,
+body.tablet-mode #canvasHighlightWindow .highlight-window__replacement-search,
+body.tablet-mode #canvasHighlightWindow .highlight-window__replacement-meta,
+body.tablet-mode #canvasHighlightWindow .highlight-window__replacement-actions {
+  flex: 0 0 auto;
 }
 
 body.tablet-mode #canvasHighlightWindow .highlight-window__replacement-item {
@@ -460,7 +479,7 @@ body.tablet-mode #canvasHighlightWindow .highlight-message {
 
 }
 
-.export-highlight-color-item {
+body:not(.tablet-mode) .export-highlight-color-item {
 	grid-template-columns: 1.3fr 1fr 1fr 1fr !important;
 }
 

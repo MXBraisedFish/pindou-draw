@@ -23,6 +23,7 @@
   <link rel="stylesheet" href="./css/export-window.css">
   <link rel="stylesheet" href="./css/resize-canvas.css">
   <link rel="stylesheet" href="./css/reference-images.css">
+  <link rel="stylesheet" href="./css/local-storage.css">
 </head>
 
 <body>
@@ -33,6 +34,7 @@
   <div id="tabletUsageToast" class="tablet-usage-toast" role="status" aria-live="polite" aria-hidden="true">
     平板模式建议开启全屏模式使用
   </div>
+  <div id="autoSaveToast" class="autosave-toast" aria-hidden="true"></div>
   <!-- 左侧工具栏 -->
   <aside class="toolbar toolbar-left" aria-label="功能工具栏">
     <button class="toolbar-button is-active" type="button" data-role="panel" data-panel-target="canvas-settings"
@@ -46,7 +48,7 @@
       data-tooltip="参考图窗">
       <img src="svg/参考图窗.svg" alt="">
     </button>
-    <button class="toolbar-button" type="button" data-role="export" data-panel-target="export-tools"
+    <button class="toolbar-button" type="button" data-role="panel" data-panel-target="export-tools"
       aria-controls="panel-export-tools" aria-expanded="false" data-tooltip="导出文件">
       <img src="svg/导出.svg" alt="">
     </button>
@@ -289,13 +291,29 @@
     <!-- 导入文件窗口 -->
     <section class="tool-panel" id="panel-import-tools" data-panel="import-tools">
       <header class="tool-panel__header">
-        <h2>导入文件</h2>
+        <h2>导入文件或本地读取</h2>
         <button class="panel-close-button" type="button" data-panel-close="import-tools" aria-label="关闭导入文件">×</button>
       </header>
       <div class="tool-panel__body">
-        <p class="panel-description">导入项目文件（.pd）恢复之前的拼豆草图。</p>
+        <p class="panel-description">从外部导入.pd文件或从本地读取数据</p>
         <button id="importProjectBtn" type="button" class="primary-button">选择 .pd 文件</button>
+        <button id="openLocalLoadBtn" type="button" class="ghost-button button-row__full">读取本地存储</button>
         <input id="projectFileInput" type="file" accept=".pd,application/json" hidden>
+      </div>
+    </section>
+
+    <!-- 导出文件窗口 -->
+    <section class="tool-panel" id="panel-export-tools" data-panel="export-tools">
+      <header class="tool-panel__header">
+        <h2>导出文件或本地保存</h2>
+        <button class="panel-close-button" type="button" data-panel-close="export-tools" aria-label="关闭导出文件">×</button>
+      </header>
+      <div class="tool-panel__body">
+        <p class="panel-description">导出图片、工程文件或保存至本地</p>
+        <div class="button-row button-row--stacked">
+          <button id="openExportWindowBtn" type="button" class="primary-button button-row__full">导出图片</button>
+          <button id="openLocalSaveBtn" type="button" class="ghost-button button-row__full">保存在本地</button>
+        </div>
       </div>
     </section>
 
@@ -315,6 +333,10 @@
         <label class="inline-control">
           <input type="checkbox" id="showCodesToggle">
           <span>显示色号</span>
+        </label>
+        <label class="inline-control">
+          <input type="checkbox" id="autosaveCountdownToggle" checked>
+          <span>自动保存倒计时显示</span>
         </label>
 
         <section class="display-options-group" aria-labelledby="displayModeGroupLabel">
@@ -1137,6 +1159,23 @@
 
         <div id="canvasHighlightMessage" class="highlight-message" role="status" aria-live="polite"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- 本地保存 / 读取本地存储 -->
+  <div id="localStorageWindow" class="modal-window" aria-hidden="true" tabindex="-1" data-shortcuts-ignore="true">
+    <div class="modal-window__dialog local-storage-window__dialog">
+      <header class="modal-window__header">
+        <h2 id="localStorageWindowTitle" class="modal-window__title">本地存储</h2>
+        <button id="localStorageCloseBtn" type="button" aria-label="关闭本地存储">×</button>
+      </header>
+      <div class="modal-window__body local-storage-window__body">
+        <p id="localStorageWindowHint" class="local-storage-window__hint"></p>
+        <div id="localStorageSlots" class="local-storage-slots" role="list"></div>
+      </div>
+      <footer class="modal-window__footer">
+        <button id="localStorageCancelBtn" type="button" class="ghost-button">关闭</button>
+      </footer>
     </div>
   </div>
 

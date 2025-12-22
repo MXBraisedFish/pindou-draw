@@ -909,7 +909,7 @@ export function updateCurrentColorInfo() {
 }
 export function handleDeletePalette() {
   const id = elements.paletteHistorySelect?.value;
-  if (!id || id === '__none') return;
+  if (!id || id === '__none' || id === '__custom') return;
   if (id === 'builtin-dmc' || id.startsWith('builtin-')) {
     window.alert('内置色卡不能删除。');
     return;
@@ -920,20 +920,30 @@ export function handleDeletePalette() {
     return;
   }
   if (!window.confirm(`确认删除色卡「${entry.name}」吗？此操作不可撤销。`)) return;
+  const wasCurrent = state.currentPaletteId === id;
   state.paletteLibrary.delete(id);
   state.paletteOrder = state.paletteOrder.filter(x => x !== id);
-  if (state.currentPaletteId === id) {
-    state.currentPaletteId = null;
-    state.palette = {};
-    state.paletteKeys = [];
-    state.selectedColorKey = null;
-    renderPalette();
-    renderFullscreenPalette();
-    updateCurrentColorInfo();
-    updateStatusPalette('未加载');
+  if (wasCurrent) {
+    const builtin = state.paletteLibrary.get('builtin-dmc');
+    if (builtin?.data) {
+      applyPalette(builtin.data, builtin.name, {
+        libraryId: 'builtin-dmc',
+        persistSelection: true,
+        convertCanvas: true
+      });
+      updatePaletteHistoryValue('builtin-dmc');
+    } else {
+      state.currentPaletteId = null;
+      state.palette = {};
+      state.paletteKeys = [];
+      state.selectedColorKey = null;
+      renderPalette();
+      renderFullscreenPalette();
+      updateCurrentColorInfo();
+      updateStatusPalette('未加载');
+    }
   }
   updatePaletteHistorySelect();
-  elements.paletteHistorySelect && (elements.paletteHistorySelect.value = '__none');
   persistPaletteLibrary();
   announcePaletteLibraryChange({ action: 'delete', id });
 }
@@ -941,6 +951,10 @@ export async function handlePaletteSelectionChange(ev) {
   const select = ev.target;
   const id = select.value;
   const activeValue = select.dataset.activePaletteId ?? state.currentPaletteId ?? '__none';
+  if (id === '__custom') {
+    select.value = activeValue;
+    return;
+  }
   if (id === '__none') {
     select.value = activeValue;
     return;
@@ -1091,12 +1105,11 @@ export function loadPaletteLibrary() {
     if (!Array.isArray(list)) return;
     list.forEach(entry => {
       if (!entry?.id || !entry.name || !entry.data) return;
-      if (!entry.id.startsWith('builtin-')) {
-        console.warn('Ignoring invalid palette ID in library:', entry.id);
-        return;
-      }
+      // 本地存储只应包含用户导入的色卡（内置色卡由默认资源加载）。
+      if (typeof entry.id !== 'string' || entry.id.startsWith('builtin-')) return;
       addPaletteToLibrary(entry.id, entry.name, entry.data, { persist: false });
     });
+    updatePaletteHistorySelect();
   }
   catch (error) {
     console.warn('Failed to load palette library from storage:', error);
@@ -1186,6 +1199,16 @@ function updatePaletteHistorySelect() {
   placeholder.value = '__none';
   placeholder.textContent = '选择色卡';
   select.appendChild(placeholder);
+
+  const customLabel = state.currentPaletteLabel ? derivePaletteName(state.currentPaletteLabel) : '';
+  if (!currentValue && customLabel) {
+    const currentOption = document.createElement('option');
+    currentOption.value = '__custom';
+    currentOption.textContent = `当前：${customLabel}(${state.paletteKeys.length}色)`;
+    currentOption.selected = true;
+    select.appendChild(currentOption);
+  }
+
   state.paletteOrder.forEach(id => {
     const entry = state.paletteLibrary.get(id);
     if (!entry) return;
@@ -1196,12 +1219,100 @@ function updatePaletteHistorySelect() {
     if (currentValue === id || (!currentValue && existingValue === id)) option.selected = true;
     select.appendChild(option);
   });
-  select.value = currentValue && state.paletteLibrary.has(currentValue) ? currentValue : (existingValue && select.querySelector(`option[value="${existingValue}"]`) ? existingValue : '__none');
+  select.value = currentValue && state.paletteLibrary.has(currentValue)
+    ? currentValue
+    : (!currentValue && customLabel)
+      ? '__custom'
+      : (existingValue && select.querySelector(`option[value="${existingValue}"]`) ? existingValue : '__none');
   select.dataset.activePaletteId = select.value;
 }
 function generatePaletteId(name = 'palette') {
   const safeName = name.replace(/\.[^/.\\]+$/, '').replace(/\s+/g, '_').slice(0, 40);
   return `user-${safeName}-${Date.now()}`;
+}
+
+function paletteEntriesFingerprint(entries = []) {
+  if (!Array.isArray(entries) || !entries.length) return '';
+  const parts = entries
+    .map((entry) => {
+      if (!entry) return '';
+      const code = typeof entry.code === 'string' ? entry.code.trim() : '';
+      const type = typeof entry.type === 'string' ? entry.type : '';
+      const color1 = typeof entry.color1 === 'string' && entry.color1.trim()
+        ? entry.color1.trim()
+        : (typeof entry.color === 'string' ? entry.color.trim() : '');
+      const color2 = typeof entry.color2 === 'string' ? entry.color2.trim() : '';
+      if (!code || !color1) return '';
+      return `${code}|${type}|${color1.toLowerCase()}|${(color2 || '').toLowerCase()}`;
+    })
+    .filter(Boolean);
+  parts.sort((a, b) => a.localeCompare(b, 'zh-Hans-u-nu-latn', { numeric: true }));
+  return parts.join(';');
+}
+
+function paletteDataFingerprint(data) {
+  if (!data || typeof data !== 'object') return '';
+  const parts = Object.keys(data)
+    .map((key) => {
+      const entry = data[key];
+      if (!entry) return '';
+      const code = typeof entry.num === 'string' ? entry.num.trim() : (typeof key === 'string' ? key.trim() : '');
+      const type = typeof entry.type === 'string' ? entry.type : '';
+      const color1 = typeof entry.color1 === 'string' && entry.color1.trim()
+        ? entry.color1.trim()
+        : (typeof entry.color === 'string' ? entry.color.trim() : '');
+      const color2 = typeof entry.color2 === 'string' ? entry.color2.trim() : '';
+      if (!code || !color1) return '';
+      return `${code}|${type}|${color1.toLowerCase()}|${(color2 || '').toLowerCase()}`;
+    })
+    .filter(Boolean);
+  parts.sort((a, b) => a.localeCompare(b, 'zh-Hans-u-nu-latn', { numeric: true }));
+  return parts.join(';');
+}
+
+export function ensurePaletteInLibraryFromPd(palette) {
+  const entries = Array.isArray(palette?.entries) ? palette.entries : [];
+  if (!entries.length) return null;
+
+  const desiredId = typeof palette?.id === 'string' && palette.id && !palette.id.startsWith('builtin-')
+    ? palette.id
+    : null;
+  const label = typeof palette?.label === 'string' && palette.label.trim()
+    ? palette.label.trim()
+    : 'PD 色卡';
+
+  if (desiredId && state.paletteLibrary.has(desiredId)) {
+    return { id: desiredId, created: false };
+  }
+
+  const fingerprint = paletteEntriesFingerprint(entries);
+  if (fingerprint) {
+    for (const id of state.paletteOrder) {
+      if (!id || id.startsWith('builtin-')) continue;
+      const entry = state.paletteLibrary.get(id);
+      if (!entry?.data) continue;
+      if (paletteDataFingerprint(entry.data) === fingerprint) {
+        return { id, created: false };
+      }
+    }
+  }
+
+  const data = {};
+  entries.forEach((entry) => {
+    if (!entry || typeof entry.code !== 'string') return;
+    const code = entry.code.trim();
+    const primary = typeof entry.color1 === 'string' && entry.color1.trim()
+      ? entry.color1.trim()
+      : (typeof entry.color === 'string' ? entry.color.trim() : '');
+    if (!code || !primary) return;
+    const mapped = { num: code, type: entry.type ?? 'normal', color1: primary, color: primary };
+    if (entry.color2) mapped.color2 = entry.color2;
+    data[code] = mapped;
+  });
+
+  const safeId = desiredId ?? generatePaletteId(derivePaletteName(label));
+  addPaletteToLibrary(safeId, label, data, { persist: true, prepend: true });
+  return { id: safeId, created: true };
 }
 const colorManagementState = { enabledColors: new Set(), tempEnabledColors: new Set(), isVisible: false, renderJob: null, renderedItems: new Map(), renderedSignature: '', filterText: '', rawFilterText: '' };
 export function initializeColorManagement() {
