@@ -7,7 +7,7 @@ const STORAGE_KEY = 'local-save-slots-v1';
 const AUTOSAVE_COUNTDOWN_KEY = 'autosave-countdown-visible';
 const SLOT_COUNT = 10;
 const AUTOSAVE_SLOT = 0;
-const AUTOSAVE_INTERVAL_MS = 5 * 60 * 1000;
+const AUTOSAVE_INTERVAL_MS = 10 * 1000;
 const THUMBNAIL_SIZE = 220;
 const EMPTY_ASSET_PATH = 'svg/\u65e0.svg';
 
@@ -17,6 +17,7 @@ let autosaveCountdownTimer = null;
 let nextAutosaveAt = 0;
 let autosaveStatus = 'countdown';
 let autosaveCountdownEnabled = true;
+let autosaveForceUntil = 0;
 
 function resolveAssetUrl(path) {
   try {
@@ -302,10 +303,22 @@ function showAutoSaveToast(message, options = {}) {
   if (!toast) return;
 
   autosaveStatus = options.status ?? 'status';
+  const duration = options.durationMs ?? 2000;
+  autosaveForceUntil = Date.now() + duration;
   toast.textContent = message;
   toast.classList.toggle('is-loading', Boolean(options.loading));
   toast.classList.add('is-visible');
   toast.setAttribute('aria-hidden', 'false');
+  toast.style.opacity = '1';
+  toast.style.transform = 'translateY(0)';
+  if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+    window.requestAnimationFrame(() => {
+      toast.classList.add('is-visible');
+      toast.setAttribute('aria-hidden', 'false');
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateY(0)';
+    });
+  }
 
   if (autosaveToastTimer) window.clearTimeout(autosaveToastTimer);
   autosaveToastTimer = window.setTimeout(() => {
@@ -316,7 +329,9 @@ function showAutoSaveToast(message, options = {}) {
     }
     toast.classList.remove('is-visible', 'is-loading');
     toast.setAttribute('aria-hidden', 'true');
-  }, options.durationMs ?? 2000);
+    toast.style.opacity = '';
+    toast.style.transform = '';
+  }, duration);
 }
 
 function buildSlotTile(slot, index, mode) {
@@ -589,6 +604,8 @@ export function initializeLocalStorageFeature() {
   } else if (elements.autoSaveToast) {
     elements.autoSaveToast.classList.remove('is-visible', 'is-loading');
     elements.autoSaveToast.setAttribute('aria-hidden', 'true');
+    elements.autoSaveToast.style.opacity = '';
+    elements.autoSaveToast.style.transform = '';
   }
 
   elements.openLocalSaveBtn?.addEventListener('click', () => openLocalStorageWindow('save'));
@@ -622,9 +639,11 @@ export function setAutosaveCountdownEnabled(enabled) {
       window.clearInterval(autosaveCountdownTimer);
       autosaveCountdownTimer = null;
     }
-    if (elements.autoSaveToast) {
+    if (elements.autoSaveToast && Date.now() > autosaveForceUntil) {
       elements.autoSaveToast.classList.remove('is-visible', 'is-loading');
       elements.autoSaveToast.setAttribute('aria-hidden', 'true');
+      elements.autoSaveToast.style.opacity = '';
+      elements.autoSaveToast.style.transform = '';
     }
   }
 }
