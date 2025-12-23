@@ -16,8 +16,16 @@
   left: 165px;
 }
 
+body.tablet-mode .panel-stack-left {
+  left: 130px;
+}
+
 .panel-stack-right {
   right: 165px;
+}
+
+body.tablet-mode .panel-stack-right {
+  right: 130px;
 }
 
 .panel-stack,
