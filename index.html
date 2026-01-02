@@ -461,11 +461,17 @@
     <!-- 简洁模式和全屏模式中转栏 -->
     <section class="tool-panel" id="panel-focus-mode" data-panel="focus-mode">
       <header class="tool-panel__header">
-        <h2>简洁模式</h2>
+        <h2>全屏与简洁模式</h2>
         <button class="panel-close-button" type="button" data-panel-close="focus-mode" aria-label="关闭简洁模式">×</button>
       </header>
       <div class="tool-panel__body">
-        <p class="panel-description">功能规划中，未来将提供更专注的全屏创作体验。</p>
+        <p class="panel-description">可快速切换至全屏并预览简洁模式按钮。</p>
+        <div class="button-row focus-mode-actions"><button id="focusFullscreenBtn" type="button"
+            class="primary-button">进入全屏</button><button id="focusSimpleModeBtn" type="button"
+            class="ghost-button">进入简洁模式</button></div>
+        <div class="button-row focus-mode-mode-switch"><button id="forceTabletModeBtnPanel" type="button"
+            class="ghost-button">改为平板端操作与显示</button><button id="forceDesktopModeBtnPanel" type="button"
+            class="ghost-button" style="display: none;">改为电脑端操作与显示</button></div>
       </div>
     </section>
 
@@ -479,7 +485,7 @@
         <p class="panel-description">快速查看版本更新与操作指南，帮助你高效上手。</p>
         <div class="button-row">
           <button id="updateManualBtn" type="button" class="ghost-button">更新说明</button>
-          <a id="docsLink" class="primary-button" href="manual.html" target="_blank" rel="noopener">打开使用说明</a>
+          <a id="docsLink" class="primary-button" href="manual.html" target="_blank" rel="noopener">使用说明</a>
         </div>
       </div>
     </section>
@@ -700,12 +706,16 @@
     <div class="modal-window__dialog">
       <header class="modal-window__header">
         <h2 class="modal-window__title">更新说明</h2>
+        <label class="update-dismiss-toggle" for="updateDismissToggle">
+          <input id="updateDismissToggle" type="checkbox">
+          <span>之后不再显示</span>
+        </label>
         <button id="updateCloseBtn" type="button" aria-label="关闭更新说明">×</button>
       </header>
       <div class="modal-window__body">
         <div class="update-feed">
           <figure class="update-entry__media">
-            <img src="./doc-image/greeting.png" alt="简短描述" width="100%"/>
+            <img src="./doc-image/greeting2.png" alt="简短描述" width="100%" />
           </figure>
 
           <!-- 零、贺词 -->
@@ -714,188 +724,183 @@
               <h4 class="update-entry__title">贺词</h4>
             </header>
             <p class="update-hero__summary">
-              历经三周的开发与测试，拼豆草图网页 <strong>V2.0 终于上！线！辣！</strong> <br>
-              这一版属于“把旧屋拆了重建”的级别：界面回退、功能扩写、代码重构、性能提升，全都一起上。<br>
-              代码量逼近万行，但目标只有一个——<strong>更好用、更能打、更像一个真正的创作工具。</strong>
+              历经将近两个月的努力，拼豆草图制作网页<strong> V3.0 正式上线</strong>！
+              本次更新主要优化响应式，以及功能上的优化，带来更好的使用体验以及更完善的操作。
             </p>
           </section>
 
-          <!-- 一、界面全面翻新 -->
+          <!-- 一、全面适配平板端 -->
           <section class="update-entry">
             <header class="update-entry__header">
-              <h4 class="update-entry__title">一、界面全面翻新</h4>
+              <h4 class="update-entry__title">一、全面适配平板端</h4>
             </header>
-            <ul class="update-entry__list">
-              <li>全新布局，更干净、更清晰。</li>
-              <li>引入 <strong>全屏绘画</strong>，适合专心作画。</li>
-              <li>新增 <strong>极简模式</strong>，界面更轻、更快、更顺眼。</li>
-            </ul>
-            <div class="update-entry__tags">
-              <span class="update-tag">UI</span>
-              <span class="update-tag">交互</span>
-            </div>
+            <p class="update-hero__summary">网页现已支持平板设备，针对触控操作进行了特别优化。</p>
+            <p class="update-hero__summary">当处于平板端时，可在 左侧工具栏 -> 使用说明与更新日志 -> 使用说明 查看平板端说明书(<a
+                href="./manual-tablet.html" target="_blank" rel="noopener noreferrer" class="updata_a">点击此处快捷跳转</a>)</p>
+            <p class="update-hero__summary">若使用平板时仍为电脑端，则在 <strong>左侧工具栏 -> 全屏与简洁模式 -> 切换为平板端显示与操作</strong> 可手动切换。</p>
+            <section>建议使用方式：在左侧工具栏开启全屏模式，获得最佳创作视野。</section>
+            <p class="update-hero__summary" style="color: #ff3d71;">注：移动设备暂未支持手机设备。</p>
           </section>
 
-          <!-- 二、导入功能升级 -->
+          <!-- 二、“以图生草图”功能升级 -->
           <section class="update-entry">
             <header class="update-entry__header">
-              <h4 class="update-entry__title">二、导入功能升级</h4>
-            </header>
-            <p class="update-entry__summary">图片转草图功能进行了深度扩展：</p>
-            <ul class="update-entry__list">
-              <li>支持 <strong>区域裁剪</strong>，先截取再生成更精准。</li>
-              <li>可按需 <strong>比例缩放</strong>，导入时自动适配画布。</li>
-              <li>新增 <strong>抖动仿色</strong>（Dithering），色彩层次更细腻。</li>
-              <li>提供简易与进阶选项，默认一键生成，进阶可自定义细节参数。</li>
-              <li>整体导入速度和稳定性显著提升。</li>
-            </ul>
-            <div class="update-entry__tags">
-              <span class="update-tag">性能</span>
-              <span class="update-tag">导入</span>
-            </div>
-          </section>
-
-          <!-- 三、说明书增强 -->
-          <section class="update-entry">
-            <header class="update-entry__header">
-              <h4 class="update-entry__title">三、说明书增强</h4>
+              <h4 class="update-entry__title">二、“以图生草图”功能升级</h4>
             </header>
             <ul class="update-entry__list">
-              <li>内置 <strong>图文说明书</strong>，从入门到进阶全覆盖。</li>
-              <li>每个功能都有图示说明，上手几乎零学习成本。</li>
-            </ul>
-            <p class="update-entry__summary">路径：查看使用手册与更新日志 → 使用说明</p>
-            <div class="update-entry__tags">
-              <span class="update-tag">文档</span>
-            </div>
-          </section>
-
-          <!-- 四、画布渲染系统重构 -->
-          <section class="update-entry">
-            <header class="update-entry__header">
-              <h4 class="update-entry__title">四、画布渲染系统重构</h4>
-            </header>
-            <ul class="update-entry__list">
-              <li>放大缩小算法优化，画布缩放更顺滑。</li>
-              <li>坐标系升级：
-                <ul>
-                  <li>可单独设置 <strong>透明度</strong></li>
-                  <li>自定义加粗、间距、方向</li>
-                </ul>
+              <li>
+                <p class="update-hero__summary"><strong>色彩表现优化</strong></p>
+                <p class="update-hero__summary">改进了色卡匹配逻辑，有效避免生成结果颜色过暗的问题。</p>
               </li>
-              <li>特殊像素渲染逻辑独立处理，光效表现更协调。</li>
+              <li>
+                <p class="update-hero__summary"><strong>透明背景处理优化</strong></p>
+                <p class="update-hero__summary">上传透明背景图片时，透明区域将不再被填充，自动保留为空白，让草图生成更符合预期。
+                </p>
+              </li>
             </ul>
-            <div class="update-entry__tags">
-              <span class="update-tag">性能</span>
-              <span class="update-tag">渲染</span>
-            </div>
           </section>
 
-          <!-- 五、像素表现方式扩展 -->
+          <!-- 三、本地存储 -->
           <section class="update-entry">
             <header class="update-entry__header">
-              <h4 class="update-entry__title">五、像素表现方式扩展</h4>
+              <h4 class="update-entry__title">三、本地存储</h4>
             </header>
-            <ul class="update-entry__list">
-              <li>像素形状不仅限于 <strong>实心方形</strong>，现在可切换为 <strong>空心圆形</strong>。</li>
-              <li>支持不同像素形态同时渲染，导出时保持一致。</li>
-            </ul>
-            <div class="update-entry__tags">
-              <span class="update-tag">渲染</span>
-            </div>
+            <p class="update-hero__summary">现已支持在浏览器临时存储画布，且每五分钟或出发误退出提醒时会自动保存，有效避免数据丢失问题。</p>
+            <p class="update-hero__summary" style="color: #ff3d71;">注：本地存储仅用于临时存储，如需长期保存请导出为PD工程文件。</p>
           </section>
 
-          <!-- 六、特殊像素体系上线 -->
+          <!-- 四、初次使用提示框 -->
           <section class="update-entry">
             <header class="update-entry__header">
-              <h4 class="update-entry__title">六、特殊像素体系上线</h4>
+              <h4 class="update-entry__title">四、初次使用提示框</h4>
             </header>
-            <ul class="update-entry__list">
-              <li>珠光色</li>
-              <li>温变色</li>
-              <li>光变色</li>
-              <li>透明色</li>
-              <li>夜光色</li>
-            </ul>
-            <p class="update-entry__summary">每种都拥有独立的显示与导出规则，适配拼豆手工爱好者复杂的需求。</p>
-            <div class="update-entry__tags">
-              <span class="update-tag">材质</span>
-              <span class="update-tag">功能</span>
-            </div>
+            <p class="update-hero__summary">现在对于新用户会有一个基础的使用小提示框，尽量避免初次使用困难。</p>
           </section>
 
-          <!-- 七、色卡制作页登场 -->
+          <!-- 五、其他优化 -->
           <section class="update-entry">
             <header class="update-entry__header">
-              <h4 class="update-entry__title">七、色卡制作页登场</h4>
+              <h4 class="update-entry__title">五、其他优化</h4>
             </header>
             <ul class="update-entry__list">
-              <li>独立页面用于 <strong>自定义色卡</strong> 的创建、编辑与导出。</li>
-              <li>支持 <strong>CSV / JSON</strong> 双格式，随你选择。</li>
-              <li>内置模板，让色卡制作流程更规范也更快。</li>
+              <li>修正了部分文本句不对意的问题。</li>
+              <li>现在可以将初始弹窗(更新公告、初始使用教程)选择此后不再显示。</li>
+              <li>优化了以图生草图的操作界面。</li>
             </ul>
-            <div class="update-entry__tags">
-              <span class="update-tag">工具</span>
-              <span class="update-tag">色卡</span>
-            </div>
           </section>
 
-          <!-- 八、对称绘画模式 -->
+          <!-- 六、BUG修复 -->
           <section class="update-entry">
             <header class="update-entry__header">
-              <h4 class="update-entry__title">八、对称绘画模式</h4>
+              <h4 class="update-entry__title">六、BUG修复</h4>
             </header>
             <ul class="update-entry__list">
-              <li>支持水平与垂直对称绘制。</li>
-              <li>每一笔都会自动镜像，适合绘制角色、图案、大型结构。</li>
+              <li>修复了画布有时候会突然卡死的问题。</li>
+              <li>修复了批量导出高亮图时，有时不会导出特殊色的问题。</li>
+              <li>修复了以图生草图会使用珠光色作为初始色的问题。</li>
+              <li>修复了画布光效有时不会实时改变的问题。</li>
+              <li>修复了导入 PD 文件时色卡不会自动切换的问题。</li>
+              <li>修复了参考窗口中的图片有时无法作为底图的问题。</li>
+              <li>修复了底图有时无法缩放的问题。</li>
+              <li>修复了因 CSS 类名书写错误导致样式异常的问题。</li>
             </ul>
-            <div class="update-entry__tags">
-              <span class="update-tag">绘制</span>
-              <span class="update-tag">效率</span>
-            </div>
-          </section>
-
-          <!-- 九、工程文件导入方式扩展 -->
-          <section class="update-entry">
-            <header class="update-entry__header">
-              <h4 class="update-entry__title">九、工程文件导入方式扩展</h4>
-            </header>
-            <ul class="update-entry__list">
-              <li><code>.pd</code> 文件可作为 <strong>新建画布</strong> 导入。</li>
-              <li>也可选择 <strong>追加到当前画布</strong>，适合多图合并或工程补充。</li>
-            </ul>
-            <div class="update-entry__tags">
-              <span class="update-tag">导入</span>
-              <span class="update-tag">工作流</span>
-            </div>
-          </section>
-
-          <!-- 十、快捷键全面覆盖 -->
-          <section class="update-entry">
-            <header class="update-entry__header">
-              <h4 class="update-entry__title">十、快捷键全面覆盖</h4>
-            </header>
-            <ul class="update-entry__list">
-              <li>工具切换、模式切换、视图控制等全部加入快捷键支持。</li>
-              <li>可明显提升工作流程的连贯性与效率。</li>
-            </ul>
-            <div class="update-entry__tags">
-              <span class="update-tag">效率</span>
-              <span class="update-tag">交互</span>
-            </div>
-          </section>
-
-          <!-- 结尾 -->
-          <section class="update-entry">
-            <p class="update-entry__summary">
-              V2.0 不只是更新，更是一次“体系级”的大升级。<br>
-              界面、功能、效率、表达力，从里到外都换了一套新骨架。<br>
-              让创作变轻、变快，也变得更有趣。
-            </p>
+            <p class="update-hero__summary" style="color: #ff3d71;">感谢各位粉丝和使用者的反馈！</p>
           </section>
         </div>
       </div>
 
+    </div>
+  </div>
+
+  <!-- 初次使用说明 -->
+  <div id="introWindow" class="modal-window" aria-hidden="true" tabindex="-1" data-shortcuts-ignore="true">
+    <div class="modal-window__dialog">
+      <header class="modal-window__header">
+        <h2 class="modal-window__title">初次使用说明<strong style="color: red">(必看!!!!!)</strong></h2>
+        <label class="update-dismiss-toggle" for="introDismissToggle">
+          <input id="introDismissToggle" type="checkbox">
+          <span>之后不再显示</span>
+        </label>
+        <button id="introCloseBtn" type="button" aria-label="关闭初次使用说明">×</button>
+      </header>
+      <div class="modal-window__body">
+        <div class="update-feed intro-feed">
+          <section class="update-entry">
+            <header class="update-entry__header">
+              <h4 class="update-entry__title" style="color: red">初次使用必看</h4>
+              <span class="update-entry__date">提醒</span>
+            </header>
+            <p class="update-entry__summary">如果您第一次使用请务必认真仔细阅读本窗口的内容，以免出现使用上的问题！</p>
+            <p class="update-entry__summary">该窗口可向下滑动查看。</p>
+          </section>
+          <section class="update-entry">
+            <header class="update-entry__header">
+              <h4 class="update-entry__title">这是什么网页</h4>
+              <span class="update-entry__date">解答</span>
+            </header>
+            <p class="update-entry__summary">该网页用于拼豆手工草图绘制，不支持专业的像素图绘制。</p>
+          </section>
+          <section class="update-entry">
+            <header class="update-entry__header">
+              <h4 class="update-entry__title">平台切换</h4>
+              <span class="update-entry__date">帮助</span>
+            </header>
+            <p class="update-entry__summary">网页支持<strong>电脑设备和平板设备</strong>使用，暂不支持<strong>手机设备</strong>使用。</p>
+            <ul class="update-entry__list">
+              <li>
+                <p class="update-entry__summary">平板使用的依旧是电脑怎么办？</p>
+                <p class="update-entry__summary">支持手动切换 <strong>左侧工具栏 -> 全屏和简洁模式开关(倒数第二个选项) -> 改为平板端操作与显示</strong></p>
+                <p class="update-entry__summary">特征：常态模式下有 <strong>[左右下]</strong> 三个工具栏，且右侧基础工具有橡皮模式选择</p>
+              </li>
+              <li>
+                <p class="update-entry__summary">电脑使用的依旧是平板怎么办？</p>
+                <p class="update-entry__summary">支持手动切换 <strong>左侧工具栏 -> 全屏和简洁模式开关(倒数第二个选项) -> 改为电脑端操作与显示</strong></p>
+                <p class="update-entry__summary">特征：常态模式下有 <strong>[左右]</strong> 两个工具栏，且右侧基础工具没有橡皮模式选择</p>
+              </li>
+            </ul>
+          </section>
+          <section class="update-entry">
+            <header class="update-entry__header">
+              <h4 class="update-entry__title">如何使用网页</h4>
+              <span class="update-entry__date">使用建议</span>
+            </header>
+            <p class="update-entry__summary">该网页支持非常多的功能，包含但不限于：</p>
+            <ul class="update-entry__list">
+              <li>以图生草图</li>
+              <li>基础绘制</li>
+              <li>工程文件导入和导出</li>
+              <li>本地保存</li>
+              <li>特殊色号绘制</li>
+              <li>图片自定义导出</li>
+              <li>更多功能……</li>
+            </ul>
+            <p>如果需要了解具体用途，请查看网站提供的说明书，有任何使用上的问题皆可在这里寻找答案。</p>
+            <a href="./manual.html" target="_blank" rel="noopener noreferrer" class="updata_a">电脑端使用说明书</a>
+            <a href="./manual-tablet.html" target="_blank" rel="noopener noreferrer" class="updata_a">平板端使用说明书</a>
+          </section>
+          <section class="update-entry">
+            <header class="update-entry__header">
+              <h4 class="update-entry__title">反馈和询问</h4>
+              <span class="update-entry__date">帮助</span>
+            </header>
+            <p class="update-entry__summary">如果在使用过程中遇到无法解决的问题，可通过以下方式反馈和询问：</p>
+            <ul class="update-entry__list">
+              <li><a href="https://space.bilibili.com/609170202" target="_blank" rel="noopener noreferrer"
+                  class="updata_a">
+                  B站 · 闷香红烧鱼
+                </a></li>
+              <li><a href="https://www.xiaohongshu.com/user/profile/65f420e30000000005008498" target="_blank"
+                  rel="noopener noreferrer" class="updata_a">
+                  小红书 · 闷香红烧鱼
+                </a></li>
+              <li><a href="https://github.com/MXBraisedFish/pindou-draw" target="_blank" rel="noopener noreferrer"
+                  class="updata_a">
+                  Github · MXBraisedFish
+                </a></li>
+            </ul>
+          </section>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -913,7 +918,8 @@
         <div class="export-layout">
           <!-- 预览部分 -->
           <div class="export-preview-section">
-            <h3 class="section-title">预览：<span id="exportPreviewFilenameTitle" class="export-preview-filename">pixel-art</span></h3>
+            <h3 class="section-title">预览：<span id="exportPreviewFilenameTitle"
+                class="export-preview-filename">pixel-art</span></h3>
             <div class="preview-container">
               <div class="preview-stage">
                 <canvas id="exportPreviewCanvas"></canvas>
@@ -1147,7 +1153,8 @@
               <div class="highlight-window__replacement-meta">
                 <span id="canvasHighlightReplacementSourceCount">已选 0 个高亮颜色</span>
               </div>
-              <div id="canvasHighlightReplacementList" class="highlight-window__replacement-list" role="listbox" aria-multiselectable="true">
+              <div id="canvasHighlightReplacementList" class="highlight-window__replacement-list" role="listbox"
+                aria-multiselectable="true">
               </div>
               <div class="highlight-window__replacement-actions">
                 <button id="canvasHighlightReplacementConfirmBtn" type="button" class="primary-button">开始替换</button>
@@ -1384,7 +1391,8 @@
             </div>
             <div class="photo-sketch-preview-stack madol">
               <div class="photo-sketch-preview-pane madol" data-pane="original">
-                <canvas id="photoSketchOriginalPreview" width="320" height="320" aria-label="原图预览" class="madol"></canvas>
+                <canvas id="photoSketchOriginalPreview" width="320" height="320" aria-label="原图预览"
+                  class="madol"></canvas>
               </div>
               <div class="photo-sketch-preview-pane madol" data-pane="pixel">
                 <canvas id="photoSketchPixelPreview" width="320" height="320" aria-label="像素图预览" class="madol"></canvas>

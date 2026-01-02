@@ -1,3 +1,8 @@
+:root {
+  --doc-accent: #ff3d71;
+  --doc-accent-dark: #d72f5d;
+}
+
 .modal-window__body {
   background-color: whitesmoke;
   padding: 14px;
@@ -11,9 +16,23 @@ body.tablet-mode .modal-window__dialog .modal-window__body {
 
 .modal-window__footer {
   position: inherit;
-  
+
   z-index: 50;
   margin: 10px auto;
+}
+
+.update-dismiss-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #5a627d;
+  margin-left: auto;
+}
+
+.update-dismiss-toggle input {
+  width: 14px;
+  height: 14px;
 }
 
 .update-feed {
@@ -34,6 +53,20 @@ body.tablet-mode #updateWindow .modal-window__body {
 }
 
 body.tablet-mode #updateWindow .update-feed {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+}
+
+body.tablet-mode #introWindow .modal-window__body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: calc(100vh - 220px);
+  overflow: hidden;
+}
+
+body.tablet-mode #introWindow .update-feed {
   flex: 1;
   min-height: 0;
   max-height: none;
@@ -168,4 +201,14 @@ body.tablet-mode #updateWindow .update-feed {
   font-size: 12px;
   color: #4a526b;
   background: #fff;
+}
+
+a.updata_a  {
+  color: var(--doc-accent);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a.updata_a :hover {
+  color: var(--doc-accent-dark);
 }

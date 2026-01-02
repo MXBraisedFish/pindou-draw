@@ -43,6 +43,8 @@ import { resolveResolutionValue, handleResolutionInputChange } from '../app/reso
 import { renderSelectionLayers } from '../selection-layer.js';
 import { toggleSymmetryMode, getSymmetryMode } from '../symmetry.js';
 import { computeRightToolbarAnchor } from '../toolbar-anchor.js';
+import { isUpdateDismissed } from '../update.js';
+import { isIntroDismissed } from '../intro.js';
 
 const CANVAS_WARNING_AREA = 80 * 80;
 const CANVAS_DANGER_AREA = 128 * 128;
@@ -84,12 +86,20 @@ export function initializeUIBindings() {
 
 function bindManualHintToast() {
   document.addEventListener('update:autoClosed', () => {
+    if (isIntroDismissed()) {
+      showManualHintToast();
+    }
+  });
+  document.addEventListener('intro:closed', () => {
     showManualHintToast();
   });
   window.addEventListener('resize', () => {
     if (!elements.manualHintToast?.classList.contains('is-visible')) return;
     positionManualHintToast();
   });
+  if (isUpdateDismissed() && isIntroDismissed() && !state.updateVisible && !state.introVisible) {
+    showManualHintToast();
+  }
 }
 
 function positionManualHintToast() {
@@ -906,7 +916,6 @@ function initializeTabletMode() {
       } catch (error) { }
     }
     if (!prev && matches) {
-      window.alert('平板端目前处于测试版本，当前使用可能会遇到不可预知的Bug，请谨慎使用，若您遇到Bug请及时汇报(小红书、B站、Github仓库)。');
       showTabletUsageToast();
     }
     if (matches && state.simpleMode) {

@@ -1,7 +1,8 @@
 import { elements } from '../elements.js';
 import { state } from '../state.js';
 import { initializeShortcuts } from '../shortcuts.js';
-import { initializeUpdate, toggleUpdate } from '../update.js';
+import { autoOpenUpdateIfNeeded, initializeUpdate } from '../update.js';
+import { autoOpenIntroIfNeeded, initializeIntro } from '../intro.js';
 import { initializeExportWindow, toggleExportWindow } from '../export-window.js';
 import { initializeReferenceFeature } from '../reference.js';
 import { initializeSelectionLayers, renderSelectionLayers } from '../selection-layer.js';
@@ -32,7 +33,9 @@ export async function initializeApp() {
 
   initializeReferenceFeature();
   initializeUpdate();
-  toggleUpdate(true);
+  initializeIntro();
+  autoOpenUpdateIfNeeded();
+  autoOpenIntroIfNeeded();
   initializeExportWindow();
   initializePhotoSketch();
   initializeShortcuts();

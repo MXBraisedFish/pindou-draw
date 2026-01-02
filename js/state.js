@@ -48,6 +48,7 @@ export const state = {
   historyIndex: -1,
   maxHistorySize: 50,
   exportVisible: false,
+  introVisible: false,
   exportSettings: {
     format: 'image/png',
     includeCodes: false,

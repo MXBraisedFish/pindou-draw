@@ -6,6 +6,7 @@
 - [项目功能](#项目功能与技术栈)  
 - [项目目录](#项目目录)
 - [主要算法介绍](#主要算法介绍)
+- [色卡格式](#色卡格式)
 
 ---
 
@@ -82,6 +83,16 @@
 - 优化以图生草图算法，现在不再会填充透明部分
 - 添加使用提示
 
+**v2.2**
+- 新增本地存储
+- 优化说明书以及措辞
+- 添加初次使用提示框
+- 添加初始弹窗后续不再弹出选项
+
+**v3.0**
+- 平板端正式上线
+- 修复数个Bug
+
 ---
 
 ## 项目功能与技术栈
@@ -106,75 +117,82 @@
 ```
 拼豆色卡/
 ├ css/
-│ ├ buttons.css                 # 通用按钮样式（主按钮 / 幽灵按钮 / 图标按钮等）
-│ ├ color-display.css
-│ ├ color-maker.css
-│ ├ color-management.css        # 颜色管理与颜色高亮 / 替换窗口样式
-│ ├ export-window.css           # 导出窗口样式（预览区 / 设置区 / 平板 tab 布局等）
-│ ├ floating-windows.css        # 浮动窗口通用样式（参考窗 / 调色盘等，拖拽 / 缩放状态）
-│ ├ forms.css
-│ ├ inline-controls.css
-│ ├ manual-docs.css             # 说明书页面样式（电脑端 / 平板端共用）
-│ ├ modal-windows.css           # 模态窗口与 overlay 通用样式（遮罩 / dialog / 层级）
-│ ├ panels.css                  # 各类面板 / 工具面板 / 弹窗内容区布局样式
-│ ├ project-import.css          # .pd 导入设置 overlay 样式
-│ ├ reference-images.css        # 参考图列表内容区样式（卡片 / 图片 / 操作按钮）
-│ ├ reset.css
-│ ├ resize-canvas.css           # 扩裁画布 overlay 样式
-│ ├ status-bar.css              # 顶部 / 底部状态栏样式（色号 / 缩放 / 提示）
-│ ├ toolbar.css                 # 工具栏样式（左右 / 底部 / 平板撤销栏 / 弹出工具框）
-│ ├ update-log.css              # 更新说明 / 更新日志窗口样式
-│ └ workspace.css               # 工作区布局与画布舞台区域样式
+│ ├ buttons.css                 # 按钮、开关、标签等通用组件样式
+│ ├ color-display.css           # 色卡展示、颜色列表与色块样式
+│ ├ color-maker.css             # 色卡制作页面样式
+│ ├ color-management.css        # 颜色管理、颜色高亮窗口相关样式
+│ ├ export-window.css           # 导出窗口、预览与设置布局
+│ ├ floating-windows.css        # 浮动窗口框架（可拖拽 / 可缩放）
+│ ├ forms.css                   # 表单、输入框、选择器与字段布局
+│ ├ inline-controls.css         # 输入框旁小控件、滑条 / 数值一体控件
+│ ├ local-storage.css           # 本地保存 / 读取窗口与自动保存提示
+│ ├ manual-docs.css             # 说明书页面排版与图片样式
+│ ├ modal-windows.css           # 通用弹窗框架、遮罩与层级
+│ ├ panels.css                  # 各类功能面板的布局与堆叠区域
+│ ├ project-import.css          # 导入项目 / 导入图片的弹窗与流程样式
+│ ├ reference-images.css        # 参考图窗口与缩略图列表样式
+│ ├ reset.css                   # 全局重置、基础色彩 / 背景与通用变量
+│ ├ resize-canvas.css           # 扩裁画布窗口与预览区样式
+│ ├ status-bar.css              # 状态栏与底部信息展示
+│ ├ toolbar.css                 # 左右 / 底部工具栏、按钮组、展开面板与提示
+│ ├ update-log.css              # 更新公告与初次使用说明弹窗样式
+│ └ workspace.css               # 画布工作区、舞台容器、网格与基础布局
+│
 ├ doc-image/                    # 电脑端说明书所用图片资源
 ├ doc-tablet-image/             # 平板端说明书所用图片资源
 ├ icon/                         # 浏览器站点图标（favicon 等）
+│
 ├ js/
 │ ├ app/
-│ │ ├ app-initializer.js        # 应用初始化流程编排（模块初始化顺序 / 启动行为）
-│ │ ├ localization.js           # 界面文案注入 / 本地化逻辑
-│ │ └ resolution.js             # 分辨率 / 像素比输入解析与应用
+│ │ ├ app-initializer.js        # 应用启动流程编排
+│ │ ├ localization.js           # 文案本地化初始化
+│ │ └ resolution.js             # 分辨率 / 像素比解析与处理
 │ ├ ui/
-│ │ └ ui-bindings.js            # UI 事件绑定与状态同步（按钮 / 面板 / 平板模式等）
-│ ├ app.js                      # 应用入口脚本，汇总模块并触发初始化
-│ ├ base-image.js               # 底图逻辑（导入 / 显示 / 缩放 / 移动 / 编辑模式）
-│ ├ canvas-highlight.js         # 颜色高亮与替换窗口的数据 / 交互 / 渲染逻辑
-│ ├ canvas.js                   # 画布核心逻辑（绘制 / 填充 / 缩放 / 平移 / 撤销重做等）
-│ ├ color-maker.js              # 颜色生成 / 解析 / 展示辅助逻辑
-│ ├ color-usage-cache.js
-│ ├ constants.js                # 全局常量与参数配置
-│ ├ elements.js                 # DOM 元素统一引用与查询
-│ ├ export-highlight-enhancements.js # 高亮导出增强逻辑（筛选 / 列表联动）
-│ ├ export-highlight.js         # 高亮导出核心逻辑（选择颜色 / 生成高亮图）
-│ ├ export-window.js            # 导出窗口逻辑（预览 / 设置 / 平板 tab / 缩放拖动）
-│ ├ exporter.js                 # 实际导出渲染与文件生成（PNG / JPG / SVG / PDF / PD）
-│ ├ floating-window-stack.js    # 浮动窗口层级 / 置顶 / 拖拽 / 尺寸管理
-│ ├ grid-overlay.js
-│ ├ highlight-outline.js
-│ ├ image-operations.js         # 图像操作功能（翻转 / 旋转 / 对齐等）
-│ ├ language.js                 # 文案与多语言文本资源
-│ ├ palette-switch-dialog.js    # 切换色卡提示弹窗逻辑
-│ ├ palette-window.js           # 调色盘窗口行为（打开 / 关闭 / 渲染 / 筛选）
-│ ├ palette.js                  # 色卡数据管理（加载 / 保存 / 导入 / 删除 / 启用状态）
-│ ├ pd.js                       # .pd 工程文件导入 / 导出 / 解析逻辑
-│ ├ photo-sketch.js             # 图片转像素图逻辑（参数 / 抖动 / 预览 / 应用）
-│ ├ project-import-dialog.js    # .pd 导入时的设置 / 提示弹窗逻辑
-│ ├ reference.js                # 参考图窗口（列表管理 / 置顶 / 平板拖拽缩放）
-│ ├ resize-canvas.js
-│ ├ selection-layer.js          # 选区图层渲染与叠加显示（mask / outline）
-│ ├ selection.js                # 选区数据与操作（创建 / 反选 / 移动 / 提交）
-│ ├ shortcuts.js                # 快捷键与按键绑定
-│ ├ state.js                    # 全局状态管理（工具 / 模式 / 窗口开关等）
-│ ├ symmetry.js                 # 对称绘制模式逻辑
-│ ├ toolbar-anchor.js           # 工具栏 / 弹出框锚点定位计算
-│ ├ update.js                   # 更新说明（公告栏）窗口逻辑
-│ ├ utils.js                    # 通用工具函数（数值 / 颜色 / DOM / 布局）
-│ └ workspace.js                # 工作区 / 画布容器布局与交互辅助
+│ │ └ ui-bindings.js            # UI 事件绑定与交互初始化
+│ ├ app.js                      # 入口协调（旧入口或兼容层）
+│ ├ base-image.js               # 底图加载、位置 / 缩放与编辑模式
+│ ├ canvas-highlight.js         # 画布颜色高亮功能逻辑
+│ ├ canvas.js                   # 画布绘制、工具、缩放 / 拖拽、渲染核心
+│ ├ color-maker.js              # 色卡制作页面逻辑
+│ ├ color-usage-cache.js        # 颜色使用统计缓存
+│ ├ constants.js                # 常量配置
+│ ├ elements.js                 # DOM 元素统一引用
+│ ├ export-highlight-enhancements.js # 导出高亮增强 / 附加功能
+│ ├ export-highlight.js         # 导出高亮颜色相关逻辑
+│ ├ export-window.js            # 导出窗口 UI 与交互
+│ ├ exporter.js                 # 导出渲染与生成文件核心逻辑
+│ ├ floating-window-stack.js    # 浮动窗口层级与堆叠管理
+│ ├ grid-overlay.js             # 网格叠加层绘制与开关
+│ ├ highlight-outline.js        # 高亮边缘 / 轮廓相关算法与绘制
+│ ├ image-operations.js         # 翻转 / 旋转等图像操作
+│ ├ intro.js                    # 初次使用说明弹窗逻辑与“不再显示”存储
+│ ├ language.js                 # 多语言文案映射
+│ ├ local-storage.js            # 本地保存 / 读取、自动保存与提示
+│ ├ palette-switch-dialog.js    # 色卡切换 / 确认弹窗
+│ ├ palette-window.js           # 色卡窗口 UI 与交互
+│ ├ palette.js                  # 色卡加载、选择、增删与转换
+│ ├ pd.js                       # PD 工程文件导入 / 导出相关逻辑
+│ ├ photo-sketch.js             # 以图生成像素草图功能
+│ ├ project-import-dialog.js    # 导入图片 / 项目的弹窗与流程
+│ ├ reference.js                # 参考图窗口逻辑
+│ ├ resize-canvas.js            # 扩裁画布窗口与预览逻辑
+│ ├ selection-layer.js          # 选区可视化层与渲染
+│ ├ selection.js                # 选区工具逻辑
+│ ├ shortcuts.js                # 快捷键映射
+│ ├ state.js                    # 全局状态管理
+│ ├ symmetry.js                 # 对称绘制模式
+│ ├ toolbar-anchor.js           # 工具栏锚点 / 定位辅助
+│ ├ update.js                   # 更新公告弹窗逻辑与“不再显示”存储
+│ └ utils.js                    # 通用工具函数（格式化、节流 / 防抖等）
+│
 ├ output/                       # 默认色卡与内置数据存储目录
 ├ svg/                          # SVG 图标资源
+│
 ├ color-maker.html              # 色卡制作与编辑页面
 ├ index.html                    # 应用主页面（首页）
 ├ manual-tablet.html            # 平板端使用说明书页面
-└ manual.html                   # 电脑端使用说明书页面
+├ manual.html                   # 电脑端使用说明书页面
+└ README.md                     # Markdown文档
 ```
 
 ---
@@ -204,7 +222,6 @@
 - 维护画布的网格数据结构 `state.grid`
 - 提供重绘、渲染与历史记录（撤销 / 重做）等基础能力，承接 photo-sketch 的生成结果
 
-
 ---
 
 ### 2）自动贴合底图颜色（底图采样 → 最近邻匹配 → 写入画布）
@@ -231,7 +248,6 @@
 **透明度处理（关键点）**
 - 底图像素的 `alpha` 值参与判断
 - 当像素透明或接近透明时通常跳过上色，保持画布空白，避免透明区域被错误填充为黑色或其他颜色
-
 
 ---
 
@@ -270,7 +286,6 @@
 **js/exporter.js：导出时的特殊像素处理**
 - 导出渲染阶段同样基于 `state.exportSettings` 与 `cell.type` 处理特殊像素，确保导出结果与画布显示一致
 
-
 ---
 
 ### 4）导出图片算法
@@ -308,7 +323,6 @@
 - 预览只是该 canvas 的缩放显示
 - 实际导出则将该 canvas 转换为目标文件格式，或序列化为 `.pd` 工程文件
 
-
 ---
 
 ### 5）高亮像素算法（区域连通聚合 + 边界描边）
@@ -333,11 +347,9 @@
 
 ---
 
-### 6）色卡存储
+## 色卡格式
 
 本项目支持 **JSON** 与 **CSV** 两种色卡文件格式，用于描述拼豆颜色及其特殊属性（光变、温变、夜光等）。
-
----
 
 #### JSON 色卡格式
 
@@ -391,8 +403,6 @@
 }
 ```
 
----
-
 #### CSV 色卡格式
 
 **表头要求**
@@ -430,8 +440,6 @@ num,type,color1,color2
 A1,normal,rgb(250,245,205),
 L1,light,rgb(80,120,255),rgb(200,220,255)
 ```
-
----
 
 #### 备注（实现依据）
 

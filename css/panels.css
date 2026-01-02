@@ -66,7 +66,7 @@ body.simple-mode-active .panel-stack-right {
 
 body.tablet-mode .panel-stack-right #paletteWindow.tablet-palette-panel  {
   width: 320px !important;
-  max-height: calc(100vh - 220px);
+  max-height: calc(100vh - 140px);
   pointer-events: auto;
 }
 
