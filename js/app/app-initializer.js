@@ -56,6 +56,7 @@ export async function initializeApp() {
       paletteOverlay.classList.remove('is-visible');
       paletteOverlay.setAttribute('aria-hidden', 'true');
     }
+    document.dispatchEvent(new CustomEvent('palette:loaded'));
   }
   initializeCanvasHighlight();
 

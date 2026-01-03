@@ -60,6 +60,8 @@ let tabletFullscreenExitFailures = [];
 let tabletFullscreenReenterBound = false;
 let lastFullscreenToggleIntent = null;
 let lastFullscreenToggleTime = 0;
+let paletteLoadedToastQueue = [];
+let paletteLoadedListenerBound = false;
 
 export function initializeUIBindings() {
   initializeTabletMode();
@@ -127,6 +129,7 @@ function showManualHintToast() {
   const toast = elements.manualHintToast;
   if (!toast) return;
 
+  if (enqueueToastAfterPaletteLoaded(showManualHintToast)) return;
   manualHintShown = true;
   positionManualHintToast();
   toast.classList.add('is-visible');
@@ -152,6 +155,7 @@ function showTabletUsageToast() {
   const toast = elements.tabletUsageToast;
   if (!toast || !state.isTabletMode) return;
 
+  if (enqueueToastAfterPaletteLoaded(showTabletUsageToast)) return;
   toast.classList.add('is-visible');
   toast.setAttribute('aria-hidden', 'false');
 
@@ -162,6 +166,28 @@ function showTabletUsageToast() {
     toast.classList.remove('is-visible');
     toast.setAttribute('aria-hidden', 'true');
   }, 3000);
+}
+
+function enqueueToastAfterPaletteLoaded(callback) {
+  const overlay = elements.paletteLoadingOverlay;
+  const isLoading = overlay?.classList.contains('is-visible');
+  if (!isLoading) return false;
+
+  paletteLoadedToastQueue.push(callback);
+  if (!paletteLoadedListenerBound) {
+    paletteLoadedListenerBound = true;
+    document.addEventListener(
+      'palette:loaded',
+      () => {
+        paletteLoadedListenerBound = false;
+        const queue = paletteLoadedToastQueue.slice();
+        paletteLoadedToastQueue = [];
+        queue.forEach((fn) => fn());
+      },
+      { once: true }
+    );
+  }
+  return true;
 }
 
 function bindTabletToolbarTooltipAutoHide() {

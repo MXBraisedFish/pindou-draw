@@ -23,6 +23,14 @@
   right: 85px;
 }
 
+.tablet-mode .toolbar-left {
+  left: 40px;
+}
+
+.tablet-mode  .toolbar-right {
+  right: 40px;
+}
+
 .toolbar-bottom {
   position: fixed;
   left: 50%;
