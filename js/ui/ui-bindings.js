@@ -62,6 +62,8 @@ let lastFullscreenToggleIntent = null;
 let lastFullscreenToggleTime = 0;
 let paletteLoadedToastQueue = [];
 let paletteLoadedListenerBound = false;
+let paletteReady = false;
+let manualHintPending = false;
 
 export function initializeUIBindings() {
   initializeTabletMode();
@@ -104,6 +106,13 @@ function bindManualHintToast() {
   if (isUpdateDismissed() && isIntroDismissed() && !state.updateVisible && !state.introVisible) {
     showManualHintToast();
   }
+  document.addEventListener('palette:loaded', () => {
+    paletteReady = true;
+    if (manualHintPending && !manualHintShown && !state.updateVisible && !state.introVisible) {
+      manualHintPending = false;
+      showManualHintToast();
+    }
+  }, { once: true });
 }
 
 function positionManualHintToast() {
@@ -131,6 +140,14 @@ function showManualHintToast() {
   const toast = elements.manualHintToast;
   if (!toast) return;
 
+  if (!paletteReady) {
+    manualHintPending = true;
+    return;
+  }
+  if (state.updateVisible || state.introVisible) {
+    manualHintPending = true;
+    return;
+  }
   if (enqueueToastAfterPaletteLoaded(showManualHintToast)) return;
   manualHintShown = true;
   positionManualHintToast();
