@@ -112,6 +112,7 @@ export const elements = {
   baseScaleValue: $('#baseScaleValue'),
   referenceWindow: $('#referenceWindow'),
   updateWindow: $('#updateWindow'),
+  paletteLoadingOverlay: $('#paletteLoadingOverlay'),
   introWindow: $('#introWindow'),
   exportWindow: $('#exportWindow'),
   referenceList: $('#referenceList'),

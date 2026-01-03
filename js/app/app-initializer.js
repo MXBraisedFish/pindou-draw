@@ -40,11 +40,23 @@ export async function initializeApp() {
   initializePhotoSketch();
   initializeShortcuts();
 
-  await loadDefaultPalettes();
-  loadPaletteLibrary();
-  restoreLastPalette();
-  initializeColorManagement();
-  initializePaletteWindow();
+  const paletteOverlay = elements.paletteLoadingOverlay;
+  if (paletteOverlay) {
+    paletteOverlay.classList.add('is-visible');
+    paletteOverlay.setAttribute('aria-hidden', 'false');
+  }
+  try {
+    await loadDefaultPalettes();
+    loadPaletteLibrary();
+    restoreLastPalette();
+    initializeColorManagement();
+    initializePaletteWindow();
+  } finally {
+    if (paletteOverlay) {
+      paletteOverlay.classList.remove('is-visible');
+      paletteOverlay.setAttribute('aria-hidden', 'true');
+    }
+  }
   initializeCanvasHighlight();
 
   const resolvedRatio = resolveResolutionValue(elements.resolutionInput?.value ?? state.pixelRatio);
