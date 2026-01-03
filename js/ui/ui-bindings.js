@@ -88,12 +88,14 @@ export function initializeUIBindings() {
 
 function bindManualHintToast() {
   document.addEventListener('update:autoClosed', () => {
-    if (isIntroDismissed()) {
+    if (isIntroDismissed() && !state.updateVisible && !state.introVisible) {
       showManualHintToast();
     }
   });
   document.addEventListener('intro:closed', () => {
-    showManualHintToast();
+    if (!state.updateVisible && !state.introVisible) {
+      showManualHintToast();
+    }
   });
   window.addEventListener('resize', () => {
     if (!elements.manualHintToast?.classList.contains('is-visible')) return;
