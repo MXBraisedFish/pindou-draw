@@ -2,7 +2,7 @@ import { elements } from './elements.js';
 import { state } from './state.js';
 
 // 版本号 30
-export const INTRO_NOTICE_VERSION = 30;
+export const INTRO_NOTICE_VERSION = 31;
 const INTRO_NOTICE_KEY = 'intro-notice-version';
 
 export function initializeIntro() {
