@@ -1,0 +1,105 @@
+@import 'tailwindcss';
+
+@font-face {
+  font-family: 'MinecraftTen';
+  src: url('@/assets/font/minecraft-ten.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'PixelFont';
+  src: url('@/assets/font/pixelFont.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@theme {
+  --color-canvas-bg: #f0f0f0;
+  --color-grid-line: #cccccc;
+  --color-toolbar-bg: #ffffff;
+  --color-panel-bg: #fafafa;
+  --color-accent: #6366f1;
+  --color-accent-hover: #4f46e5;
+  --font-size-tool-icon: 1.25rem;
+  --font-minecraft-ten: 'MinecraftTen', monospace;
+  --font-pixel: 'PixelFont', monospace;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* 自定义滑块 */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  height: 20px;
+}
+
+input[type='range']::-webkit-slider-runnable-track {
+  height: 4px;
+  background: #d1d5db;
+  border-radius: 2px;
+}
+
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 0;
+  background: url('@/assets/icon/滑块.png') center/contain no-repeat;
+  margin-top: -8px;
+  cursor: pointer;
+}
+
+input[type='range']::-moz-range-track {
+  height: 4px;
+  background: #d1d5db;
+  border-radius: 2px;
+  border: none;
+}
+
+input[type='range']::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 0;
+  background: url('@/assets/icon/滑块.png') center/contain no-repeat;
+  cursor: pointer;
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  /*
+   * The bundled pixel fonts only contain a small glyph subset. Keeping them at
+   * the front of the global stack makes some Unicode characters render as the
+   * font's replacement glyph instead of falling back to a complete font.
+   * Pixel fonts remain available for explicit export options.
+   */
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    'PingFang SC',
+    'Hiragino Sans GB',
+    'Microsoft YaHei',
+    'Noto Sans CJK SC',
+    'Noto Sans Symbols 2',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}

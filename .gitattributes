@@ -1,0 +1,14 @@
+* text=auto eol=lf
+*.js text working-tree-encoding=UTF-8 eol=lf
+*.jsx text working-tree-encoding=UTF-8 eol=lf
+*.mjs text working-tree-encoding=UTF-8 eol=lf
+*.cjs text working-tree-encoding=UTF-8 eol=lf
+*.ts text working-tree-encoding=UTF-8 eol=lf
+*.tsx text working-tree-encoding=UTF-8 eol=lf
+*.mts text working-tree-encoding=UTF-8 eol=lf
+*.cts text working-tree-encoding=UTF-8 eol=lf
+*.vue text working-tree-encoding=UTF-8 eol=lf
+*.css text working-tree-encoding=UTF-8 eol=lf
+*.html text working-tree-encoding=UTF-8 eol=lf
+*.json text working-tree-encoding=UTF-8 eol=lf
+*.md text working-tree-encoding=UTF-8 eol=lf

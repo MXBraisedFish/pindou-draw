@@ -1,0 +1,398 @@
+import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
+import { useToolStore } from '@/stores/tool'
+import { useCanvasStore } from '@/stores/canvas'
+
+export type SelectShape = 'rect' | 'ellipse' | 'line' | 'lasso'
+export type SelectMode = 'add' | 'remove'
+
+function makeEmptyMask(cols: number, rows: number): boolean[][] {
+  const m: boolean[][] = []
+  for (let r = 0; r < rows; r++) {
+    m.push(new Array<boolean>(cols).fill(false))
+  }
+  return m
+}
+
+function cloneMask(mask: boolean[][]): boolean[][] {
+  return mask.map((row) => [...row])
+}
+
+export const useSelectionStore = defineStore('selection', () => {
+  const selectionMask = ref<boolean[][]>(makeEmptyMask(16, 16))
+  const version = ref(0)
+
+  // 拖拽预览
+  const isSelecting = ref(false)
+  const selectStartCol = ref(0)
+  const selectStartRow = ref(0)
+  const selectEndCol = ref(0)
+  const selectEndRow = ref(0)
+  const lassoPoints = ref<[number, number][]>([])
+
+  const selectShape = ref<SelectShape>('rect')
+  const selectMode = ref<SelectMode>('add')
+
+  const hasSelection = computed(() => selectionMask.value.some((row) => row.some((v) => v)))
+
+  const previewMask = computed(() => {
+    if (!isSelecting.value) return null
+    const mask = cloneMask(selectionMask.value)
+
+    if (selectShape.value === 'lasso') {
+      if (lassoPoints.value.length < 2) return mask
+      fillLasso(mask, lassoPoints.value, selectMode.value)
+    } else {
+      const c1 = selectStartCol.value
+      const r1 = selectStartRow.value
+      const c2 = selectEndCol.value
+      const r2 = selectEndRow.value
+      const colMin = Math.min(c1, c2)
+      const colMax = Math.max(c1, c2)
+      const rowMin = Math.min(r1, r2)
+      const rowMax = Math.max(r1, r2)
+
+      if (selectShape.value === 'rect') {
+        applyRect(mask, rowMin, colMin, rowMax, colMax, selectMode.value)
+      } else if (selectShape.value === 'ellipse') {
+        applyEllipse(mask, rowMin, colMin, rowMax, colMax, selectMode.value)
+      } else if (selectShape.value === 'line') {
+        applyLine(mask, r1, c1, r2, c2, selectMode.value)
+      }
+    }
+
+    return mask
+  })
+
+  function bumpVersion() {
+    version.value++
+  }
+
+  function resize(cols: number, rows: number) {
+    const m = makeEmptyMask(cols, rows)
+    for (let r = 0; r < Math.min(rows, selectionMask.value.length); r++) {
+      const srcRow = selectionMask.value[r]!
+      const dstRow = m[r]!
+      for (let c = 0; c < Math.min(cols, srcRow.length); c++) {
+        dstRow[c] = srcRow[c]!
+      }
+    }
+    selectionMask.value = m
+    bumpVersion()
+  }
+
+  function clearSelection() {
+    const { cols, rows } = {
+      cols: selectionMask.value[0]?.length ?? 16,
+      rows: selectionMask.value.length,
+    }
+    selectionMask.value = makeEmptyMask(cols, rows)
+    bumpVersion()
+  }
+
+  function invertSelection() {
+    const m = selectionMask.value
+    for (const row of m) {
+      for (let c = 0; c < row.length; c++) {
+        row[c] = !row[c]
+      }
+    }
+    bumpVersion()
+  }
+
+  function isSelected(col: number, row: number): boolean {
+    return selectionMask.value[row]?.[col] ?? false
+  }
+
+  // -- 拖拽流程 --
+
+  function beginSelection(col: number, row: number) {
+    // 从 toolStore 同步形状/模式
+    const toolStore = useToolStore()
+    selectShape.value = toolStore.selectShape
+    selectMode.value = toolStore.selectMode
+
+    isSelecting.value = true
+    selectStartCol.value = col
+    selectStartRow.value = row
+    selectEndCol.value = col
+    selectEndRow.value = row
+    lassoPoints.value = [[col, row]]
+  }
+
+  function updateSelection(col: number, row: number) {
+    if (!isSelecting.value) return
+    if (selectShape.value === 'lasso') {
+      const last = lassoPoints.value[lassoPoints.value.length - 1]
+      if (last && (last[0] !== col || last[1] !== row)) {
+        lassoPoints.value.push([col, row])
+      }
+    } else {
+      selectEndCol.value = col
+      selectEndRow.value = row
+    }
+    bumpVersion()
+  }
+
+  function endSelection() {
+    if (!isSelecting.value) return
+    isSelecting.value = false
+
+    const mask = selectionMask.value
+    const mode = selectMode.value
+
+    if (selectShape.value === 'lasso') {
+      if (lassoPoints.value.length >= 2) {
+        fillLasso(mask, lassoPoints.value, mode)
+      }
+      lassoPoints.value = []
+    } else {
+      const c1 = selectStartCol.value
+      const r1 = selectStartRow.value
+      const c2 = selectEndCol.value
+      const r2 = selectEndRow.value
+      const colMin = Math.min(c1, c2)
+      const colMax = Math.max(c1, c2)
+      const rowMin = Math.min(r1, r2)
+      const rowMax = Math.max(r1, r2)
+
+      if (selectShape.value === 'rect') {
+        applyRect(mask, rowMin, colMin, rowMax, colMax, mode)
+      } else if (selectShape.value === 'ellipse') {
+        applyEllipse(mask, rowMin, colMin, rowMax, colMax, mode)
+      } else if (selectShape.value === 'line') {
+        applyLine(mask, r1, c1, r2, c2, mode)
+      }
+    }
+    bumpVersion()
+  }
+
+  // -- 形状填充 --
+
+  function applyRect(
+    mask: boolean[][],
+    rMin: number,
+    cMin: number,
+    rMax: number,
+    cMax: number,
+    mode: SelectMode,
+  ) {
+    const val = mode === 'add'
+    for (let r = rMin; r <= rMax; r++) {
+      const row = mask[r]
+      if (!row) continue
+      for (let c = cMin; c <= cMax; c++) {
+        row[c] = val
+      }
+    }
+  }
+
+  function applyEllipse(
+    mask: boolean[][],
+    rMin: number,
+    cMin: number,
+    rMax: number,
+    cMax: number,
+    mode: SelectMode,
+  ) {
+    const val = mode === 'add'
+    const cx = (cMin + cMax) / 2
+    const cy = (rMin + rMax) / 2
+    const rx = (cMax - cMin + 1) / 2
+    const ry = (rMax - rMin + 1) / 2
+    for (let r = rMin; r <= rMax; r++) {
+      const row = mask[r]
+      if (!row) continue
+      for (let c = cMin; c <= cMax; c++) {
+        const dx = (c - cx) / rx
+        const dy = (r - cy) / ry
+        if (dx * dx + dy * dy <= 1) {
+          row[c] = val
+        }
+      }
+    }
+  }
+
+  function applyLine(
+    mask: boolean[][],
+    r1: number,
+    c1: number,
+    r2: number,
+    c2: number,
+    mode: SelectMode,
+  ) {
+    const val = mode === 'add'
+    const dr = Math.abs(r2 - r1)
+    const dc = Math.abs(c2 - c1)
+    const sr = r1 < r2 ? 1 : -1
+    const sc = c1 < c2 ? 1 : -1
+    let err = dr - dc
+    let r = r1
+    let c = c1
+    const maxSteps = (dr + dc) * 2 + 1
+    let steps = 0
+    while (steps < maxSteps) {
+      steps++
+      const row = mask[r]
+      if (row) row[c] = val
+      if (r === r2 && c === c2) break
+      const e2 = 2 * err
+      if (e2 > -dc) {
+        err -= dc
+        r += sr
+      }
+      if (e2 < dr) {
+        err += dr
+        c += sc
+      }
+    }
+  }
+
+  function fillLasso(mask: boolean[][], points: [number, number][], mode: SelectMode) {
+    const val = mode === 'add'
+    if (points.length < 3) return
+    // Ray casting: for each row, find intersections with polygon edges
+    const rows = mask.length
+    const cols = mask[0]?.length ?? 0
+
+    for (let r = 0; r < rows; r++) {
+      const row = mask[r]!
+      const intersections: number[] = []
+      for (let i = 0; i < points.length; i++) {
+        const [x1, y1] = points[i]!
+        const [x2, y2] = points[(i + 1) % points.length]!
+        if ((y1 <= r && y2 > r) || (y2 <= r && y1 > r)) {
+          const x = x1 + ((r - y1) / (y2 - y1)) * (x2 - x1)
+          intersections.push(x)
+        }
+      }
+      intersections.sort((a, b) => a - b)
+      for (let i = 0; i + 1 < intersections.length; i += 2) {
+        const start = Math.max(0, Math.ceil(intersections[i]!))
+        const end = Math.min(cols - 1, Math.floor(intersections[i + 1]!))
+        for (let c = start; c <= end; c++) {
+          row[c] = val
+        }
+      }
+    }
+  }
+
+  // 剪贴板
+  const clipboard = ref<{
+    width: number
+    height: number
+    cells: (string | null)[][]
+    rMin: number
+    cMin: number
+    offR: number
+    offC: number
+  } | null>(null)
+  const hasClipboard = computed(() => clipboard.value !== null)
+
+  function copySelection() {
+    if (!hasSelection.value) return
+    const canvasStore = useCanvasStore()
+    const layer = canvasStore.activeLayer()
+    if (!layer) return
+    const src = layer.grid
+    const mask = selectionMask.value
+    let cMin = Infinity,
+      cMax = -Infinity,
+      rMin = Infinity,
+      rMax = -Infinity
+    for (let r = 0; r < mask.length; r++) {
+      for (let c = 0; c < mask[r]!.length; c++) {
+        if (mask[r]![c]) {
+          if (r < rMin) rMin = r
+          if (r > rMax) rMax = r
+          if (c < cMin) cMin = c
+          if (c > cMax) cMax = c
+        }
+      }
+    }
+    if (rMin > rMax || cMin > cMax) return
+    const h = rMax - rMin + 1
+    const w = cMax - cMin + 1
+    const cells: (string | null)[][] = []
+    for (let r = rMin; r <= rMax; r++) {
+      const row: (string | null)[] = []
+      for (let c = cMin; c <= cMax; c++) {
+        row.push(mask[r]![c] ? src[r]![c] || null : null)
+      }
+      cells.push(row)
+    }
+    // 记录光标相对选区左上角的偏移
+    const offR = canvasStore.cursorRow - rMin
+    const offC = canvasStore.cursorCol - cMin
+    clipboard.value = { width: w, height: h, cells, rMin, cMin, offR, offC }
+  }
+
+  function cutSelection() {
+    if (!hasSelection.value) return
+    copySelection()
+    const canvasStore = useCanvasStore()
+    const layer = canvasStore.activeLayer()
+    if (!layer) return
+    const mask = selectionMask.value
+    const grid = layer.grid
+    for (let r = 0; r < mask.length; r++) {
+      for (let c = 0; c < mask[r]!.length; c++) {
+        if (mask[r]![c]) grid[r]![c] = ''
+      }
+    }
+    canvasStore.flushComposite()
+  }
+
+  function pasteSelection(atRow: number, atCol: number) {
+    const cb = clipboard.value
+    if (!cb) return
+    const canvasStore = useCanvasStore()
+    const layer = canvasStore.activeLayer()
+    if (!layer) return
+    const grid = layer.grid
+    const rows = grid.length
+    const cols = grid[0]?.length ?? 0
+    // 使用复制时的光标偏移量，保持相对位置
+    const startR = atRow - (cb.offR ?? 0)
+    const startC = atCol - (cb.offC ?? 0)
+    for (let r = 0; r < cb.height; r++) {
+      const tr = startR + r
+      if (tr < 0 || tr >= rows) continue
+      for (let c = 0; c < cb.width; c++) {
+        const tc = startC + c
+        if (tc < 0 || tc >= cols) continue
+        const val = cb.cells[r]?.[c] ?? null
+        if (val !== null) grid[tr]![tc] = val
+      }
+    }
+    canvasStore.flushComposite()
+  }
+
+  return {
+    selectionMask,
+    version,
+    isSelecting,
+    selectStartCol,
+    selectStartRow,
+    selectEndCol,
+    selectEndRow,
+    lassoPoints,
+    selectShape,
+    selectMode,
+    hasSelection,
+    previewMask,
+    clipboard,
+    hasClipboard,
+    copySelection,
+    cutSelection,
+    pasteSelection,
+    bumpVersion,
+    resize,
+    clearSelection,
+    invertSelection,
+    isSelected,
+    beginSelection,
+    updateSelection,
+    endSelection,
+  }
+})

@@ -1,0 +1,155 @@
+/* Tablet layout — 上下结构，参考 Procreate 风格 */
+
+body#tb .app-shell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+/* Top bar: combined global + context into a single compact row */
+body#tb .top-global-bar {
+  height: 40px;
+  padding: 0 8px;
+}
+
+body#tb .global-actions {
+  gap: 2px;
+}
+
+body#tb .global-btn {
+  font-size: 0.72rem;
+  padding: 3px 8px;
+}
+
+body#tb .top-context-bar {
+  height: 0;
+  overflow: hidden;
+  display: none;
+}
+
+/* Main layout */
+body#tb .main-layout {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Left toolbar becomes a floating vertical strip on left side */
+body#tb .left-toolbar {
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  flex-direction: column;
+  width: auto;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  padding: 4px 0;
+}
+
+body#tb .tool-btn {
+  padding: 8px 10px;
+}
+
+body#tb .tool-label {
+  display: none;
+}
+
+/* Canvas area takes full space */
+body#tb .canvas-area {
+  position: relative;
+  flex: 1;
+}
+
+body#tb .canvas-viewport {
+  position: absolute;
+  inset: 0;
+}
+
+/* Right panels become side overlay */
+body#tb .right-panels {
+  display: none;
+}
+
+/* Header and footer remain functional but compact */
+body#tb .workspace-header {
+  height: 28px;
+  font-size: 0.7rem;
+  padding: 0 8px;
+}
+
+body#tb .workspace-footer {
+  height: 28px;
+  font-size: 0.65rem;
+  padding: 0 8px;
+}
+
+/* Mobile sheet becomes accessible from bottom */
+body#tb .mobile-sheet-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  width: 44px;
+  height: 22px;
+  border: 1px solid #d1d5db;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  background: #fff;
+  color: #888;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+body#tb .mobile-sheet {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 15;
+  max-height: 50%;
+  background: #fff;
+  border-top: 1px solid #e5e7eb;
+  border-radius: 14px 14px 0 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+}
+
+body#tb .mobile-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid #eee;
+}
+
+body#tb .mobile-sheet-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #333;
+}
+
+body#tb .mobile-sheet-close {
+  border: none;
+  background: none;
+  font-size: 1rem;
+  cursor: pointer;
+  color: #888;
+}
+
+body#tb .mobile-sheet-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}

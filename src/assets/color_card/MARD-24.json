@@ -1,0 +1,151 @@
+{
+  "name": "MARD-24",
+  "author": "unknown",
+  "version": 1,
+  "colors": [
+    {
+      "id": "A4",
+      "type": "solid",
+      "color1": "#f7ec5c",
+      "color2": null
+    },
+    {
+      "id": "A6",
+      "type": "solid",
+      "color1": "#fda951",
+      "color2": null
+    },
+    {
+      "id": "A7",
+      "type": "solid",
+      "color1": "#fa8c4f",
+      "color2": null
+    },
+    {
+      "id": "B3",
+      "type": "solid",
+      "color1": "#9ff685",
+      "color2": null
+    },
+    {
+      "id": "B5",
+      "type": "solid",
+      "color1": "#39e158",
+      "color2": null
+    },
+    {
+      "id": "B8",
+      "type": "solid",
+      "color1": "#1d9b54",
+      "color2": null
+    },
+    {
+      "id": "C3",
+      "type": "solid",
+      "color1": "#9ee0f8",
+      "color2": null
+    },
+    {
+      "id": "C5",
+      "type": "solid",
+      "color1": "#06abe3",
+      "color2": null
+    },
+    {
+      "id": "C8",
+      "type": "solid",
+      "color1": "#0f52bd",
+      "color2": null
+    },
+    {
+      "id": "D6",
+      "type": "solid",
+      "color1": "#b37bdc",
+      "color2": null
+    },
+    {
+      "id": "D7",
+      "type": "solid",
+      "color1": "#8758a9",
+      "color2": null
+    },
+    {
+      "id": "D9",
+      "type": "solid",
+      "color1": "#d6baf5",
+      "color2": null
+    },
+    {
+      "id": "E2",
+      "type": "solid",
+      "color1": "#fcc1dd",
+      "color2": null
+    },
+    {
+      "id": "E4",
+      "type": "solid",
+      "color1": "#e9639e",
+      "color2": null
+    },
+    {
+      "id": "F5",
+      "type": "solid",
+      "color1": "#e30328",
+      "color2": null
+    },
+    {
+      "id": "G1",
+      "type": "solid",
+      "color1": "#ffe4d3",
+      "color2": null
+    },
+    {
+      "id": "G5",
+      "type": "solid",
+      "color1": "#e7b34e",
+      "color2": null
+    },
+    {
+      "id": "G7",
+      "type": "solid",
+      "color1": "#985c3a",
+      "color2": null
+    },
+    {
+      "id": "H1",
+      "type": "transparent",
+      "color1": "#fcfcfc",
+      "color2": null
+    },
+    {
+      "id": "H2",
+      "type": "solid",
+      "color1": "#ffffff",
+      "color2": null
+    },
+    {
+      "id": "H3",
+      "type": "solid",
+      "color1": "#b4b4b4",
+      "color2": null
+    },
+    {
+      "id": "H4",
+      "type": "solid",
+      "color1": "#878787",
+      "color2": null
+    },
+    {
+      "id": "H5",
+      "type": "solid",
+      "color1": "#464648",
+      "color2": null
+    },
+    {
+      "id": "H7",
+      "type": "solid",
+      "color1": "#010101",
+      "color2": null
+    }
+  ]
+}
