@@ -18,11 +18,11 @@
         <h3>保存工程</h3>
         <p>选择工程的保存位置</p>
         <button @click="saveAsFile()">
-          <strong>↓ 保存工程文件</strong>
+          <strong class="action-title"><img :src="iconFileSave" alt="" />保存工程文件</strong>
           <span>下载 .pindou.json，适合长期保存和跨设备使用</span>
         </button>
         <button @click="openBrowserStorage()">
-          <strong>▣ 保存在浏览器</strong>
+          <strong class="action-title"><img :src="iconBrowserSave" alt="" />保存在浏览器</strong>
           <span>保存到本机浏览器的手动槽位</span>
         </button>
         <button class="action-cancel" @click="showSaveMenu = false">取消</button>
@@ -34,11 +34,11 @@
         <h3>导入工程</h3>
         <p>选择工程来源</p>
         <button @click="requestFileImport()">
-          <strong>↑ 从文件导入</strong>
+          <strong class="action-title"><img :src="iconFileImport" alt="" />从文件导入</strong>
           <span>读取 .pindou.json 或图片文件</span>
         </button>
         <button @click="openBrowserStorage()">
-          <strong>▦ 从浏览器读取</strong>
+          <strong class="action-title"><img :src="iconBrowserImport" alt="" />从浏览器读取</strong>
           <span>查看手动保存和自动保存的工程</span>
         </button>
         <button class="action-cancel" @click="showImportMenu = false">取消</button>
@@ -106,7 +106,9 @@
             </div>
           </div>
           <div class="new-actions">
-            <button class="new-cancel-btn" @click="newStep = 'menu'">返回</button>
+            <button class="new-cancel-btn" @click="newStep = 'menu'">
+              <img :src="iconBack" alt="" />返回
+            </button>
             <button class="new-ok-btn" @click="doNewCanvas()">创建</button>
           </div>
         </template>
@@ -129,7 +131,7 @@
                   type="number"
                   v-model.number="groupCols"
                   min="1"
-                  max="32"
+                  max="10"
                   class="new-input small"
                   @change="normalizeNewGroupSize()"
               /></label>
@@ -139,7 +141,7 @@
                   type="number"
                   v-model.number="groupRows"
                   min="1"
-                  max="32"
+                  max="10"
                   class="new-input small"
                   @change="normalizeNewGroupSize()"
               /></label>
@@ -160,7 +162,9 @@
             </p>
           </div>
           <div class="new-actions">
-            <button class="new-cancel-btn" @click="newStep = 'menu'">返回</button>
+            <button class="new-cancel-btn" @click="newStep = 'menu'">
+              <img :src="iconBack" alt="" />返回
+            </button>
             <button class="new-ok-btn" @click="doNewGroup()">创建</button>
           </div>
         </template>
@@ -200,6 +204,11 @@ import ExportModal from '@/components/ExportModal.vue'
 import ImageToPixelModal from '@/components/ImageToPixelModal.vue'
 import BrowserProjectModal from '@/components/BrowserProjectModal.vue'
 import SettingsModal from '@/components/SettingsModal.vue'
+import iconFileSave from '@/assets/icon/文件保存.png'
+import iconBrowserSave from '@/assets/icon/浏览器保存.png'
+import iconFileImport from '@/assets/icon/文件导入.png'
+import iconBrowserImport from '@/assets/icon/浏览器导入.png'
+import iconBack from '@/assets/icon/退出返回.png'
 
 const canvasStore = useCanvasStore()
 const projectStore = useProjectStore()
@@ -437,6 +446,16 @@ function executeNewGroup() {
   color: #4f46e5;
   font-size: 0.78rem;
 }
+.action-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.action-title img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
 .action-card span {
   color: #9ca3af;
   font-size: 0.66rem;
@@ -541,12 +560,21 @@ function executeNewGroup() {
   gap: 8px;
 }
 .new-cancel-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   padding: 6px 16px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
   background: #fff;
   font-size: 0.85rem;
   cursor: pointer;
+}
+.new-cancel-btn img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
 }
 .new-ok-btn {
   padding: 6px 20px;

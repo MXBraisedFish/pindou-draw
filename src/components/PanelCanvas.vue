@@ -42,14 +42,14 @@
           :class="{ active: canvasStore.pixelShape === 'square' }"
           @click="canvasStore.pixelShape = 'square'"
         >
-          ■ 方形
+          <img :src="iconSquarePixel" class="preset-icon" alt="" />方形
         </button>
         <button
           class="preset-btn"
           :class="{ active: canvasStore.pixelShape === 'circle' }"
           @click="canvasStore.pixelShape = 'circle'"
         >
-          ○ 圆形
+          <img :src="iconCirclePixel" class="preset-icon" alt="" />圆形
         </button>
       </div>
     </div>
@@ -339,6 +339,8 @@ import iconFlipH from '@/assets/icon/左右对称.png'
 import iconFlipV from '@/assets/icon/上下对称.png'
 import iconRotCW from '@/assets/icon/顺时针旋转.png'
 import iconRotCCW from '@/assets/icon/逆时针旋转.png'
+import iconSquarePixel from '@/assets/icon/方形像素.png'
+import iconCirclePixel from '@/assets/icon/圆形像素.png'
 
 const canvasStore = useCanvasStore()
 
@@ -581,6 +583,10 @@ const bgColors = [
   color: #6366f1;
 }
 .preset-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   min-width: 0;
   min-height: 34px;
   padding: 6px 8px;
@@ -592,6 +598,11 @@ const bgColors = [
   cursor: pointer;
   transition: all 0.15s;
   white-space: nowrap;
+}
+.preset-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
 }
 .preset-btn:hover {
   border-color: #9ca3af;

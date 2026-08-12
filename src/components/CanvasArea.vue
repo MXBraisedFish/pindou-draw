@@ -3,29 +3,32 @@
     <!-- 画布组标签栏 -->
     <div v-if="canvasStore.canvasGroup && !canvasStore.showGroupPreview" class="canvas-tabs">
       <button class="ctab-btn" title="查看画布组预览" @click="openPreview()">查看画布组</button>
-      <button
-        v-if="canScrollLeft"
-        class="ctab-arrow"
-        @click="scrollTabs(-1)"
-      >◀</button>
+      <button v-if="canScrollLeft" class="ctab-arrow" @click="scrollTabs(-1)">◀</button>
       <div class="ctab-scroll" ref="tabScrollRef" @scroll="onTabScroll()">
         <button
           v-for="tab in canvasStore.openGroupTabs"
           :key="`${tab.row},${tab.col}`"
           class="ctab-tab"
-          :class="{ active: tab.row === canvasStore.activeGroupRow && tab.col === canvasStore.activeGroupCol }"
+          :class="{
+            active:
+              tab.row === canvasStore.activeGroupRow && tab.col === canvasStore.activeGroupCol,
+          }"
           @click="canvasStore.switchToSubCanvas(tab.row, tab.col)"
         >
           <span>[{{ tab.row + 1 }},{{ tab.col + 1 }}]</span>
-          <span class="ctab-close" v-if="canvasStore.openGroupTabs.length > 1"
-            @click.stop="canvasStore.closeGroupTab(tab.row, tab.col)">x</span>
+          <span
+            class="ctab-close"
+            v-if="canvasStore.openGroupTabs.length > 1"
+            role="button"
+            aria-label="关闭画布"
+            title="关闭画布"
+            @click.stop="canvasStore.closeGroupTab(tab.row, tab.col)"
+          >
+            <img :src="iconClose" alt="" />
+          </span>
         </button>
       </div>
-      <button
-        v-if="canScrollRight"
-        class="ctab-arrow"
-        @click="scrollTabs(1)"
-      >▶</button>
+      <button v-if="canScrollRight" class="ctab-arrow" @click="scrollTabs(1)">▶</button>
     </div>
 
     <!-- 画布组预览 -->
@@ -57,6 +60,7 @@ import { usePaletteStore } from '@/stores/palette'
 import { useSelectionStore } from '@/stores/selection'
 import { renderCanvas } from '@/ts/canvasRenderer'
 import { useTool } from '@/composables/useTool'
+import iconClose from '@/assets/icon/关闭取消.png'
 
 const canvasStore = useCanvasStore()
 const paletteStore = usePaletteStore()
@@ -156,8 +160,12 @@ onMounted(() => doRender())
 watch(
   () => [
     canvasStore.gridVersion,
-    canvasStore.zoom, canvasStore.panX, canvasStore.panY,
-    canvasStore.showGrid, canvasStore.cols, canvasStore.rows,
+    canvasStore.zoom,
+    canvasStore.panX,
+    canvasStore.panY,
+    canvasStore.showGrid,
+    canvasStore.cols,
+    canvasStore.rows,
     canvasStore.renderMode,
     canvasStore.symmetry,
     canvasStore.pixelShape,
@@ -177,7 +185,10 @@ watch(
   { deep: true },
 )
 
-watch(() => canvasStore.openGroupTabs.length, () => nextTick(checkTabScroll))
+watch(
+  () => canvasStore.openGroupTabs.length,
+  () => nextTick(checkTabScroll),
+)
 </script>
 
 <style scoped>
@@ -189,37 +200,93 @@ watch(() => canvasStore.openGroupTabs.length, () => nextTick(checkTabScroll))
 }
 
 .canvas-tabs {
-  display: flex; align-items: center; gap: 3px; padding: 4px 8px;
-  background: #f0f0f0; border-bottom: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 8px;
+  background: #f0f0f0;
+  border-bottom: 1px solid #ddd;
 }
 .ctab-btn {
-  padding: 5px 12px; border: 1px solid #6366f1; border-radius: 4px;
-  background: #eef2ff; color: #6366f1; cursor: pointer; font-size: 0.78rem;
-  white-space: nowrap; flex-shrink: 0;
+  padding: 5px 12px;
+  border: 1px solid #6366f1;
+  border-radius: 4px;
+  background: #eef2ff;
+  color: #6366f1;
+  cursor: pointer;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
-.ctab-btn:hover { background: #dde4ff; }
+.ctab-btn:hover {
+  background: #dde4ff;
+}
 .ctab-arrow {
-  padding: 5px 8px; border: 1px solid #d1d5db; border-radius: 4px;
-  background: #fff; cursor: pointer; font-size: 0.7rem; color: #666;
-  flex-shrink: 0; line-height: 1;
+  padding: 5px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 0.7rem;
+  color: #666;
+  flex-shrink: 0;
+  line-height: 1;
 }
-.ctab-arrow:hover { background: #e8e8e8; }
+.ctab-arrow:hover {
+  background: #e8e8e8;
+}
 .ctab-scroll {
-  display: flex; align-items: center; gap: 3px; overflow-x: auto; flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  overflow-x: auto;
+  flex: 1;
   white-space: nowrap;
 }
-.ctab-scroll::-webkit-scrollbar { display: none; }
-.ctab-scroll { scrollbar-width: none; }
-.ctab-tab {
-  padding: 5px 14px; border: 1px solid #d1d5db; border-radius: 4px;
-  background: #fff; cursor: pointer; font-size: 0.8rem; display: flex;
-  align-items: center; gap: 6px; white-space: nowrap; flex-shrink: 0;
-  min-width: 60px; justify-content: center;
+.ctab-scroll::-webkit-scrollbar {
+  display: none;
 }
-.ctab-tab:hover { background: #e8e8e8; }
-.ctab-tab.active { background: #6366f1; color: #fff; border-color: #6366f1; }
-.ctab-close { font-weight: bold; opacity: 0.6; font-size: 0.85rem; }
-.ctab-close:hover { opacity: 1; }
+.ctab-scroll {
+  scrollbar-width: none;
+}
+.ctab-tab {
+  padding: 5px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 60px;
+  justify-content: center;
+}
+.ctab-tab:hover {
+  background: #e8e8e8;
+}
+.ctab-tab.active {
+  background: #6366f1;
+  color: #fff;
+  border-color: #6366f1;
+}
+.ctab-close {
+  display: inline-grid;
+  width: 16px;
+  height: 16px;
+  place-items: center;
+  opacity: 0.6;
+}
+.ctab-close img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+.ctab-close:hover {
+  opacity: 1;
+}
 
 .canvas-viewport {
   flex: 1;

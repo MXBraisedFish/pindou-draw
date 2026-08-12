@@ -2,7 +2,9 @@
   <Teleport to="body">
     <div class="export-page">
       <header class="export-header">
-        <button class="header-button" @click="closePage()"><span>←</span> 返回编辑</button>
+        <button class="header-button" @click="closePage()">
+          <img :src="iconBack" alt="" />返回编辑
+        </button>
         <div class="header-title">
           <strong>导出</strong>
           <span class="work-badge">{{ isGroup ? '画布组' : '独立画布' }}</span>
@@ -31,8 +33,16 @@
               <button @click="fitZoom()">适应</button>
             </div>
           </div>
-          <div ref="wrapRef" class="preview-viewport" @wheel.prevent="onWheel" @pointerdown="onPanStart"
-            @pointermove="onPanMove" @pointerup="onPanEnd" @pointercancel="onPanEnd" @pointerleave="onPanEnd">
+          <div
+            ref="wrapRef"
+            class="preview-viewport"
+            @wheel.prevent="onWheel"
+            @pointerdown="onPanStart"
+            @pointermove="onPanMove"
+            @pointerup="onPanEnd"
+            @pointercancel="onPanEnd"
+            @pointerleave="onPanEnd"
+          >
             <canvas ref="previewCanvas" class="preview-canvas" :style="previewCanvasStyle"></canvas>
             <div v-if="!exportStore.previewDataUrl" class="preview-empty">
               {{ exportStore.previewError || '正在生成预览…' }}
@@ -49,7 +59,9 @@
           </div>
 
           <details open class="setting-group">
-            <summary><span class="summary-icon">↗</span>输出</summary>
+            <summary>
+              <span class="summary-icon"><img :src="iconOutput" alt="" /></span>输出
+            </summary>
             <div class="group-body">
               <label class="field">
                 <span>文件名称</span>
@@ -67,35 +79,52 @@
               <div v-if="isGroup && exportStore.exportFormat !== 'pindou'" class="choice-block">
                 <span class="field-label">画布组导出方式</span>
                 <div class="choice-cards">
-                  <button :class="{ active: exportStore.groupExportMode === 'separate' }"
-                    @click="exportStore.groupExportMode = 'separate'">
-                    <strong>▦ 单独导出</strong>
+                  <button
+                    :class="{ active: exportStore.groupExportMode === 'separate' }"
+                    @click="exportStore.groupExportMode = 'separate'"
+                  >
+                    <strong class="choice-title"
+                      ><img :src="iconSeparateExport" alt="" />单独导出</strong
+                    >
                     <span>{{ groupCount }} 个子画布分别生成</span>
                   </button>
-                  <button :class="{ active: exportStore.groupExportMode === 'combined' }"
-                    @click="exportStore.groupExportMode = 'combined'">
-                    <strong>⊞ 拼合导出</strong>
+                  <button
+                    :class="{ active: exportStore.groupExportMode === 'combined' }"
+                    @click="exportStore.groupExportMode = 'combined'"
+                  >
+                    <strong class="choice-title"
+                      ><img :src="iconCombinedExport" alt="" />拼合导出</strong
+                    >
                     <span>拼成 {{ combinedSize }}</span>
                   </button>
                 </div>
               </div>
 
-              <div v-if="
-                isGroup &&
-                exportStore.exportFormat !== 'pindou' &&
-                exportStore.groupExportMode === 'separate'
-              " class="separate-options">
+              <div
+                v-if="
+                  isGroup &&
+                  exportStore.exportFormat !== 'pindou' &&
+                  exportStore.groupExportMode === 'separate'
+                "
+                class="separate-options"
+              >
                 <div class="choice-block">
                   <span class="field-label">下载方式</span>
                   <div class="choice-cards download-cards">
-                    <button :class="{ active: exportStore.groupSeparateDownloadMode === 'zip' }"
-                      @click="exportStore.groupSeparateDownloadMode = 'zip'">
-                      <strong>▣ 压缩包</strong>
+                    <button
+                      :class="{ active: exportStore.groupSeparateDownloadMode === 'zip' }"
+                      @click="exportStore.groupSeparateDownloadMode = 'zip'"
+                    >
+                      <strong class="choice-title"><img :src="iconZip" alt="" />压缩包</strong>
                       <span>全部子画布打包为一个 ZIP（推荐）</span>
                     </button>
-                    <button :class="{ active: exportStore.groupSeparateDownloadMode === 'files' }"
-                      @click="exportStore.groupSeparateDownloadMode = 'files'">
-                      <strong>⇩ 逐张下载</strong>
+                    <button
+                      :class="{ active: exportStore.groupSeparateDownloadMode === 'files' }"
+                      @click="exportStore.groupSeparateDownloadMode = 'files'"
+                    >
+                      <strong class="choice-title"
+                        ><img :src="iconIndividual" alt="" />逐张下载</strong
+                      >
                       <span>浏览器依次下载 {{ groupCount }} 张图片</span>
                     </button>
                   </div>
@@ -106,20 +135,35 @@
                   <div class="group-preview-picker-wrap">
                     <div class="group-preview-picker" :style="groupPickerStyle">
                       <button class="picker-corner" aria-hidden="true"></button>
-                      <span v-for="col in groupPickerCols" :key="`col-${col}`" class="picker-axis picker-col-axis">
+                      <span
+                        v-for="col in groupPickerCols"
+                        :key="`col-${col}`"
+                        class="picker-axis picker-col-axis"
+                      >
                         {{ col }}
                       </span>
                       <template v-for="row in groupPickerRows" :key="`row-${row}`">
                         <span class="picker-axis picker-row-axis">{{ row }}</span>
-                        <button v-for="col in groupPickerCols" :key="`${row}-${col}`" class="picker-cell" :class="{
-                          active:
-                            exportStore.groupPreviewRow === row - 1 &&
-                            exportStore.groupPreviewCol === col - 1,
-                          filled: groupCellHasPixels(row - 1, col - 1),
-                        }" :title="`预览子画布 (${col},${row})`" @click="selectGroupPreview(row - 1, col - 1)">
-                          <canvas :ref="(element) =>
-                              setGroupThumbRef(row - 1, col - 1, element as HTMLCanvasElement)
-                            " class="picker-thumb"></canvas>
+                        <button
+                          v-for="col in groupPickerCols"
+                          :key="`${row}-${col}`"
+                          class="picker-cell"
+                          :class="{
+                            active:
+                              exportStore.groupPreviewRow === row - 1 &&
+                              exportStore.groupPreviewCol === col - 1,
+                            filled: groupCellHasPixels(row - 1, col - 1),
+                          }"
+                          :title="`预览子画布 (${col},${row})`"
+                          @click="selectGroupPreview(row - 1, col - 1)"
+                        >
+                          <canvas
+                            :ref="
+                              (element) =>
+                                setGroupThumbRef(row - 1, col - 1, element as HTMLCanvasElement)
+                            "
+                            class="picker-thumb"
+                          ></canvas>
                           <span>{{ col }},{{ row }}</span>
                         </button>
                       </template>
@@ -131,16 +175,22 @@
               <div v-if="exportStore.exportFormat !== 'pindou'" class="choice-block">
                 <span class="field-label">导出内容</span>
                 <div class="segmented three">
-                  <button :class="{ active: exportStore.exportContent === 'full' }"
-                    @click="exportStore.exportContent = 'full'">
+                  <button
+                    :class="{ active: exportStore.exportContent === 'full' }"
+                    @click="exportStore.exportContent = 'full'"
+                  >
                     全部
                   </button>
-                  <button :class="{ active: exportStore.exportContent === 'sketch-only' }"
-                    @click="exportStore.exportContent = 'sketch-only'">
+                  <button
+                    :class="{ active: exportStore.exportContent === 'sketch-only' }"
+                    @click="exportStore.exportContent = 'sketch-only'"
+                  >
                     仅草图
                   </button>
-                  <button :class="{ active: exportStore.exportContent === 'stats-only' }"
-                    @click="exportStore.exportContent = 'stats-only'">
+                  <button
+                    :class="{ active: exportStore.exportContent === 'stats-only' }"
+                    @click="exportStore.exportContent = 'stats-only'"
+                  >
                     仅色号卡
                   </button>
                 </div>
@@ -160,17 +210,23 @@
 
           <template v-if="exportStore.exportFormat !== 'pindou'">
             <details v-if="exportStore.exportContent !== 'stats-only'" open class="setting-group">
-              <summary><span class="summary-icon">▦</span>草图外观</summary>
+              <summary>
+                <span class="summary-icon"><img :src="iconSketchAppearance" alt="" /></span>草图外观
+              </summary>
               <div class="group-body">
                 <div class="inline-field">
                   <span>像素形状</span>
                   <div class="segmented">
-                    <button :class="{ active: exportStore.pixelShape === 'square' }"
-                      @click="exportStore.pixelShape = 'square'">
+                    <button
+                      :class="{ active: exportStore.pixelShape === 'square' }"
+                      @click="exportStore.pixelShape = 'square'"
+                    >
                       ■ 方形
                     </button>
-                    <button :class="{ active: exportStore.pixelShape === 'circle' }"
-                      @click="exportStore.pixelShape = 'circle'">
+                    <button
+                      :class="{ active: exportStore.pixelShape === 'circle' }"
+                      @click="exportStore.pixelShape = 'circle'"
+                    >
                       ● 圆形
                     </button>
                   </div>
@@ -209,19 +265,42 @@
             </details>
 
             <details v-if="exportStore.exportContent !== 'stats-only'" class="setting-group">
-              <summary><span class="summary-icon">#</span>网格与坐标</summary>
+              <summary>
+                <span class="summary-icon"><img :src="iconGridCoords" alt="" /></span>网格与坐标
+              </summary>
               <div class="group-body">
                 <label class="check-row">
                   <input v-model="exportStore.showGrid" type="checkbox" />
                   <span>显示网格</span>
                 </label>
                 <template v-if="exportStore.showGrid">
-                  <RangeField v-model="exportStore.gridThickness" label="网格粗细" :min="1" :max="3" />
-                  <RangeField v-model="exportStore.gridOpacity" label="网格透明度" :min="0" :max="90" suffix="%" />
-                  <ThickLineSettings v-model:enabled="hlEnabled" v-model:interval="hlInterval"
-                    v-model:thickness="hlThick" v-model:start="hStartPos" label="水平加粗线" />
-                  <ThickLineSettings v-model:enabled="vlEnabled" v-model:interval="vlInterval"
-                    v-model:thickness="vlThick" v-model:start="vStartPos" label="垂直加粗线" />
+                  <RangeField
+                    v-model="exportStore.gridThickness"
+                    label="网格粗细"
+                    :min="1"
+                    :max="3"
+                  />
+                  <RangeField
+                    v-model="exportStore.gridOpacity"
+                    label="网格透明度"
+                    :min="0"
+                    :max="90"
+                    suffix="%"
+                  />
+                  <ThickLineSettings
+                    v-model:enabled="hlEnabled"
+                    v-model:interval="hlInterval"
+                    v-model:thickness="hlThick"
+                    v-model:start="hStartPos"
+                    label="水平加粗线"
+                  />
+                  <ThickLineSettings
+                    v-model:enabled="vlEnabled"
+                    v-model:interval="vlInterval"
+                    v-model:thickness="vlThick"
+                    v-model:start="vStartPos"
+                    label="垂直加粗线"
+                  />
                 </template>
                 <label class="field">
                   <span>坐标显示</span>
@@ -242,7 +321,9 @@
             </details>
 
             <details v-if="exportStore.exportContent !== 'sketch-only'" open class="setting-group">
-              <summary><span class="summary-icon">◉</span>色号卡与统计</summary>
+              <summary>
+                <span class="summary-icon"><img :src="iconColorStats" alt="" /></span>色号卡与统计
+              </summary>
               <div class="group-body">
                 <label class="field">
                   <span>色卡布局</span>
@@ -257,14 +338,20 @@
                   <ColorPickerRow v-model="exportStore.pageBg" />
                 </div>
                 <div class="stats-summary">
-                  <span>使用色号 <strong>{{ exportStore.colorStats.length }}</strong> 种</span>
-                  <span>拼豆总数 <strong>{{ exportStore.totalPixelCount }}</strong> 颗</span>
+                  <span
+                    >使用色号 <strong>{{ exportStore.colorStats.length }}</strong> 种</span
+                  >
+                  <span
+                    >拼豆总数 <strong>{{ exportStore.totalPixelCount }}</strong> 颗</span
+                  >
                 </div>
               </div>
             </details>
 
             <details v-if="exportStore.exportContent !== 'stats-only'" class="setting-group">
-              <summary><span class="summary-icon">✦</span>高亮导出</summary>
+              <summary>
+                <span class="summary-icon"><img :src="iconHighlightExport" alt="" /></span>高亮导出
+              </summary>
               <div class="group-body">
                 <label class="check-row">
                   <input v-model="exportStore.exportHighlightActive" type="checkbox" />
@@ -287,7 +374,11 @@
                       <option value="global">全局顺序</option>
                     </select>
                   </label>
-                  <button class="secondary-button warm" :disabled="batchExporting" @click="doBatchHighlight()">
+                  <button
+                    class="secondary-button warm"
+                    :disabled="batchExporting"
+                    @click="doBatchHighlight()"
+                  >
                     {{ batchExporting ? '正在打包…' : '按高亮颜色批量导出 ZIP' }}
                   </button>
                 </template>
@@ -307,6 +398,16 @@ import { computed, defineComponent, h, nextTick, onBeforeUnmount, onMounted, ref
 import { useExportStore } from '@/stores/exportStore'
 import { useCanvasStore } from '@/stores/canvas'
 import ExportHighlightModal from '@/components/ExportHighlightModal.vue'
+import iconBack from '@/assets/icon/退出返回.png'
+import iconOutput from '@/assets/icon/输出.png'
+import iconSketchAppearance from '@/assets/icon/草图外观.png'
+import iconGridCoords from '@/assets/icon/网格与坐标.png'
+import iconColorStats from '@/assets/icon/色号卡与统计.png'
+import iconHighlightExport from '@/assets/icon/高亮导出.png'
+import iconSeparateExport from '@/assets/icon/单独导出.png'
+import iconCombinedExport from '@/assets/icon/拼合导出.png'
+import iconZip from '@/assets/icon/压缩包.png'
+import iconIndividual from '@/assets/icon/逐张.png'
 
 const emit = defineEmits<{ close: [] }>()
 const exportStore = useExportStore()
@@ -513,42 +614,42 @@ const ThickLineSettings = defineComponent({
         ]),
         props.enabled
           ? h('div', { class: 'thick-detail' }, [
-            h('label', [
-              '间隔 ',
-              h('input', {
-                type: 'number',
-                min: 1,
-                max: 20,
-                value: props.interval,
-                onChange: (event: Event) =>
-                  emitValue('update:interval', Number((event.target as HTMLInputElement).value)),
-              }),
-            ]),
-            h('label', [
-              '粗细 ',
-              h('input', {
-                type: 'number',
-                min: 1,
-                max: 5,
-                value: props.thickness,
-                onChange: (event: Event) =>
-                  emitValue('update:thickness', Number((event.target as HTMLInputElement).value)),
-              }),
-            ]),
-            h(
-              'select',
-              {
-                value: props.start,
-                onChange: (event: Event) =>
-                  emitValue('update:start', (event.target as HTMLSelectElement).value),
-              },
-              [
-                h('option', { value: 'center' }, '居中'),
-                h('option', { value: 'start' }, '居前'),
-                h('option', { value: 'end' }, '居后'),
-              ],
-            ),
-          ])
+              h('label', [
+                '间隔 ',
+                h('input', {
+                  type: 'number',
+                  min: 1,
+                  max: 20,
+                  value: props.interval,
+                  onChange: (event: Event) =>
+                    emitValue('update:interval', Number((event.target as HTMLInputElement).value)),
+                }),
+              ]),
+              h('label', [
+                '粗细 ',
+                h('input', {
+                  type: 'number',
+                  min: 1,
+                  max: 5,
+                  value: props.thickness,
+                  onChange: (event: Event) =>
+                    emitValue('update:thickness', Number((event.target as HTMLInputElement).value)),
+                }),
+              ]),
+              h(
+                'select',
+                {
+                  value: props.start,
+                  onChange: (event: Event) =>
+                    emitValue('update:start', (event.target as HTMLSelectElement).value),
+                },
+                [
+                  h('option', { value: 'center' }, '居中'),
+                  h('option', { value: 'start' }, '居前'),
+                  h('option', { value: 'end' }, '居后'),
+                ],
+              ),
+            ])
           : null,
       ])
   },
@@ -769,15 +870,19 @@ onBeforeUnmount(() => {
 }
 
 .header-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   justify-self: start;
   padding: 8px 10px;
   background: transparent;
   color: #4b5563;
 }
 
-.header-button span {
-  margin-right: 6px;
-  font-size: 1rem;
+.header-button img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
 }
 
 .export-button {
@@ -927,7 +1032,7 @@ onBeforeUnmount(() => {
   backdrop-filter: blur(8px);
 }
 
-.settings-heading>div {
+.settings-heading > div {
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -986,6 +1091,11 @@ onBeforeUnmount(() => {
   background: #eef2ff;
   color: #6366f1;
 }
+.summary-icon img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
 
 .group-body {
   display: flex;
@@ -1001,9 +1111,9 @@ onBeforeUnmount(() => {
   gap: 5px;
 }
 
-.field>span,
+.field > span,
 .field-label,
-.inline-field>span {
+.inline-field > span {
   color: #6b7280;
   font-size: 0.72rem;
 }
@@ -1129,7 +1239,7 @@ onBeforeUnmount(() => {
   image-rendering: pixelated;
 }
 
-.picker-cell>span {
+.picker-cell > span {
   position: absolute;
   right: 3px;
   bottom: 3px;
@@ -1190,6 +1300,18 @@ onBeforeUnmount(() => {
 
 .choice-cards strong {
   font-size: 0.74rem;
+}
+
+.choice-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.choice-title img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
 }
 
 .choice-cards span {

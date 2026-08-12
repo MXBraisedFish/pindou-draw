@@ -7,7 +7,9 @@
             <h2>浏览器工程</h2>
             <p>9 个手动槽位，另有 1 个不可手动覆盖的自动保存槽位。</p>
           </div>
-          <button class="close-button" @click="emit('close')">x</button>
+          <button class="close-button" aria-label="关闭" title="关闭" @click="emit('close')">
+            <img :src="iconClose" alt="" />
+          </button>
         </header>
 
         <p class="storage-tip">
@@ -17,8 +19,13 @@
         <div v-if="errorMessage" class="storage-error">{{ errorMessage }}</div>
 
         <div class="storage-list">
-          <article v-for="slot in slots" :key="slot" class="storage-card"
-            :class="{ selected: selectedSlot === slot, auto: slot === 'auto' }" @click="selectedSlot = slot">
+          <article
+            v-for="slot in slots"
+            :key="slot"
+            class="storage-card"
+            :class="{ selected: selectedSlot === slot, auto: slot === 'auto' }"
+            @click="selectedSlot = slot"
+          >
             <div class="slot-preview">
               <img v-if="recordFor(slot)?.preview" :src="recordFor(slot)?.preview" alt="工程预览" />
               <span v-else>空槽位</span>
@@ -36,7 +43,11 @@
               <button class="load-button" :disabled="!recordFor(slot)" @click="loadSlot(slot)">
                 读取
               </button>
-              <button v-if="slot !== 'auto' && recordFor(slot)" class="delete-button" @click="deleteSlot(slot)">
+              <button
+                v-if="slot !== 'auto' && recordFor(slot)"
+                class="delete-button"
+                @click="deleteSlot(slot)"
+              >
                 删除
               </button>
             </div>
@@ -52,6 +63,7 @@ import { onMounted, ref } from 'vue'
 import { useCanvasStore } from '@/stores/canvas'
 import { useProjectStore } from '@/stores/project'
 import { deleteStoredProject, type ProjectSlot, type StoredProject } from '@/ts/projectStorage'
+import iconClose from '@/assets/icon/关闭取消.png'
 
 const emit = defineEmits<{ close: []; loaded: [] }>()
 const projectStore = useProjectStore()
@@ -164,11 +176,21 @@ onMounted(refresh)
 }
 
 .close-button {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  padding: 0;
   border: 0;
   background: transparent;
   color: #6b7280;
   cursor: pointer;
-  font-size: 1.5rem;
+}
+
+.close-button img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
 }
 
 .storage-tip,

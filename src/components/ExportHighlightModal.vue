@@ -2,7 +2,9 @@
   <Teleport to="body">
     <div class="ehl-overlay" @click.self="$emit('close')">
       <div class="ehl-dialog" @click.stop>
-        <button class="ehl-close" @click="$emit('close')">✕</button>
+        <button class="ehl-close" aria-label="关闭" title="关闭" @click="$emit('close')">
+          <img :src="iconClose" alt="" />
+        </button>
         <h3>导出高亮配置</h3>
         <p class="ehl-desc">
           选择需要在导出图中高亮的颜色，对应格子将被边框标记，其余区域以灰色遮罩覆盖。
@@ -57,6 +59,7 @@ import { useExportStore } from '@/stores/exportStore'
 import { usePaletteStore } from '@/stores/palette'
 import { useCanvasStore } from '@/stores/canvas'
 import type { ColorEntry } from '@/ts/colorCard'
+import iconClose from '@/assets/icon/关闭取消.png'
 
 const exportStore = useExportStore()
 const paletteStore = usePaletteStore()
@@ -167,11 +170,20 @@ function apply() {
   position: absolute;
   top: 14px;
   right: 16px;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  place-items: center;
   border: none;
   background: none;
-  font-size: 1.3rem;
   cursor: pointer;
   color: #999;
+}
+.ehl-close img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
 }
 h3 {
   margin: 0 0 4px;

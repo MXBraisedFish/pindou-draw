@@ -55,14 +55,14 @@
         <template v-if="ctxMenu.type === 'row'">
           <div
             class="cgp-ctx-item"
-            :class="{ disabled: groupRows >= 32 }"
+            :class="{ disabled: groupRows >= GROUP_SIZE_MAX }"
             @click="addRow(ctxMenu.index, true)"
           >
             向上添加行
           </div>
           <div
             class="cgp-ctx-item"
-            :class="{ disabled: groupRows >= 32 }"
+            :class="{ disabled: groupRows >= GROUP_SIZE_MAX }"
             @click="addRow(ctxMenu.index, false)"
           >
             向下添加行
@@ -78,14 +78,14 @@
         <template v-else>
           <div
             class="cgp-ctx-item"
-            :class="{ disabled: groupCols >= 32 }"
+            :class="{ disabled: groupCols >= GROUP_SIZE_MAX }"
             @click="addCol(ctxMenu.index, true)"
           >
             向左添加列
           </div>
           <div
             class="cgp-ctx-item"
-            :class="{ disabled: groupCols >= 32 }"
+            :class="{ disabled: groupCols >= GROUP_SIZE_MAX }"
             @click="addCol(ctxMenu.index, false)"
           >
             向右添加列
@@ -125,7 +125,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
-import { useCanvasStore } from '@/stores/canvas'
+import { GROUP_SIZE_MAX, useCanvasStore } from '@/stores/canvas'
 import ConfirmModal from '@/components/ConfirmModal.vue'
 
 const canvasStore = useCanvasStore()

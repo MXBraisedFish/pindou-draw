@@ -53,7 +53,7 @@ export interface CanvasGroup {
 export const CANVAS_SIZE_MIN = 1
 export const CANVAS_SIZE_MAX = 64
 export const GROUP_SIZE_MIN = 1
-export const GROUP_SIZE_MAX = 32
+export const GROUP_SIZE_MAX = 10
 
 export function clampInteger(value: unknown, min: number, max: number, fallback = min): number {
   const parsed = typeof value === 'number' ? value : Number(value)
@@ -463,7 +463,7 @@ export const useCanvasStore = defineStore('canvas', () => {
   function addGroupRow(atIndex: number, above: boolean) {
     if (!canvasGroup.value) return
     const g = canvasGroup.value
-    if (g.groupRows >= 32) return
+    if (g.groupRows >= GROUP_SIZE_MAX) return
     const insertIdx = above ? atIndex : atIndex + 1
     const newRow: CanvasSnapshot[] = []
     for (let c = 0; c < g.groupCols; c++) {
@@ -522,7 +522,7 @@ export const useCanvasStore = defineStore('canvas', () => {
   function addGroupCol(atIndex: number, left: boolean) {
     if (!canvasGroup.value) return
     const g = canvasGroup.value
-    if (g.groupCols >= 32) return
+    if (g.groupCols >= GROUP_SIZE_MAX) return
     const insertIdx = left ? atIndex : atIndex + 1
     for (const row of g.canvases) {
       const snap: CanvasSnapshot = {

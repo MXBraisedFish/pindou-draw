@@ -6,11 +6,7 @@
       :value="paletteStore.activeCard?.name ?? ''"
       @change="paletteStore.switchCard(($event.target as HTMLSelectElement).value)"
     >
-      <option
-        v-for="card in paletteStore.cardList"
-        :key="card.name"
-        :value="card.name"
-      >
+      <option v-for="card in paletteStore.cardList" :key="card.name" :value="card.name">
         {{ card.name }}
       </option>
     </select>
@@ -22,7 +18,9 @@
         :class="'preview-' + paletteStore.currentEntry.type"
         :style="previewStyle"
       >
-        <span v-if="paletteStore.currentEntry.type === 'transparent'" class="preview-tag">透明</span>
+        <span v-if="paletteStore.currentEntry.type === 'transparent'" class="preview-tag"
+          >透明</span
+        >
         <span v-else-if="paletteStore.currentEntry.type === 'pearl'" class="preview-tag">珠光</span>
       </div>
       <div class="preview-info">
@@ -52,12 +50,7 @@
           {{ ft.label }}
         </button>
       </div>
-      <input
-        v-model="filterId"
-        class="filter-id-input"
-        type="text"
-        placeholder="搜索色号..."
-      />
+      <input v-model="filterId" class="filter-id-input" type="text" placeholder="搜索色号..." />
     </div>
 
     <!-- 颜色工具按钮 -->
@@ -67,12 +60,12 @@
         :class="{ active: paletteStore.highlightActive }"
         title="颜色高亮"
         @click="toggleHighlight()"
-      >◈ 高亮</button>
-      <button
-        class="tool-btn tool-replace"
-        title="颜色替换"
-        @click="showReplaceModal = true"
-      >⇄ 替换</button>
+      >
+        <img :src="iconHighlight" class="tool-icon" alt="" />高亮
+      </button>
+      <button class="tool-btn tool-replace" title="颜色替换" @click="showReplaceModal = true">
+        <img :src="iconReplace" class="tool-icon" alt="" />替换
+      </button>
     </div>
 
     <!-- 色块网格 -->
@@ -91,7 +84,7 @@
               v-if="entry.type !== 'solid'"
               :src="typeIconSrc(entry.type)"
               class="swatch-badge"
-          />
+            />
           </div>
           <span class="swatch-id">{{ entry.id }}</span>
         </div>
@@ -110,16 +103,10 @@
     />
 
     <!-- 颜色高亮弹窗 -->
-    <HighlightModal
-      v-if="showHighlightModal"
-      @close="showHighlightModal = false"
-    />
+    <HighlightModal v-if="showHighlightModal" @close="showHighlightModal = false" />
 
     <!-- 颜色替换弹窗 -->
-    <ColorReplaceModal
-      v-if="showReplaceModal"
-      @close="showReplaceModal = false"
-    />
+    <ColorReplaceModal v-if="showReplaceModal" @close="showReplaceModal = false" />
   </div>
 </template>
 
@@ -135,6 +122,8 @@ import iconPearl from '@/assets/icon/珠光.png'
 import iconGlow from '@/assets/icon/夜光.png'
 import iconThermo from '@/assets/icon/温变.png'
 import iconPhoto from '@/assets/icon/光变.png'
+import iconHighlight from '@/assets/icon/高亮.png'
+import iconReplace from '@/assets/icon/替换.png'
 
 const typeIcons: Record<ColorType, string | null> = {
   solid: null,
@@ -170,11 +159,11 @@ const typeFilters = [
 const filteredEntries = computed(() => {
   let list = paletteStore.colorEntries
   if (filterType.value) {
-    list = list.filter(e => e.type === filterType.value)
+    list = list.filter((e) => e.type === filterType.value)
   }
   if (filterId.value.trim()) {
     const q = filterId.value.trim().toLowerCase()
-    list = list.filter(e => e.id.toLowerCase().includes(q))
+    list = list.filter((e) => e.id.toLowerCase().includes(q))
   }
   return list
 })
@@ -255,14 +244,23 @@ function typeLabel(type: ColorType): string {
     linear-gradient(45deg, transparent 75%, #ccc 75%),
     linear-gradient(-45deg, transparent 75%, #ccc 75%);
   background-size: 8px 8px;
-  background-position: 0 0, 0 4px, 4px -4px, -4px 0;
+  background-position:
+    0 0,
+    0 4px,
+    4px -4px,
+    -4px 0;
 }
 
 .preview-pearl::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.5) 0%, transparent 50%, rgba(255,255,255,0.2) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.5) 0%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.2) 100%
+  );
 }
 
 .preview-tag {
@@ -270,8 +268,8 @@ function typeLabel(type: ColorType): string {
   top: 2px;
   left: 4px;
   font-size: 0.8rem;
-  color: rgba(0,0,0,0.45);
-  background: rgba(255,255,255,0.6);
+  color: rgba(0, 0, 0, 0.45);
+  background: rgba(255, 255, 255, 0.6);
   border-radius: 2px;
   padding: 0 3px;
   z-index: 1;
@@ -358,16 +356,36 @@ function typeLabel(type: ColorType): string {
 }
 
 .palette-tools {
-  display: flex; gap: 6px;
+  display: flex;
+  gap: 6px;
 }
 .tool-btn {
-  flex: 1; padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 6px;
-  background: #f9fafb; cursor: pointer; font-size: 0.8rem; color: #555;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #f9fafb;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: #555;
   transition: background 0.15s;
 }
-.tool-btn:hover { background: #e8e8e8; }
+.tool-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+.tool-btn:hover {
+  background: #e8e8e8;
+}
 .tool-hl.active {
-  background: #fef3c7; border-color: #f59e0b; color: #92400e;
+  background: #fef3c7;
+  border-color: #f59e0b;
+  color: #92400e;
 }
 
 .palette-grid-wrapper {

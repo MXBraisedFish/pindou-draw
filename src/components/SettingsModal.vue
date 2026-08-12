@@ -7,47 +7,53 @@
             <h2>设置</h2>
             <p>偏好、帮助与应用数据</p>
           </div>
-          <button class="settings-close" @click="emit('close')">x</button>
+          <button class="settings-close" aria-label="关闭" title="关闭" @click="emit('close')">
+            <img :src="iconClose" alt="" />
+          </button>
         </header>
 
         <div class="settings-content">
           <button class="settings-item" @click="showDevicePicker = true">
-            <span class="settings-icon">▣</span>
+            <span class="settings-icon"><img :src="iconPlatform" alt="" /></span>
             <span
               ><strong>使用平台</strong><small>当前：{{ deviceLabel }}</small></span
             >
             <b>›</b>
           </button>
           <button v-if="device === 'pc'" class="settings-item" @click="openPanel('shortcuts')">
-            <span class="settings-icon">⌨</span>
+            <span class="settings-icon"><img :src="iconShortcuts" alt="" /></span>
             <span><strong>快捷键设置</strong><small>自定义电脑端操作快捷键</small></span>
             <b>›</b>
           </button>
           <button class="settings-item" @click="openPanel('tutorial')">
-            <span class="settings-icon">?</span>
+            <span class="settings-icon"><img :src="iconTutorial" alt="" /></span>
             <span><strong>使用教程</strong><small>查看功能和操作说明</small></span>
             <b>›</b>
           </button>
-          <button class="settings-item" @click="openPanel('animation')">
-            <span class="settings-icon">▶</span>
-            <span><strong>教程小动画重播</strong><small>重新播放界面引导动画</small></span>
-            <b>›</b>
-          </button>
           <button class="settings-item" @click="openPanel('notice')">
-            <span class="settings-icon">!</span>
+            <span class="settings-icon"><img :src="iconNotice" alt="" /></span>
             <span><strong>公告</strong><small>查看版本公告和更新内容</small></span>
             <b>›</b>
           </button>
           <button class="settings-item danger" @click="openPanel('cleanup')">
-            <span class="settings-icon">⌫</span>
+            <span class="settings-icon"><img :src="iconCleanup" alt="" /></span>
             <span><strong>清理数据</strong><small>管理本地设置和浏览器工程</small></span>
             <b>›</b>
           </button>
           <button class="settings-item support" @click="openPanel('support')">
-            <span class="settings-icon">♥</span>
+            <span class="settings-icon"><img :src="iconSupport" alt="" /></span>
             <span><strong>支持作者</strong><small>了解支持项目的方式</small></span>
             <b>›</b>
           </button>
+
+          <div class="tutorial-replay">
+            <div class="tutorial-animation-window">
+              <img class="tutorial-animation" :src="tutorialAnimation" alt="教程操作演示" />
+            </div>
+            <button class="tutorial-replay-button" @click="openPanel('animation')">
+              教程小动画重播
+            </button>
+          </div>
         </div>
       </section>
 
@@ -55,8 +61,17 @@
 
       <div v-if="activePanel" class="sub-overlay" @click.self="activePanel = null">
         <section class="sub-dialog">
-          <button class="settings-close sub-close" @click="activePanel = null">x</button>
-          <span class="sub-icon">{{ panelInfo.icon }}</span>
+          <button
+            class="settings-close sub-close"
+            aria-label="关闭"
+            title="关闭"
+            @click="activePanel = null"
+          >
+            <img :src="iconClose" alt="" />
+          </button>
+          <span v-if="panelInfo.icon" class="sub-icon">
+            <img :src="panelInfo.icon" alt="" />
+          </span>
           <h3>{{ panelInfo.title }}</h3>
           <p>{{ panelInfo.description }}</p>
           <div class="placeholder">该功能界面已接入，具体逻辑将在后续版本中完善。</div>
@@ -71,6 +86,14 @@
 import { computed, ref } from 'vue'
 import DeviceModal from '@/components/DeviceModal.vue'
 import { useDevice, type DeviceType } from '@/composables/useDevice'
+import iconClose from '@/assets/icon/关闭取消.png'
+import iconNotice from '@/assets/icon/公告.png'
+import iconShortcuts from '@/assets/icon/快捷键设置.png'
+import iconCleanup from '@/assets/icon/清理数据.png'
+import iconTutorial from '@/assets/icon/使用教程.png'
+import iconPlatform from '@/assets/icon/使用平台.png'
+import iconSupport from '@/assets/icon/支持.png'
+import tutorialAnimation from '@/assets/icon/播放教程小动画.gif'
 
 type PanelKey = 'shortcuts' | 'tutorial' | 'animation' | 'notice' | 'cleanup' | 'support'
 
@@ -84,13 +107,33 @@ const deviceLabel = computed(() => {
   return device.value ? labels[device.value] : '未选择'
 })
 
-const panels: Record<PanelKey, { title: string; description: string; icon: string }> = {
-  shortcuts: { title: '快捷键设置', description: '配置电脑端绘制与界面操作快捷键。', icon: '⌨' },
-  tutorial: { title: '使用教程', description: '查看拼豆绘制的完整使用教程。', icon: '?' },
-  animation: { title: '教程小动画重播', description: '重新播放新手操作引导动画。', icon: '▶' },
-  notice: { title: '公告', description: '查看版本公告、更新说明与维护信息。', icon: '!' },
-  cleanup: { title: '清理数据', description: '清理本地偏好或浏览器保存的工程。', icon: '⌫' },
-  support: { title: '支持作者', description: '查看支持项目继续开发的方式。', icon: '♥' },
+const panels: Record<PanelKey, { title: string; description: string; icon?: string }> = {
+  shortcuts: {
+    title: '快捷键设置',
+    description: '配置电脑端绘制与界面操作快捷键。',
+    icon: iconShortcuts,
+  },
+  tutorial: {
+    title: '使用教程',
+    description: '查看拼豆绘制的完整使用教程。',
+    icon: iconTutorial,
+  },
+  animation: { title: '教程小动画重播', description: '重新播放新手操作引导动画。' },
+  notice: {
+    title: '公告',
+    description: '查看版本公告、更新说明与维护信息。',
+    icon: iconNotice,
+  },
+  cleanup: {
+    title: '清理数据',
+    description: '清理本地偏好或浏览器保存的工程。',
+    icon: iconCleanup,
+  },
+  support: {
+    title: '支持作者',
+    description: '查看支持项目继续开发的方式。',
+    icon: iconSupport,
+  },
 }
 
 const panelInfo = computed(() => (activePanel.value ? panels[activePanel.value] : panels.tutorial))
@@ -168,6 +211,11 @@ function selectPlatform(platform: DeviceType) {
 .settings-close:hover {
   background: #f3f4f6;
 }
+.settings-close img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
 .settings-content {
   display: flex;
   max-height: calc(88vh - 80px);
@@ -202,6 +250,12 @@ function selectPlatform(platform: DeviceType) {
   color: #4f46e5;
   font-size: 0.9rem;
 }
+.settings-icon img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
 .settings-item > span:nth-child(2) {
   display: flex;
   min-width: 0;
@@ -231,6 +285,50 @@ function selectPlatform(platform: DeviceType) {
   background: #fff1f2;
   color: #e11d48;
 }
+.tutorial-replay {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  margin-top: -8px;
+  padding-top: 0;
+}
+.tutorial-animation-window {
+  position: relative;
+  z-index: 1;
+  width: 112px;
+  height: 68px;
+  margin: 0 0 -1px 16px;
+  overflow: hidden;
+  pointer-events: none;
+}
+.tutorial-animation {
+  display: block;
+  width: 112px;
+  height: 112px;
+  transform: translateY(-45px);
+  object-fit: contain;
+}
+.tutorial-replay-button {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 18px;
+  border: 1px solid #a5b4fc;
+  border-radius: 10px;
+  background: #fff;
+  color: #4f46e5;
+  cursor: pointer;
+  font-size: 0.74rem;
+  font-weight: 600;
+  text-align: center;
+}
+.tutorial-replay-button:hover {
+  border-color: #6366f1;
+  background: #f5f7ff;
+}
 .sub-dialog {
   position: relative;
   box-sizing: border-box;
@@ -256,6 +354,12 @@ function selectPlatform(platform: DeviceType) {
   background: #eef2ff;
   color: #4f46e5;
   font-size: 1.2rem;
+}
+.sub-icon img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  image-rendering: pixelated;
 }
 .sub-dialog h3 {
   color: #1f2937;

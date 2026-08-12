@@ -3,7 +3,7 @@
     <div class="image-editor">
       <header class="editor-header">
         <button class="header-action cancel" @click="emit('close')">
-          <span class="action-icon">x</span><span>取消</span>
+          <img :src="iconClose" class="action-image" alt="" /><span>取消</span>
         </button>
         <div class="editor-title">
           <strong>裁剪图片</strong>
@@ -20,9 +20,16 @@
       </header>
 
       <main ref="stageRef" class="editor-stage">
-        <canvas ref="editorCanvas" class="editor-canvas" @pointerdown="onPointerDown" @pointermove="onPointerMove"
-          @pointerup="onPointerUp" @pointercancel="onPointerUp" @pointerleave="onPointerLeave"
-          @wheel.prevent="onWheel"></canvas>
+        <canvas
+          ref="editorCanvas"
+          class="editor-canvas"
+          @pointerdown="onPointerDown"
+          @pointermove="onPointerMove"
+          @pointerup="onPointerUp"
+          @pointercancel="onPointerUp"
+          @pointerleave="onPointerLeave"
+          @wheel.prevent="onWheel"
+        ></canvas>
         <div class="stage-hint">框内为有效区域 · 拖动图片定位 · 滚轮缩放 · 边缘自动吸附</div>
       </main>
 
@@ -32,14 +39,25 @@
             <label class="option-field">
               <span>转换比例</span>
               <span class="ratio-prefix">1 :</span>
-              <input v-model.number="pixelRatio" type="number" min="1" max="32" @change="normalizeRatio()" />
+              <input
+                v-model.number="pixelRatio"
+                type="number"
+                min="1"
+                max="32"
+                @change="normalizeRatio()"
+              />
             </label>
             <span class="option-note">输出约 {{ outputSize.width }} x {{ outputSize.height }}</span>
           </template>
 
           <template v-else-if="activeTool === 'dither'">
-            <button v-for="option in ditherOptions" :key="option.key" class="option-button"
-              :class="{ active: ditherMode === option.key }" @click="setDither(option.key)">
+            <button
+              v-for="option in ditherOptions"
+              :key="option.key"
+              class="option-button"
+              :class="{ active: ditherMode === option.key }"
+              @click="setDither(option.key)"
+            >
               {{ option.label }}
             </button>
           </template>
@@ -52,11 +70,20 @@
             </label>
             <button class="icon-button" title="逆时针旋转 90°" @click="rotateBy(-90)">↶</button>
             <button class="icon-button" title="顺时针旋转 90°" @click="rotateBy(90)">↷</button>
-            <button class="icon-button flip-horizontal" :class="{ active: flipH }" title="水平翻转"
-              @click="toggleFlip('horizontal')">
+            <button
+              class="icon-button flip-horizontal"
+              :class="{ active: flipH }"
+              title="水平翻转"
+              @click="toggleFlip('horizontal')"
+            >
               ◁▷
             </button>
-            <button class="icon-button" :class="{ active: flipV }" title="垂直翻转" @click="toggleFlip('vertical')">
+            <button
+              class="icon-button"
+              :class="{ active: flipV }"
+              title="垂直翻转"
+              @click="toggleFlip('vertical')"
+            >
               ▽<span class="flip-divider"></span>△
             </button>
           </template>
@@ -79,8 +106,13 @@
         </div>
 
         <nav class="tool-row">
-          <button v-for="tool in tools" :key="tool.key" class="tool-button" :class="{ active: activeTool === tool.key }"
-            @click="activeTool = tool.key">
+          <button
+            v-for="tool in tools"
+            :key="tool.key"
+            class="tool-button"
+            :class="{ active: activeTool === tool.key }"
+            @click="activeTool = tool.key"
+          >
             <span class="tool-icon" :class="`tool-icon-${tool.key}`">{{ tool.icon }}</span>
             <span>{{ tool.label }}</span>
           </button>
@@ -96,6 +128,7 @@ import { useCanvasStore, clampInteger, rawPixelGrid } from '@/stores/canvas'
 import { usePaletteStore } from '@/stores/palette'
 import { useProjectStore } from '@/stores/project'
 import { quantizeImage } from '@/ts/photoToPixel'
+import iconClose from '@/assets/icon/关闭取消.png'
 
 type EditorTool = 'ratio' | 'dither' | 'transform' | 'palette'
 type DitherMode = 'none' | 'floyd-steinberg' | 'blue-noise'
@@ -607,7 +640,7 @@ function snapCropToImage(
     const cornerY = mode.includes('n') ? result.top : result.bottom
     const vertex = corners.reduce((nearest, candidate) =>
       Math.hypot(candidate.x - cornerX, candidate.y - cornerY) <
-        Math.hypot(nearest.x - cornerX, nearest.y - cornerY)
+      Math.hypot(nearest.x - cornerX, nearest.y - cornerY)
         ? candidate
         : nearest,
     )
@@ -888,6 +921,12 @@ onBeforeUnmount(() => {
 .action-icon {
   font-size: 1.35rem;
   line-height: 1;
+}
+
+.action-image {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
 }
 
 .reset-icon {

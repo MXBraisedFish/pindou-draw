@@ -89,4 +89,15 @@ describe('bulk canvas data reactivity', () => {
     expect(canvas.rows).toBe(10)
     expect(canvas.hasAnyPixels()).toBe(false)
   })
+
+  it('does not add rows or columns beyond the group size limit', () => {
+    const canvas = setup()
+    canvas.createCanvasGroup('上限测试', GROUP_SIZE_MAX, GROUP_SIZE_MAX, 8)
+
+    canvas.addGroupRow(GROUP_SIZE_MAX - 1, false)
+    canvas.addGroupCol(GROUP_SIZE_MAX - 1, false)
+
+    expect(canvas.canvasGroup?.groupRows).toBe(GROUP_SIZE_MAX)
+    expect(canvas.canvasGroup?.groupCols).toBe(GROUP_SIZE_MAX)
+  })
 })
