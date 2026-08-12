@@ -16,16 +16,24 @@
       <PanelLayers v-else-if="activeTab === 'layers'" />
       <PanelCanvas v-else-if="activeTab === 'canvas'" />
     </div>
+    <div v-if="canvasStore.showGroupPreview" class="panel-lock">
+      <div class="panel-lock-message">
+        <span class="panel-lock-icon">▦</span>
+        <span>请先选择一个画布</span>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useCanvasStore } from '@/stores/canvas'
 import PanelPalette from '@/components/PanelPalette.vue'
 import PanelLayers from '@/components/PanelLayers.vue'
 import PanelCanvas from '@/components/PanelCanvas.vue'
 
 const activeTab = ref<'palette' | 'layers' | 'canvas'>('palette')
+const canvasStore = useCanvasStore()
 
 const tabs = [
   { key: 'palette' as const, label: '色板' },
@@ -41,6 +49,32 @@ const tabs = [
   background: #fff;
   border-left: 1px solid #e5e7eb;
   overflow: hidden;
+  position: relative;
+}
+
+.panel-lock {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(2px);
+}
+
+.panel-lock-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.panel-lock-icon {
+  color: #6366f1;
+  font-size: 2rem;
+  line-height: 1;
 }
 
 .panel-tabs {

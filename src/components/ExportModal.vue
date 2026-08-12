@@ -1,251 +1,325 @@
 <template>
   <Teleport to="body">
-    <div class="export-overlay" @click.self="closeModal()">
-      <div class="export-dialog" @click.stop>
-        <button class="export-close" @click="closeModal()">✕</button>
-
-        <!-- 左：预览 -->
-        <div class="export-preview">
-          <div class="preview-zoom-bar">
-            <button @click="zoomIn()">+</button>
-            <span>{{ Math.round(zoom * 100) }}%</span>
-            <button @click="zoomOut()">-</button>
-            <button @click="fitZoom()">适应</button>
-          </div>
-          <div class="preview-canvas-wrap" ref="wrapRef"
-            @wheel.prevent="onWheel"
-            @pointerdown="onPanStart" @pointermove="onPanMove" @pointerup="onPanEnd">
-            <canvas ref="previewCanvas" class="preview-canvas" :style="previewCanvasStyle"></canvas>
-          </div>
+    <div class="export-page">
+      <header class="export-header">
+        <button class="header-button" @click="closePage()"><span>←</span> 返回编辑</button>
+        <div class="header-title">
+          <strong>导出</strong>
+          <span class="work-badge">{{ isGroup ? '画布组' : '独立画布' }}</span>
+          <small>{{ sourceSummary }}</small>
         </div>
+        <button class="export-button" :disabled="exporting" @click="doExport()">
+          {{ exporting ? '正在生成…' : exportActionLabel }}
+        </button>
+      </header>
 
-        <!-- 右：设置 -->
-        <div class="export-settings">
-          <h3>导出设置</h3>
-
-          <label>导出图命名
-            <input v-model="exportStore.exportName" class="exp-input" />
-          </label>
-
-          <label>导出格式
-            <select v-model="exportStore.exportFormat" class="exp-input">
-              <option value="png">PNG</option>
-              <option value="jpg">JPG</option>
-              <option value="pindou">工程文件 (.pindou.json)</option>
-            </select>
-          </label>
-
-          <div
-            v-if="exportStore.exportLayerId"
-            class="exp-layer-banner"
-          >
-            <span>📄 仅导出图层：<strong>{{ layerName }}</strong></span>
-            <button class="exp-layer-clear" @click="clearLayerExport()">✕ 恢复全部</button>
+      <div class="export-layout">
+        <section class="preview-panel">
+          <div class="preview-toolbar">
+            <div class="preview-title">
+              <strong>导出预览</strong>
+              <span v-if="isGroup && exportStore.groupExportMode === 'separate'">
+                当前展示 ({{ exportStore.groupPreviewCol + 1 }},{{
+                  exportStore.groupPreviewRow + 1
+                }})，导出时将生成全部子画布
+              </span>
+            </div>
+            <div class="zoom-controls">
+              <button title="缩小" @click="zoomOut()">−</button>
+              <span>{{ Math.round(zoom * 100) }}%</span>
+              <button title="放大" @click="zoomIn()">＋</button>
+              <button @click="fitZoom()">适应</button>
+            </div>
           </div>
+          <div ref="wrapRef" class="preview-viewport" @wheel.prevent="onWheel" @pointerdown="onPanStart"
+            @pointermove="onPanMove" @pointerup="onPanEnd" @pointercancel="onPanEnd" @pointerleave="onPanEnd">
+            <canvas ref="previewCanvas" class="preview-canvas" :style="previewCanvasStyle"></canvas>
+            <div v-if="!exportStore.previewDataUrl" class="preview-empty">
+              {{ exportStore.previewError || '正在生成预览…' }}
+            </div>
+          </div>
+        </section>
+
+        <aside class="settings-panel">
+          <div class="settings-heading">
+            <div>
+              <strong>导出设置</strong>
+              <span>选项会根据导出内容自动显示</span>
+            </div>
+          </div>
+
+          <details open class="setting-group">
+            <summary><span class="summary-icon">↗</span>输出</summary>
+            <div class="group-body">
+              <label class="field">
+                <span>文件名称</span>
+                <input v-model="exportStore.exportName" class="input-control" />
+              </label>
+              <label class="field">
+                <span>文件格式</span>
+                <select v-model="exportStore.exportFormat" class="input-control">
+                  <option value="png">PNG 图片</option>
+                  <option value="jpg">JPG 图片</option>
+                  <option value="pindou">工程文件 (.pindou.json)</option>
+                </select>
+              </label>
+
+              <div v-if="isGroup && exportStore.exportFormat !== 'pindou'" class="choice-block">
+                <span class="field-label">画布组导出方式</span>
+                <div class="choice-cards">
+                  <button :class="{ active: exportStore.groupExportMode === 'separate' }"
+                    @click="exportStore.groupExportMode = 'separate'">
+                    <strong>▦ 单独导出</strong>
+                    <span>{{ groupCount }} 个子画布分别生成</span>
+                  </button>
+                  <button :class="{ active: exportStore.groupExportMode === 'combined' }"
+                    @click="exportStore.groupExportMode = 'combined'">
+                    <strong>⊞ 拼合导出</strong>
+                    <span>拼成 {{ combinedSize }}</span>
+                  </button>
+                </div>
+              </div>
+
+              <div v-if="
+                isGroup &&
+                exportStore.exportFormat !== 'pindou' &&
+                exportStore.groupExportMode === 'separate'
+              " class="separate-options">
+                <div class="choice-block">
+                  <span class="field-label">下载方式</span>
+                  <div class="choice-cards download-cards">
+                    <button :class="{ active: exportStore.groupSeparateDownloadMode === 'zip' }"
+                      @click="exportStore.groupSeparateDownloadMode = 'zip'">
+                      <strong>▣ 压缩包</strong>
+                      <span>全部子画布打包为一个 ZIP（推荐）</span>
+                    </button>
+                    <button :class="{ active: exportStore.groupSeparateDownloadMode === 'files' }"
+                      @click="exportStore.groupSeparateDownloadMode = 'files'">
+                      <strong>⇩ 逐张下载</strong>
+                      <span>浏览器依次下载 {{ groupCount }} 张图片</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="choice-block">
+                  <span class="field-label">选择预览子画布</span>
+                  <div class="group-preview-picker-wrap">
+                    <div class="group-preview-picker" :style="groupPickerStyle">
+                      <button class="picker-corner" aria-hidden="true"></button>
+                      <span v-for="col in groupPickerCols" :key="`col-${col}`" class="picker-axis picker-col-axis">
+                        {{ col }}
+                      </span>
+                      <template v-for="row in groupPickerRows" :key="`row-${row}`">
+                        <span class="picker-axis picker-row-axis">{{ row }}</span>
+                        <button v-for="col in groupPickerCols" :key="`${row}-${col}`" class="picker-cell" :class="{
+                          active:
+                            exportStore.groupPreviewRow === row - 1 &&
+                            exportStore.groupPreviewCol === col - 1,
+                          filled: groupCellHasPixels(row - 1, col - 1),
+                        }" :title="`预览子画布 (${col},${row})`" @click="selectGroupPreview(row - 1, col - 1)">
+                          <canvas :ref="(element) =>
+                              setGroupThumbRef(row - 1, col - 1, element as HTMLCanvasElement)
+                            " class="picker-thumb"></canvas>
+                          <span>{{ col }},{{ row }}</span>
+                        </button>
+                      </template>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="exportStore.exportFormat !== 'pindou'" class="choice-block">
+                <span class="field-label">导出内容</span>
+                <div class="segmented three">
+                  <button :class="{ active: exportStore.exportContent === 'full' }"
+                    @click="exportStore.exportContent = 'full'">
+                    全部
+                  </button>
+                  <button :class="{ active: exportStore.exportContent === 'sketch-only' }"
+                    @click="exportStore.exportContent = 'sketch-only'">
+                    仅草图
+                  </button>
+                  <button :class="{ active: exportStore.exportContent === 'stats-only' }"
+                    @click="exportStore.exportContent = 'stats-only'">
+                    仅色号卡
+                  </button>
+                </div>
+              </div>
+
+              <div v-if="exportStore.exportFormat !== 'pindou'" class="resolution-note">
+                <strong>1 格 = 50px</strong>
+                <span>最终图片按固定格宽原尺寸生成，不随画布增大而压缩</span>
+              </div>
+
+              <div v-if="exportStore.exportLayerId" class="layer-banner">
+                <span>仅导出图层：{{ layerName }}</span>
+                <button @click="clearLayerExport()">恢复全部</button>
+              </div>
+            </div>
+          </details>
 
           <template v-if="exportStore.exportFormat !== 'pindou'">
-          <label>导出内容
-            <select v-model="exportStore.exportContent" class="exp-input">
-              <option value="full">成图</option>
-              <option value="sketch-only">仅草图</option>
-            </select>
-          </label>
-
-          <div class="exp-section">显示设置</div>
-          <label class="exp-check"><input type="checkbox" v-model="exportStore.showColorIds" /> 色号显示</label>
-          <label class="exp-check" style="margin-left:16px" v-if="exportStore.exportHighlightActive">
-            <input type="checkbox" v-model="exportStore.showColorIdsHighlightOnly" /> 仅高亮颜色显示色号
-          </label>
-          <label class="exp-check"><input type="checkbox" v-model="exportStore.showGrid" /> 网格显示</label>
-          <template v-if="exportStore.showGrid">
-            <div class="exp-sub">
-              <label class="exp-check"><input type="checkbox" v-model="hlEnabled" /> 水平加粗</label>
-              <template v-if="hlEnabled">
-                <div class="thick-params">
-                  <label>间隔 <input type="range" min="1" max="20" v-model.number="hlInterval" /> {{ hlInterval }}</label>
-                  <label>粗细 <input type="range" min="1" max="5" v-model.number="hlThick" /> {{ hlThick }}</label>
-                  <div class="exp-btns">
-                    <button v-for="sp in startPositions" :key="sp.key" class="exp-sel-btn"
-                      :class="{ active: hStartPos === sp.key }" @click="hStartPos = sp.key">{{ sp.label }}</button>
+            <details v-if="exportStore.exportContent !== 'stats-only'" open class="setting-group">
+              <summary><span class="summary-icon">▦</span>草图外观</summary>
+              <div class="group-body">
+                <div class="inline-field">
+                  <span>像素形状</span>
+                  <div class="segmented">
+                    <button :class="{ active: exportStore.pixelShape === 'square' }"
+                      @click="exportStore.pixelShape = 'square'">
+                      ■ 方形
+                    </button>
+                    <button :class="{ active: exportStore.pixelShape === 'circle' }"
+                      @click="exportStore.pixelShape = 'circle'">
+                      ● 圆形
+                    </button>
                   </div>
                 </div>
-              </template>
-            </div>
-            <div class="exp-sub">
-              <label class="exp-check"><input type="checkbox" v-model="vlEnabled" /> 垂直加粗</label>
-              <template v-if="vlEnabled">
-                <div class="thick-params">
-                  <label>间隔 <input type="range" min="1" max="20" v-model.number="vlInterval" /> {{ vlInterval }}</label>
-                  <label>粗细 <input type="range" min="1" max="5" v-model.number="vlThick" /> {{ vlThick }}</label>
-                  <div class="exp-btns">
-                    <button v-for="sp in startPositions" :key="sp.key" class="exp-sel-btn"
-                      :class="{ active: vStartPos === sp.key }" @click="vStartPos = sp.key">{{ sp.label }}</button>
-                  </div>
+                <label class="field">
+                  <span>渲染模式</span>
+                  <select v-model="exportStore.exportRenderMode" class="input-control">
+                    <option value="day">白天</option>
+                    <option value="night">夜晚</option>
+                    <option value="thermo">温变</option>
+                    <option value="photo">光变</option>
+                    <option value="thermo-photo">温变 + 光变</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>字体</span>
+                  <select v-model="exportStore.exportFont" class="input-control">
+                    <option value="pixel">MinecraftTen</option>
+                    <option value="pixelfont">PixelFont</option>
+                    <option value="default">系统默认字体</option>
+                  </select>
+                </label>
+                <div class="inline-field">
+                  <span>草图背景</span>
+                  <ColorPickerRow v-model="exportStore.sketchBg" />
                 </div>
-              </template>
-            </div>
-            <div class="exp-sub">
-              <label>网格粗细 <input type="range" min="1" max="3" v-model.number="exportStore.gridThickness" /> {{ exportStore.gridThickness }}</label>
-              <label>网格透明度 <input type="range" min="0" max="90" v-model.number="exportStore.gridOpacity" /> {{ exportStore.gridOpacity }}%</label>
-            </div>
+                <label class="check-row">
+                  <input v-model="exportStore.showColorIds" type="checkbox" />
+                  <span>在像素内显示色号</span>
+                </label>
+                <label v-if="exportStore.exportHighlightActive" class="check-row sub-check">
+                  <input v-model="exportStore.showColorIdsHighlightOnly" type="checkbox" />
+                  <span>仅高亮颜色显示色号</span>
+                </label>
+              </div>
+            </details>
+
+            <details v-if="exportStore.exportContent !== 'stats-only'" class="setting-group">
+              <summary><span class="summary-icon">#</span>网格与坐标</summary>
+              <div class="group-body">
+                <label class="check-row">
+                  <input v-model="exportStore.showGrid" type="checkbox" />
+                  <span>显示网格</span>
+                </label>
+                <template v-if="exportStore.showGrid">
+                  <RangeField v-model="exportStore.gridThickness" label="网格粗细" :min="1" :max="3" />
+                  <RangeField v-model="exportStore.gridOpacity" label="网格透明度" :min="0" :max="90" suffix="%" />
+                  <ThickLineSettings v-model:enabled="hlEnabled" v-model:interval="hlInterval"
+                    v-model:thickness="hlThick" v-model:start="hStartPos" label="水平加粗线" />
+                  <ThickLineSettings v-model:enabled="vlEnabled" v-model:interval="vlInterval"
+                    v-model:thickness="vlThick" v-model:start="vStartPos" label="垂直加粗线" />
+                </template>
+                <label class="field">
+                  <span>坐标显示</span>
+                  <select v-model="exportStore.coordDisplay" class="input-control">
+                    <option value="none">不显示</option>
+                    <option value="single">单侧坐标</option>
+                    <option value="dual">双侧坐标</option>
+                  </select>
+                </label>
+                <label v-if="exportStore.coordDisplay !== 'none'" class="field">
+                  <span>坐标轴样式</span>
+                  <select v-model="exportStore.coordAxisStyle" class="input-control">
+                    <option value="direct">直接标注</option>
+                    <option value="cell">方格坐标轴</option>
+                  </select>
+                </label>
+              </div>
+            </details>
+
+            <details v-if="exportStore.exportContent !== 'sketch-only'" open class="setting-group">
+              <summary><span class="summary-icon">◉</span>色号卡与统计</summary>
+              <div class="group-body">
+                <label class="field">
+                  <span>色卡布局</span>
+                  <select v-model="exportStore.tableLayout" class="input-control">
+                    <option value="block">标块布局</option>
+                    <option value="table">表格布局</option>
+                    <option value="compact">紧凑小标块</option>
+                  </select>
+                </label>
+                <div class="inline-field">
+                  <span>页面背景</span>
+                  <ColorPickerRow v-model="exportStore.pageBg" />
+                </div>
+                <div class="stats-summary">
+                  <span>使用色号 <strong>{{ exportStore.colorStats.length }}</strong> 种</span>
+                  <span>拼豆总数 <strong>{{ exportStore.totalPixelCount }}</strong> 颗</span>
+                </div>
+              </div>
+            </details>
+
+            <details v-if="exportStore.exportContent !== 'stats-only'" class="setting-group">
+              <summary><span class="summary-icon">✦</span>高亮导出</summary>
+              <div class="group-body">
+                <label class="check-row">
+                  <input v-model="exportStore.exportHighlightActive" type="checkbox" />
+                  <span>启用高亮效果</span>
+                </label>
+                <template v-if="exportStore.exportHighlightActive">
+                  <button class="secondary-button" @click="showHighlightModal = true">
+                    选择高亮颜色（{{ exportStore.exportHighlightedColorIds.size }} 色）
+                  </button>
+                  <label class="check-row">
+                    <input v-model="exportStore.exportHighlightOnly" type="checkbox" />
+                    <span>仅渲染高亮像素</span>
+                  </label>
+                  <label class="field">
+                    <span>标记序号</span>
+                    <select v-model="exportStore.exportHighlightNumberMode" class="input-control">
+                      <option value="off">关闭</option>
+                      <option value="row">按行</option>
+                      <option value="col">按列</option>
+                      <option value="global">全局顺序</option>
+                    </select>
+                  </label>
+                  <button class="secondary-button warm" :disabled="batchExporting" @click="doBatchHighlight()">
+                    {{ batchExporting ? '正在打包…' : '按高亮颜色批量导出 ZIP' }}
+                  </button>
+                </template>
+              </div>
+            </details>
           </template>
-          <label>坐标显示
-            <select v-model="exportStore.coordDisplay" class="exp-input">
-              <option value="none">不显示坐标</option>
-              <option value="single">单侧坐标</option>
-              <option value="dual">双侧坐标</option>
-            </select>
-          </label>
-          <label>坐标轴样式
-            <select v-model="exportStore.coordAxisStyle" class="exp-input">
-              <option value="direct">直接渲染坐标轴</option>
-              <option value="cell">方格坐标轴</option>
-            </select>
-          </label>
-
-          <label>像素形状</label>
-          <div class="exp-btns">
-            <button class="exp-sel-btn" :class="{ active: exportStore.pixelShape === 'square' }"
-              @click="exportStore.pixelShape = 'square'">■ 方形</button>
-            <button class="exp-sel-btn" :class="{ active: exportStore.pixelShape === 'circle' }"
-              @click="exportStore.pixelShape = 'circle'">○ 圆形</button>
-          </div>
-
-          <label>草图背景色</label>
-          <div class="bg-presets">
-            <button v-for="bg in bgColors" :key="bg.val" class="bg-swatch"
-              :class="{ active: exportStore.sketchBg === bg.val }"
-              :style="bg.style" :title="bg.label"
-              @click="exportStore.sketchBg = bg.val"
-            ></button>
-            <input type="color" :value="exportStore.sketchBg === 'transparent' ? '#ffffff' : exportStore.sketchBg"
-              class="bg-picker" @input="exportStore.sketchBg = ($event.target as HTMLInputElement).value" />
-          </div>
-
-          <label>字体
-            <select v-model="exportStore.exportFont" class="exp-input">
-              <option value="pixel">像素体 (MinecraftTen)</option>
-              <option value="pixelfont">像素体 (PixelFont)</option>
-              <option value="default">默认字体</option>
-            </select>
-          </label>
-
-          <template v-if="exportStore.exportContent !== 'sketch-only'">
-            <label>色块布局
-              <select v-model="exportStore.tableLayout" class="exp-input">
-                <option value="block">标块布局</option>
-                <option value="table">表格布局</option>
-                <option value="compact">小标块</option>
-              </select>
-            </label>
-
-            <label>导出图背景色</label>
-            <div class="bg-presets">
-              <button v-for="bg in bgColors" :key="bg.val" class="bg-swatch"
-                :class="{ active: exportStore.pageBg === bg.val }"
-                :style="bg.style" :title="bg.label"
-                @click="exportStore.pageBg = bg.val"
-              ></button>
-              <input type="color" :value="exportStore.pageBg === 'transparent' ? '#ffffff' : exportStore.pageBg"
-                class="bg-picker" @input="exportStore.pageBg = ($event.target as HTMLInputElement).value" />
-            </div>
-          </template>
-
-          <label>渲染模式
-            <select v-model="exportStore.exportRenderMode" class="exp-input">
-              <option value="day">白天</option>
-              <option value="night">夜晚</option>
-              <option value="thermo">温变</option>
-              <option value="photo">光变</option>
-              <option value="thermo-photo">温+光</option>
-            </select>
-          </label>
-
-          <div class="exp-section">高亮导出</div>
-          <label class="exp-check">
-            <input type="checkbox" v-model="exportStore.exportHighlightActive" /> 启用高亮效果
-          </label>
-          <template v-if="exportStore.exportHighlightActive">
-            <button class="exp-btn exp-btn-hl-config" @click="showExportHlModal = true">
-              配置高亮颜色 (已选 {{ exportStore.exportHighlightedColorIds.size }} 色)
-            </button>
-            <label class="exp-check">
-              <input type="checkbox" v-model="exportStore.exportHighlightOnly" /> 仅渲染高亮像素
-            </label>
-            <label>标记序号
-              <select v-model="exportStore.exportHighlightNumberMode" class="exp-input">
-                <option value="off">关闭</option>
-                <option value="row">行顺序标记</option>
-                <option value="col">列顺序标记</option>
-                <option value="global">全局顺序标记</option>
-              </select>
-            </label>
-            <div class="exp-sub" style="margin-top:4px">
-              <span style="font-size:0.78rem;color:#888;">批量导出：为每个高亮颜色生成独立图片，打包为 .zip</span>
-              <button
-                class="exp-btn exp-btn-batch"
-                :disabled="batchExporting"
-                @click="doBatchExport()"
-              >{{ batchExporting ? '导出中...' : '批量导出 (.zip)' }}</button>
-            </div>
-          </template>
-          </template>
-
-          <div class="exp-actions">
-            <button class="exp-btn exp-btn-export" @click="exportStore.doExport()">导出</button>
-          </div>
-        </div>
+        </aside>
       </div>
     </div>
 
-    <ExportHighlightModal
-      v-if="showExportHlModal"
-      @close="showExportHlModal = false"
-    />
+    <ExportHighlightModal v-if="showHighlightModal" @close="showHighlightModal = false" />
   </Teleport>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick, watch } from 'vue'
+import { computed, defineComponent, h, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useExportStore } from '@/stores/exportStore'
 import { useCanvasStore } from '@/stores/canvas'
 import ExportHighlightModal from '@/components/ExportHighlightModal.vue'
 
+const emit = defineEmits<{ close: [] }>()
 const exportStore = useExportStore()
 const canvasStore = useCanvasStore()
-
-defineEmits<{ close: [] }>()
-
-const layerName = computed(() => {
-  if (!exportStore.exportLayerId) return ''
-  const layer = canvasStore.layers.find(l => l.id === exportStore.exportLayerId)
-  return layer?.name ?? ''
-})
-
-function closeModal() {
-  exportStore.exportLayerId = null
-  exportStore.showModal = false
-}
-
-function clearLayerExport() {
-  exportStore.exportLayerId = null
-  scheduleRefresh()
-}
-
-const showExportHlModal = ref(false)
-
 const wrapRef = ref<HTMLElement | null>(null)
 const previewCanvas = ref<HTMLCanvasElement | null>(null)
 const previewCanvasStyle = ref<Record<string, string>>({})
-
+const showHighlightModal = ref(false)
+const batchExporting = ref(false)
+const exporting = ref(false)
 const zoom = ref(1)
 const panX = ref(0)
 const panY = ref(0)
-let isPanning = false
-let panStartX = 0; let panStartY = 0
-let panStartPanX = 0; let panStartPanY = 0
-
-// 粗线配置
 const hlEnabled = ref(false)
 const hlInterval = ref(5)
 const hlThick = ref(1)
@@ -254,11 +328,241 @@ const vlInterval = ref(5)
 const vlThick = ref(1)
 const hStartPos = ref<'center' | 'start' | 'end'>('center')
 const vStartPos = ref<'center' | 'start' | 'end'>('center')
-const startPositions = [
-  { key: 'center' as const, label: '居中' },
-  { key: 'start' as const, label: '居前' },
-  { key: 'end' as const, label: '居后' },
-]
+let isPanning = false
+let panStart = { x: 0, y: 0, panX: 0, panY: 0 }
+let refreshTimer: ReturnType<typeof setTimeout> | null = null
+
+const isGroup = computed(() => Boolean(canvasStore.canvasGroup && !exportStore.exportLayerId))
+const groupCount = computed(() => {
+  const group = canvasStore.canvasGroup
+  return group ? group.groupCols * group.groupRows : 1
+})
+const combinedSize = computed(() => {
+  const group = canvasStore.canvasGroup
+  return group ? `${group.groupCols * group.subSize} x ${group.groupRows * group.subSize}` : ''
+})
+const groupPickerCols = computed(() => canvasStore.canvasGroup?.groupCols ?? 0)
+const groupPickerRows = computed(() => canvasStore.canvasGroup?.groupRows ?? 0)
+const groupPickerStyle = computed(() => ({
+  gridTemplateColumns: `24px repeat(${groupPickerCols.value}, minmax(42px, 1fr))`,
+}))
+const filledGroupCells = computed(() => {
+  void canvasStore.groupVersion
+  void canvasStore.gridVersion
+  void exportStore.previewDataUrl
+  const filled = new Set<string>()
+  const group = canvasStore.canvasGroup
+  if (!group) return filled
+  for (let row = 0; row < group.groupRows; row++) {
+    for (let col = 0; col < group.groupCols; col++) {
+      const snapshot = group.canvases[row]?.[col]
+      if (
+        snapshot?.layers.some(
+          (layer) => layer.visible && layer.grid.some((line) => line.some(Boolean)),
+        )
+      ) {
+        filled.add(`${row},${col}`)
+      }
+    }
+  }
+  return filled
+})
+const sourceSummary = computed(() => {
+  const group = canvasStore.canvasGroup
+  if (!group) return `${canvasStore.cols} x ${canvasStore.rows}`
+  return `${group.groupCols} x ${group.groupRows} · 每格 ${group.subSize}² · 拼合 ${combinedSize.value}`
+})
+const layerName = computed(
+  () => canvasStore.layers.find((layer) => layer.id === exportStore.exportLayerId)?.name ?? '',
+)
+const exportActionLabel = computed(() => {
+  if (exportStore.exportFormat === 'pindou') return '保存工程文件'
+  if (isGroup.value && exportStore.groupExportMode === 'separate') {
+    return exportStore.groupSeparateDownloadMode === 'zip'
+      ? `打包 ${groupCount.value} 个子画布`
+      : `下载 ${groupCount.value} 张图片`
+  }
+  return '导出图片'
+})
+
+function groupCellHasPixels(row: number, col: number) {
+  return filledGroupCells.value.has(`${row},${col}`)
+}
+
+function selectGroupPreview(row: number, col: number) {
+  exportStore.selectGroupPreview(row, col)
+}
+
+const groupThumbRefs = new Map<string, HTMLCanvasElement>()
+
+function setGroupThumbRef(row: number, col: number, element: HTMLCanvasElement | null) {
+  if (element) groupThumbRefs.set(`${row},${col}`, element)
+}
+
+function renderGroupPicker() {
+  const group = canvasStore.canvasGroup
+  if (!group || exportStore.groupExportMode !== 'separate') return
+  for (let row = 0; row < group.groupRows; row++) {
+    for (let col = 0; col < group.groupCols; col++) {
+      const canvas = groupThumbRefs.get(`${row},${col}`)
+      const snapshot = group.canvases[row]?.[col]
+      if (!canvas || !snapshot) continue
+      const size = 48
+      canvas.width = size
+      canvas.height = size
+      const context = canvas.getContext('2d')!
+      context.fillStyle =
+        snapshot.backgroundColor === 'transparent' ? '#ffffff' : snapshot.backgroundColor
+      context.fillRect(0, 0, size, size)
+      const pixelSize = size / group.subSize
+      for (const layer of snapshot.layers) {
+        if (!layer.visible) continue
+        for (let pixelRow = 0; pixelRow < group.subSize; pixelRow++) {
+          const line = layer.grid[pixelRow]
+          for (let pixelCol = 0; pixelCol < group.subSize; pixelCol++) {
+            const color = line?.[pixelCol]
+            if (!color) continue
+            context.fillStyle = color
+            context.fillRect(
+              pixelCol * pixelSize,
+              pixelRow * pixelSize,
+              pixelSize + 0.4,
+              pixelSize + 0.4,
+            )
+          }
+        }
+      }
+    }
+  }
+}
+
+const ColorPickerRow = defineComponent({
+  props: { modelValue: { type: String, required: true } },
+  emits: ['update:modelValue'],
+  setup(props, { emit: emitValue }) {
+    const colors = ['#ffffff', '#e0e0e0', '#000000', 'transparent']
+    return () =>
+      h('div', { class: 'color-row' }, [
+        ...colors.map((color) =>
+          h('button', {
+            class: [
+              'color-swatch',
+              { active: props.modelValue === color, transparent: color === 'transparent' },
+            ],
+            style: color === 'transparent' ? undefined : { background: color },
+            title: color,
+            onClick: () => emitValue('update:modelValue', color),
+          }),
+        ),
+        h('input', {
+          type: 'color',
+          value: props.modelValue === 'transparent' ? '#ffffff' : props.modelValue,
+          onInput: (event: Event) =>
+            emitValue('update:modelValue', (event.target as HTMLInputElement).value),
+        }),
+      ])
+  },
+})
+
+const RangeField = defineComponent({
+  props: {
+    modelValue: { type: Number, required: true },
+    label: { type: String, required: true },
+    min: { type: Number, required: true },
+    max: { type: Number, required: true },
+    suffix: { type: String, default: '' },
+  },
+  emits: ['update:modelValue'],
+  setup(props, { emit: emitValue }) {
+    return () =>
+      h('label', { class: 'range-field' }, [
+        h('span', props.label),
+        h('input', {
+          type: 'range',
+          min: props.min,
+          max: props.max,
+          value: props.modelValue,
+          onInput: (event: Event) =>
+            emitValue('update:modelValue', Number((event.target as HTMLInputElement).value)),
+        }),
+        h('strong', `${props.modelValue}${props.suffix}`),
+      ])
+  },
+})
+
+const ThickLineSettings = defineComponent({
+  props: {
+    enabled: Boolean,
+    interval: { type: Number, required: true },
+    thickness: { type: Number, required: true },
+    start: { type: String, required: true },
+    label: { type: String, required: true },
+  },
+  emits: ['update:enabled', 'update:interval', 'update:thickness', 'update:start'],
+  setup(props, { emit: emitValue }) {
+    return () =>
+      h('div', { class: 'thick-setting' }, [
+        h('label', { class: 'check-row' }, [
+          h('input', {
+            type: 'checkbox',
+            checked: props.enabled,
+            onChange: (event: Event) =>
+              emitValue('update:enabled', (event.target as HTMLInputElement).checked),
+          }),
+          h('span', props.label),
+        ]),
+        props.enabled
+          ? h('div', { class: 'thick-detail' }, [
+            h('label', [
+              '间隔 ',
+              h('input', {
+                type: 'number',
+                min: 1,
+                max: 20,
+                value: props.interval,
+                onChange: (event: Event) =>
+                  emitValue('update:interval', Number((event.target as HTMLInputElement).value)),
+              }),
+            ]),
+            h('label', [
+              '粗细 ',
+              h('input', {
+                type: 'number',
+                min: 1,
+                max: 5,
+                value: props.thickness,
+                onChange: (event: Event) =>
+                  emitValue('update:thickness', Number((event.target as HTMLInputElement).value)),
+              }),
+            ]),
+            h(
+              'select',
+              {
+                value: props.start,
+                onChange: (event: Event) =>
+                  emitValue('update:start', (event.target as HTMLSelectElement).value),
+              },
+              [
+                h('option', { value: 'center' }, '居中'),
+                h('option', { value: 'start' }, '居前'),
+                h('option', { value: 'end' }, '居后'),
+              ],
+            ),
+          ])
+          : null,
+      ])
+  },
+})
+
+function closePage() {
+  exportStore.exportLayerId = null
+  exportStore.showModal = false
+  emit('close')
+}
+
+function clearLayerExport() {
+  exportStore.exportLayerId = null
+}
 
 function syncThickFromStore() {
   hlEnabled.value = exportStore.thickLineH.enabled
@@ -270,35 +574,44 @@ function syncThickFromStore() {
   hStartPos.value = exportStore.hStartPos
   vStartPos.value = exportStore.vStartPos
 }
-function calcOffset(pos: 'center' | 'start' | 'end', total: number, interval: number) {
-  const rem = total % interval
-  if (pos === 'start') return 0
-  if (pos === 'end') return rem
-  return Math.floor(rem / 2)
-}
+
 function syncThickToStore() {
-  exportStore.thickLineH = { enabled: hlEnabled.value, interval: hlInterval.value, thickness: hlThick.value, startOffset: 0 }
-  exportStore.thickLineV = { enabled: vlEnabled.value, interval: vlInterval.value, thickness: vlThick.value, startOffset: 0 }
+  exportStore.thickLineH = {
+    enabled: hlEnabled.value,
+    interval: hlInterval.value,
+    thickness: hlThick.value,
+    startOffset: 0,
+  }
+  exportStore.thickLineV = {
+    enabled: vlEnabled.value,
+    interval: vlInterval.value,
+    thickness: vlThick.value,
+    startOffset: 0,
+  }
   exportStore.hStartPos = hStartPos.value
   exportStore.vStartPos = vStartPos.value
 }
 
-// 背景色预设
-const bgColors = [
-  { val: '#ffffff', label: '白色', style: { background: '#fff' } },
-  { val: '#e0e0e0', label: '灰色', style: { background: '#e0e0e0' } },
-  { val: '#000000', label: '黑色', style: { background: '#000' } },
-  { val: 'transparent', label: '透明', style: { background: 'repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 50%/8px 8px' } },
-]
-
-const batchExporting = ref(false)
-async function doBatchExport() {
-  batchExporting.value = true
-  try {
-    await exportStore.batchExportHighlight()
-  } finally {
-    batchExporting.value = false
+function renderPreviewToCanvas() {
+  if (!previewCanvas.value || !exportStore.previewDataUrl) return
+  const image = new Image()
+  image.onload = () => {
+    const canvas = previewCanvas.value
+    if (!canvas) return
+    canvas.width = image.width
+    canvas.height = image.height
+    canvas.getContext('2d')?.drawImage(image, 0, 0)
   }
+  image.src = exportStore.previewDataUrl
+}
+
+function scheduleRefresh() {
+  if (refreshTimer) clearTimeout(refreshTimer)
+  refreshTimer = setTimeout(() => {
+    syncThickToStore()
+    exportStore.refreshPreview()
+    nextTick(renderPreviewToCanvas)
+  }, 120)
 }
 
 function updateCanvasStyle() {
@@ -307,166 +620,798 @@ function updateCanvasStyle() {
     transformOrigin: 'center center',
   }
 }
-
-function zoomIn() { zoom.value = Math.min(5, zoom.value * 1.25); updateCanvasStyle() }
-function zoomOut() { zoom.value = Math.max(0.1, zoom.value / 1.25); updateCanvasStyle() }
-function fitZoom() { zoom.value = 1; panX.value = 0; panY.value = 0; updateCanvasStyle() }
-function onWheel(e: WheelEvent) {
-  zoom.value = Math.max(0.1, Math.min(5, zoom.value * (e.deltaY > 0 ? 0.9 : 1.1)))
+function zoomIn() {
+  zoom.value = Math.min(5, zoom.value * 1.2)
   updateCanvasStyle()
 }
-function onPanStart(e: PointerEvent) {
-  if (e.button !== 0) return
-  isPanning = true; panStartX = e.clientX; panStartY = e.clientY; panStartPanX = panX.value; panStartPanY = panY.value
+function zoomOut() {
+  zoom.value = Math.max(0.08, zoom.value / 1.2)
+  updateCanvasStyle()
 }
-function onPanMove(e: PointerEvent) {
+function fitZoom() {
+  zoom.value = 1
+  panX.value = 0
+  panY.value = 0
+  updateCanvasStyle()
+}
+function onWheel(event: WheelEvent) {
+  zoom.value = Math.max(0.08, Math.min(5, zoom.value * (event.deltaY > 0 ? 0.9 : 1.1)))
+  updateCanvasStyle()
+}
+function onPanStart(event: PointerEvent) {
+  if (event.button !== 0) return
+  isPanning = true
+  panStart = { x: event.clientX, y: event.clientY, panX: panX.value, panY: panY.value }
+  wrapRef.value?.setPointerCapture(event.pointerId)
+}
+function onPanMove(event: PointerEvent) {
   if (!isPanning) return
-  panX.value = panStartPanX + (e.clientX - panStartX)
-  panY.value = panStartPanY + (e.clientY - panStartY)
+  panX.value = panStart.panX + event.clientX - panStart.x
+  panY.value = panStart.panY + event.clientY - panStart.y
   updateCanvasStyle()
 }
-function onPanEnd() { isPanning = false }
+function onPanEnd(event: PointerEvent) {
+  isPanning = false
+  if (wrapRef.value?.hasPointerCapture(event.pointerId))
+    wrapRef.value.releasePointerCapture(event.pointerId)
+}
 
-function renderPreviewToCanvas() {
-  if (!previewCanvas.value || !exportStore.previewDataUrl) return
-  const img = new Image()
-  img.onload = () => {
-    const c = previewCanvas.value!
-    c.width = img.width
-    c.height = img.height
-    const ctx = c.getContext('2d')!
-    ctx.drawImage(img, 0, 0)
+async function doExport() {
+  exporting.value = true
+  try {
+    await exportStore.doExport()
+  } catch (error) {
+    window.alert(error instanceof Error ? error.message : '导出失败。')
+  } finally {
+    exporting.value = false
   }
-  img.src = exportStore.previewDataUrl
+}
+async function doBatchHighlight() {
+  batchExporting.value = true
+  try {
+    await exportStore.batchExportHighlight()
+  } catch (error) {
+    window.alert(error instanceof Error ? error.message : '批量导出失败。')
+  } finally {
+    batchExporting.value = false
+  }
 }
 
-// 自动刷新
-let refreshTimer: ReturnType<typeof setTimeout> | null = null
-function scheduleRefresh() {
-  if (refreshTimer) clearTimeout(refreshTimer)
-  refreshTimer = setTimeout(() => {
-    exportStore.refreshPreview()
-    nextTick(() => renderPreviewToCanvas())
-  }, 150)
-}
+watch(
+  [
+    () => exportStore.exportName,
+    () => exportStore.exportFormat,
+    () => exportStore.exportContent,
+    () => exportStore.groupExportMode,
+    () => exportStore.groupSeparateDownloadMode,
+    () => exportStore.groupPreviewRow,
+    () => exportStore.groupPreviewCol,
+    () => exportStore.showColorIds,
+    () => exportStore.showColorIdsHighlightOnly,
+    () => exportStore.showGrid,
+    () => exportStore.gridThickness,
+    () => exportStore.gridOpacity,
+    () => exportStore.coordDisplay,
+    () => exportStore.coordAxisStyle,
+    () => exportStore.pixelShape,
+    () => exportStore.sketchBg,
+    () => exportStore.pageBg,
+    () => exportStore.exportRenderMode,
+    () => exportStore.exportFont,
+    () => exportStore.tableLayout,
+    () => exportStore.exportLayerId,
+    () => exportStore.exportHighlightActive,
+    () => exportStore.exportHighlightOnly,
+    () => exportStore.exportHighlightedColorIds,
+    () => exportStore.exportHighlightNumberMode,
+    () => canvasStore.groupVersion,
+    () => [
+      hlEnabled.value,
+      hlInterval.value,
+      hlThick.value,
+      hStartPos.value,
+      vlEnabled.value,
+      vlInterval.value,
+      vlThick.value,
+      vStartPos.value,
+    ],
+  ],
+  scheduleRefresh,
+  { deep: true },
+)
 
-const watched = [
-  () => exportStore.exportName,
-  () => exportStore.showColorIds,
-  () => exportStore.showColorIdsHighlightOnly,
-  () => exportStore.showGrid,
-  () => exportStore.gridThickness,
-  () => exportStore.gridOpacity,
-  () => exportStore.coordDisplay,
-  () => exportStore.coordAxisStyle,
-  () => exportStore.sketchBg,
-  () => exportStore.pageBg,
-  () => exportStore.exportRenderMode,
-  () => exportStore.pixelShape,
-  () => exportStore.exportFont,
-  () => exportStore.tableLayout,
-  () => exportStore.exportContent,
-  () => exportStore.exportLayerId,
-  () => exportStore.exportHighlightActive,
-  () => exportStore.exportHighlightOnly,
-  () => exportStore.exportHighlightedColorIds,
-  () => exportStore.exportHighlightNumberMode,
-  () => [hlEnabled.value, hlInterval.value, hlThick.value, hStartPos.value, vlEnabled.value, vlInterval.value, vlThick.value, vStartPos.value],
-]
-watch(watched, () => { syncThickToStore(); scheduleRefresh() }, { deep: true })
+watch([() => exportStore.groupExportMode, () => canvasStore.groupVersion], () =>
+  nextTick(renderGroupPicker),
+)
 
 onMounted(() => {
   exportStore.initFromCanvas()
   syncThickFromStore()
   exportStore.refreshPreview()
-  nextTick(() => { renderPreviewToCanvas(); updateCanvasStyle() })
+  nextTick(() => {
+    renderPreviewToCanvas()
+    renderGroupPicker()
+    updateCanvasStyle()
+  })
+})
+onBeforeUnmount(() => {
+  if (refreshTimer) clearTimeout(refreshTimer)
 })
 </script>
 
 <style scoped>
-.export-overlay {
-  position: fixed; inset: 0; z-index: 10000;
-  background: rgba(0,0,0,0.5); display: flex;
-  align-items: center; justify-content: center;
+.export-page {
+  position: fixed;
+  inset: 0;
+  z-index: 30000;
+  display: grid;
+  grid-template-rows: 64px minmax(0, 1fr);
+  background: #f3f4f6;
+  color: #111827;
 }
-.export-dialog {
-  background: #fff; border-radius: 14px;
-  display: flex; width: 92vw; max-width: 1100px; height: 82vh;
-  box-shadow: 0 16px 48px rgba(0,0,0,0.2);
-  overflow: hidden; position: relative;
+
+.export-header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 16px;
+  padding: 0 22px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fff;
 }
-.export-close {
-  position: absolute; top: 10px; right: 14px; z-index: 5;
-  border: none; background: none; font-size: 1.3rem; cursor: pointer; color: #999;
+
+.header-button,
+.export-button {
+  border: 0;
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 0.84rem;
 }
-.export-preview {
-  flex: 1; background: #e8e8e8;
-  display: flex; flex-direction: column; min-width: 0;
+
+.header-button {
+  justify-self: start;
+  padding: 8px 10px;
+  background: transparent;
+  color: #4b5563;
 }
-.preview-zoom-bar {
-  display: flex; align-items: center; gap: 6px;
-  padding: 6px 12px; background: #fff; border-bottom: 1px solid #e5e7eb;
-  font-size: 0.8rem; flex-shrink: 0;
+
+.header-button span {
+  margin-right: 6px;
+  font-size: 1rem;
 }
-.preview-zoom-bar button {
-  padding: 2px 8px; border: 1px solid #d1d5db; border-radius: 4px; background: #fff; cursor: pointer; font-size: 0.75rem;
+
+.export-button {
+  justify-self: end;
+  min-width: 120px;
+  padding: 10px 17px;
+  background: #6366f1;
+  color: #fff;
 }
-.preview-canvas-wrap {
-  flex: 1; overflow: hidden; display: flex; align-items: center; justify-content: center;
-  cursor: grab; position: relative;
+
+.export-button:disabled {
+  opacity: 0.55;
+  cursor: wait;
 }
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-title strong {
+  font-size: 1rem;
+}
+
+.header-title small {
+  color: #9ca3af;
+  font-size: 0.7rem;
+}
+
+.work-badge {
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #4f46e5;
+  font-size: 0.68rem;
+}
+
+.export-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 390px;
+  min-height: 0;
+}
+
+.preview-panel {
+  display: grid;
+  grid-template-rows: 48px minmax(0, 1fr);
+  min-width: 0;
+  background: #dfe3e9;
+}
+
+.preview-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-bottom: 1px solid #d1d5db;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.preview-title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.preview-title strong {
+  font-size: 0.84rem;
+}
+
+.preview-title span {
+  color: #9ca3af;
+  font-size: 0.68rem;
+}
+
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.zoom-controls button {
+  height: 28px;
+  min-width: 30px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.zoom-controls span {
+  min-width: 48px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.72rem;
+}
+
+.preview-viewport {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  cursor: grab;
+  background: radial-gradient(circle at center, #eef0f3 0, #dfe3e9 70%);
+  touch-action: none;
+}
+
+.preview-viewport:active {
+  cursor: grabbing;
+}
+
 .preview-canvas {
-  position: absolute; image-rendering: pixelated;
+  position: absolute;
+  max-width: 78%;
+  max-height: 82%;
+  width: auto;
+  height: auto;
+  background: #fff;
+  box-shadow: 0 10px 35px rgba(17, 24, 39, 0.16);
+  image-rendering: auto;
 }
 
-.export-settings {
-  width: 260px; flex-shrink: 0;
-  padding: 20px 16px; overflow-y: auto;
-  display: flex; flex-direction: column; gap: 8px;
-  border-left: 1px solid #e5e7eb; background: #fafafa;
+.preview-empty {
+  max-width: min(560px, 72%);
+  padding: 14px 18px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #9ca3af;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  text-align: center;
 }
-.export-settings h3 { font-size: 1rem; font-weight: 600; color: #333; }
-.export-settings label { font-size: 0.78rem; color: #555; display: flex; flex-direction: column; gap: 2px; }
-.exp-input { padding: 5px 8px; border: 1px solid #d1d5db; border-radius: 5px; font-size: 0.82rem; outline: none; }
-.exp-input:focus { border-color: #6366f1; }
-.exp-color { width: 36px; height: 28px; border: 1px solid #d1d5db; border-radius: 4px; cursor: pointer; }
-.exp-layer-banner {
-  background: #eff6ff; border: 1px solid #93c5fd; border-radius: 6px;
-  padding: 6px 10px; margin-bottom: 6px; font-size: 0.8rem;
-  display: flex; align-items: center; justify-content: space-between;
-}
-.exp-layer-banner strong { color: #1d4ed8; }
-.exp-layer-clear {
-  border: none; background: none; color: #ef4444; cursor: pointer; font-size: 0.75rem;
-}
-.exp-layer-clear:hover { text-decoration: underline; }
-.exp-section { font-size: 0.75rem; color: #888; font-weight: 600; padding-top: 6px; border-top: 1px solid #e5e7eb; }
-.exp-check { flex-direction: row !important; align-items: center; gap: 6px !important; cursor: pointer; }
-.exp-check input { margin: 0; }
-.exp-sub { padding-left: 12px; }
-.thick-params { display: flex; flex-direction: column; gap: 2px; padding: 2px 0 2px 12px; }
-.thick-params label { font-size: 0.7rem; color: #555; display: flex; align-items: center; gap: 4px; }
-.thick-params input[type='range'] { width: 60px; height: 4px; }
-.exp-btns { display: flex; gap: 3px; }
-.exp-sel-btn { padding: 2px 6px; border: 1px solid #d1d5db; border-radius: 4px; background: #fff; font-size: 0.65rem; cursor: pointer; }
-.exp-sel-btn.active { background: #eef2ff; color: #6366f1; border-color: #c7d2fe; }
 
-.bg-presets { display: flex; gap: 4px; align-items: center; }
-.bg-swatch { width: 26px; height: 26px; border: 2px solid #d1d5db; border-radius: 5px; cursor: pointer; }
-.bg-swatch:hover { border-color: #9ca3af; }
-.bg-swatch.active { border-color: #6366f1; box-shadow: 0 0 0 1px #6366f1; }
-.bg-picker { width: 28px; height: 26px; border: 1px solid #d1d5db; border-radius: 5px; cursor: pointer; padding: 1px; }
+.settings-panel {
+  overflow-y: auto;
+  border-left: 1px solid #d9dde4;
+  background: #f8fafc;
+}
 
-.exp-actions { display: flex; gap: 8px; margin-top: 8px; }
-.exp-btn { flex: 1; padding: 8px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; border: none; }
-.exp-btn-export { background: #6366f1; color: #fff; }
-.exp-btn-export:hover { background: #4f46e5; }
-.exp-btn-hl-config {
-  width: 100%; margin-top: 4px; margin-bottom: 6px;
+.settings-heading {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  padding: 17px 18px 13px;
+  border-bottom: 1px solid #e5e7eb;
+  background: rgba(248, 250, 252, 0.96);
+  backdrop-filter: blur(8px);
 }
-.exp-btn-batch {
-  background: #f59e0b; color: #fff; margin-top: 6px; width: 100%;
+
+.settings-heading>div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
-.exp-btn-batch:hover { background: #e08f0b; }
-.exp-btn-batch:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.settings-heading strong {
+  font-size: 0.92rem;
+}
+
+.settings-heading span {
+  color: #9ca3af;
+  font-size: 0.7rem;
+}
+
+.setting-group {
+  margin: 10px 12px;
+  border: 1px solid #e2e5ea;
+  border-radius: 10px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.setting-group summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 13px;
+  color: #374151;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  list-style: none;
+}
+
+.setting-group summary::-webkit-details-marker {
+  display: none;
+}
+
+.setting-group summary::after {
+  content: '⌄';
+  margin-left: auto;
+  color: #9ca3af;
+  transition: transform 0.15s;
+}
+
+.setting-group:not([open]) summary::after {
+  transform: rotate(-90deg);
+}
+
+.summary-icon {
+  display: grid;
+  width: 23px;
+  height: 23px;
+  place-items: center;
+  border-radius: 6px;
+  background: #eef2ff;
+  color: #6366f1;
+}
+
+.group-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 13px 14px;
+  border-top: 1px solid #eef0f3;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.field>span,
+.field-label,
+.inline-field>span {
+  color: #6b7280;
+  font-size: 0.72rem;
+}
+
+.input-control {
+  width: 100%;
+  height: 34px;
+  box-sizing: border-box;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  background: #fff;
+  padding: 0 9px;
+  color: #374151;
+  outline: none;
+  font-size: 0.78rem;
+}
+
+.input-control:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+}
+
+.choice-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.separate-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 11px;
+  border: 1px solid #dbe4ff;
+  border-radius: 9px;
+  background: #f8faff;
+}
+
+.download-cards button {
+  min-width: 0;
+}
+
+.group-preview-picker-wrap {
+  max-height: 288px;
+  overflow: auto;
+  padding: 6px;
+  border: 1px solid #e1e5ec;
+  border-radius: 8px;
+  background: #eef1f5;
+}
+
+.group-preview-picker {
+  display: grid;
+  width: max-content;
+  min-width: 100%;
+  gap: 4px;
+}
+
+.picker-corner,
+.picker-cell {
+  border: 0;
+}
+
+.picker-corner {
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  background: #eef1f5;
+}
+
+.picker-axis {
+  position: sticky;
+  z-index: 2;
+  display: grid;
+  min-width: 24px;
+  min-height: 20px;
+  place-items: center;
+  border-radius: 4px;
+  background: #e5e7eb;
+  color: #6b7280;
+  font-size: 0.58rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.picker-col-axis {
+  top: 0;
+}
+
+.picker-row-axis {
+  left: 0;
+}
+
+.picker-cell {
+  position: relative;
+  min-width: 42px;
+  height: 52px;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid #d5d9e0;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.picker-cell:hover {
+  border-color: #a5b4fc;
+}
+
+.picker-cell.active {
+  border-color: #6366f1;
+  box-shadow: inset 0 0 0 2px #6366f1;
+}
+
+.picker-cell:not(.filled) .picker-thumb {
+  opacity: 0.45;
+}
+
+.picker-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
+.picker-cell>span {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  padding: 1px 3px;
+  border-radius: 3px;
+  background: rgba(17, 24, 39, 0.66);
+  color: #fff;
+  font-size: 0.5rem;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.resolution-note {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 1px solid #dbe4ff;
+  border-radius: 8px;
+  background: #f3f6ff;
+}
+
+.resolution-note strong {
+  flex: 0 0 auto;
+  color: #4f46e5;
+  font-size: 0.78rem;
+}
+
+.resolution-note span {
+  color: #6b7280;
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
+.choice-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.choice-cards button {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 9px;
+  border: 1px solid #d9dde4;
+  border-radius: 8px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.choice-cards button.active {
+  border-color: #6366f1;
+  background: #eef2ff;
+  color: #4f46e5;
+}
+
+.choice-cards strong {
+  font-size: 0.74rem;
+}
+
+.choice-cards span {
+  color: #9ca3af;
+  font-size: 0.62rem;
+}
+
+.segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 3px;
+  border-radius: 8px;
+  background: #f1f3f6;
+}
+
+.segmented.three {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.segmented button {
+  padding: 6px 5px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 0.7rem;
+}
+
+.segmented button.active {
+  background: #fff;
+  color: #4f46e5;
+  box-shadow: 0 1px 4px rgba(17, 24, 39, 0.09);
+}
+
+.layer-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 9px;
+  border-radius: 7px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 0.68rem;
+}
+
+.layer-banner button {
+  border: 0;
+  background: transparent;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 0.65rem;
+}
+
+.inline-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.inline-field .segmented {
+  width: 190px;
+}
+
+.check-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 7px;
+  color: #4b5563;
+  cursor: pointer;
+  font-size: 0.74rem;
+}
+
+.check-row input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: #6366f1;
+}
+
+.sub-check {
+  padding-left: 22px;
+  color: #6b7280;
+}
+
+:deep(.color-row) {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+:deep(.color-swatch) {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #d1d5db;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+:deep(.color-swatch.active) {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 1px #6366f1;
+}
+
+:deep(.color-swatch.transparent) {
+  background: repeating-conic-gradient(#ccc 0 25%, #fff 0 50%) 50%/8px 8px;
+}
+
+:deep(.color-row input[type='color']) {
+  width: 25px;
+  height: 25px;
+  padding: 1px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+}
+
+:deep(.range-field) {
+  display: grid;
+  grid-template-columns: 74px 1fr 36px;
+  align-items: center;
+  gap: 7px;
+  color: #6b7280;
+  font-size: 0.68rem;
+}
+
+:deep(.range-field input) {
+  min-width: 0;
+  accent-color: #6366f1;
+}
+
+:deep(.range-field strong) {
+  text-align: right;
+  color: #4b5563;
+  font-size: 0.68rem;
+}
+
+:deep(.thick-setting) {
+  padding: 8px;
+  border-radius: 7px;
+  background: #f8fafc;
+}
+
+:deep(.thick-detail) {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+  padding-top: 8px;
+}
+
+:deep(.thick-detail label) {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #6b7280;
+  font-size: 0.64rem;
+}
+
+:deep(.thick-detail input),
+:deep(.thick-detail select) {
+  min-width: 0;
+  width: 100%;
+  height: 27px;
+  box-sizing: border-box;
+  border: 1px solid #d1d5db;
+  border-radius: 5px;
+  background: #fff;
+  font-size: 0.65rem;
+}
+
+.stats-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.stats-summary span {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 9px;
+  border-radius: 7px;
+  background: #f8fafc;
+  color: #9ca3af;
+  font-size: 0.64rem;
+}
+
+.stats-summary strong {
+  color: #4f46e5;
+  font-size: 0.9rem;
+}
+
+.secondary-button {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  background: #fff;
+  color: #4b5563;
+  cursor: pointer;
+  font-size: 0.7rem;
+}
+
+.secondary-button.warm {
+  border-color: #fcd34d;
+  background: #fffbeb;
+  color: #b45309;
+}
+
+.secondary-button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+@media (max-width: 1000px) {
+  .export-layout {
+    grid-template-columns: minmax(0, 1fr) 340px;
+  }
+
+  .header-title small {
+    display: none;
+  }
+}
 </style>

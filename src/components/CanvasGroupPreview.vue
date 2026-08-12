@@ -2,32 +2,35 @@
   <div class="cgp-root" ref="rootRef" @contextmenu.prevent>
     <div class="cgp-header">
       <h3>{{ group?.name ?? '画布组' }}</h3>
-      <span class="cgp-info">{{ group?.groupCols ?? 0 }}x{{ group?.groupRows ?? 0 }} · 每格 {{ group?.subSize ?? 0 }}²</span>
+      <span class="cgp-info"
+        >{{ group?.groupCols ?? 0 }}x{{ group?.groupRows ?? 0 }} · 每格
+        {{ group?.subSize ?? 0 }}²</span
+      >
     </div>
 
     <div class="cgp-grid-wrap">
       <!-- 统一 CSS Grid：第 1 行=列标签，第 1 列=行标签，其余=缩略图 -->
-      <div class="cgp-table" :style="tableStyle">
+      <div :key="groupLayoutKey" class="cgp-table" :style="tableStyle">
         <!-- 左上角 -->
         <div class="cgp-corner"></div>
         <!-- 列标签 -->
         <div
           v-for="c in groupCols"
-          :key="'cl'+c"
+          :key="'cl' + c"
           class="cgp-col-label"
           @contextmenu.prevent="onColContext($event, c - 1)"
-        >{{ c }}</div>
+        >
+          {{ c }}
+        </div>
         <!-- 行标签 + 缩略图行 -->
-        <template v-for="r in groupRows" :key="'row'+r">
-          <div
-            class="cgp-row-label"
-            @contextmenu.prevent="onRowContext($event, r - 1)"
-          >{{ r }}</div>
+        <template v-for="r in groupRows" :key="'row' + r">
+          <div class="cgp-row-label" @contextmenu.prevent="onRowContext($event, r - 1)">
+            {{ r }}
+          </div>
           <div
             v-for="c in groupCols"
             :key="`${r},${c}`"
             class="cgp-cell"
-            :class="{ active: r - 1 === activeRow && c - 1 === activeCol }"
             :data-row="r - 1"
             :data-col="c - 1"
             @click="enterCell(r - 1, c - 1)"
@@ -50,14 +53,50 @@
         :style="{ left: ctxMenu.x + 'px', top: ctxMenu.y + 'px' }"
       >
         <template v-if="ctxMenu.type === 'row'">
-          <div class="cgp-ctx-item" :class="{ disabled: groupRows >= 32 }" @click="addRow(ctxMenu.index, true)">向上添加行</div>
-          <div class="cgp-ctx-item" :class="{ disabled: groupRows >= 32 }" @click="addRow(ctxMenu.index, false)">向下添加行</div>
-          <div class="cgp-ctx-item" :class="{ disabled: groupRows <= 1 }" @click="deleteRow(ctxMenu.index)">删除此行</div>
+          <div
+            class="cgp-ctx-item"
+            :class="{ disabled: groupRows >= 32 }"
+            @click="addRow(ctxMenu.index, true)"
+          >
+            向上添加行
+          </div>
+          <div
+            class="cgp-ctx-item"
+            :class="{ disabled: groupRows >= 32 }"
+            @click="addRow(ctxMenu.index, false)"
+          >
+            向下添加行
+          </div>
+          <div
+            class="cgp-ctx-item"
+            :class="{ disabled: groupRows <= 1 }"
+            @click="deleteRow(ctxMenu.index)"
+          >
+            删除此行
+          </div>
         </template>
         <template v-else>
-          <div class="cgp-ctx-item" :class="{ disabled: groupCols >= 32 }" @click="addCol(ctxMenu.index, true)">向左添加列</div>
-          <div class="cgp-ctx-item" :class="{ disabled: groupCols >= 32 }" @click="addCol(ctxMenu.index, false)">向右添加列</div>
-          <div class="cgp-ctx-item" :class="{ disabled: groupCols <= 1 }" @click="deleteCol(ctxMenu.index)">删除此列</div>
+          <div
+            class="cgp-ctx-item"
+            :class="{ disabled: groupCols >= 32 }"
+            @click="addCol(ctxMenu.index, true)"
+          >
+            向左添加列
+          </div>
+          <div
+            class="cgp-ctx-item"
+            :class="{ disabled: groupCols >= 32 }"
+            @click="addCol(ctxMenu.index, false)"
+          >
+            向右添加列
+          </div>
+          <div
+            class="cgp-ctx-item"
+            :class="{ disabled: groupCols <= 1 }"
+            @click="deleteCol(ctxMenu.index)"
+          >
+            删除此列
+          </div>
         </template>
       </div>
     </Teleport>
@@ -91,8 +130,16 @@ import ConfirmModal from '@/components/ConfirmModal.vue'
 
 const canvasStore = useCanvasStore()
 
-const deleteConfirm = ref<{ visible: boolean; title: string; message: string; action: (() => void) | null }>({
-  visible: false, title: '', message: '', action: null,
+const deleteConfirm = ref<{
+  visible: boolean
+  title: string
+  message: string
+  action: (() => void) | null
+}>({
+  visible: false,
+  title: '',
+  message: '',
+  action: null,
 })
 
 function executeDelete() {
@@ -100,11 +147,22 @@ function executeDelete() {
   deleteConfirm.value.action?.()
 }
 
-const group = computed(() => canvasStore.canvasGroup)
-const groupCols = computed(() => group.value?.groupCols ?? 1)
-const groupRows = computed(() => group.value?.groupRows ?? 1)
-const activeRow = computed(() => canvasStore.activeGroupRow)
-const activeCol = computed(() => canvasStore.activeGroupCol)
+const group = computed(() => {
+  void canvasStore.groupVersion
+  return canvasStore.canvasGroup
+})
+const groupCols = computed(() => {
+  void canvasStore.groupVersion
+  return canvasStore.canvasGroup?.groupCols ?? 1
+})
+const groupRows = computed(() => {
+  void canvasStore.groupVersion
+  return canvasStore.canvasGroup?.groupRows ?? 1
+})
+const layoutRevision = ref(0)
+const groupLayoutKey = computed(
+  () => `${groupRows.value}x${groupCols.value}:${layoutRevision.value}`,
+)
 
 // 自适应缩略图尺寸
 const rootRef = ref<HTMLElement | null>(null)
@@ -142,6 +200,7 @@ const lastThumbSize = ref(0)
 function setThumbRef(r: number, c: number, el: HTMLCanvasElement | null) {
   const key = `${r},${c}`
   if (el) thumbRefs.set(key, el)
+  else thumbRefs.delete(key)
 }
 
 function renderThumb(r: number, c: number) {
@@ -156,9 +215,11 @@ function renderThumb(r: number, c: number) {
   const w = size * cellSize
   const h = size * cellSize
   if (canvas.width !== w || canvas.height !== h || lastThumbSize.value !== cellPx) {
-    canvas.width = w; canvas.height = h
+    canvas.width = w
+    canvas.height = h
   }
-  const ctx = canvas.getContext('2d')!
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
   ctx.fillStyle = snap.backgroundColor
   ctx.fillRect(0, 0, w, h)
   for (const layer of snap.layers) {
@@ -188,9 +249,15 @@ function refreshDirty() {
 function renderAll() {
   if (!group.value) return
   lastThumbSize.value = thumbPixelSize.value
+  const validKeys = new Set<string>()
   for (let r = 0; r < groupRows.value; r++)
-    for (let c = 0; c < groupCols.value; c++)
+    for (let c = 0; c < groupCols.value; c++) {
+      validKeys.add(`${r},${c}`)
       renderThumb(r, c)
+    }
+  for (const key of thumbRefs.keys()) {
+    if (!validKeys.has(key)) thumbRefs.delete(key)
+  }
   canvasStore.dirtyCanvases.clear()
 }
 
@@ -203,6 +270,16 @@ function scheduleRefresh() {
 let resizeObserver: ResizeObserver | null = null
 
 watch(() => canvasStore.dirtyCanvases, scheduleRefresh, { deep: true })
+watch(
+  () => canvasStore.groupVersion,
+  async () => {
+    layoutRevision.value++
+    await nextTick()
+    updateContainerSize()
+    await nextTick()
+    renderAll()
+  },
+)
 watch(thumbPixelSize, () => {
   if (lastThumbSize.value !== thumbPixelSize.value) renderAll()
 })
@@ -212,11 +289,19 @@ function enterCell(r: number, c: number) {
 }
 
 // 右键菜单
-const ctxMenu = ref<{ visible: boolean; x: number; y: number; type: 'row' | 'col'; index: number }>({
-  visible: false, x: 0, y: 0, type: 'row', index: 0,
-})
+const ctxMenu = ref<{ visible: boolean; x: number; y: number; type: 'row' | 'col'; index: number }>(
+  {
+    visible: false,
+    x: 0,
+    y: 0,
+    type: 'row',
+    index: 0,
+  },
+)
 
-function closeCtxMenu() { ctxMenu.value.visible = false }
+function closeCtxMenu() {
+  ctxMenu.value.visible = false
+}
 
 function onRowContext(e: MouseEvent, idx: number) {
   ctxMenu.value = { visible: true, x: e.clientX, y: e.clientY, type: 'row', index: idx }
@@ -283,7 +368,8 @@ const dragGhost = ref<{ x: number; y: number; visible: boolean }>({ x: 0, y: 0, 
 
 function onCellPointerDown(e: PointerEvent, r: number, c: number) {
   if (e.button !== 0) return
-  const sx = e.clientX; const sy = e.clientY
+  const sx = e.clientX
+  const sy = e.clientY
   longPressTimer = setTimeout(() => {
     // 长按触发：标记拖拽源
     dragSource = { row: r, col: c }
@@ -306,11 +392,16 @@ function onPointerMove(e: PointerEvent) {
 }
 
 function onPointerUp(e: PointerEvent) {
-  if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null }
+  if (longPressTimer) {
+    clearTimeout(longPressTimer)
+    longPressTimer = null
+  }
   if (!dragSource) return
   // 找目标 cell
-  const target = document.elementFromPoint(e.clientX, e.clientY)?.closest('.cgp-cell') as HTMLElement | null
-  document.querySelectorAll('.cgp-cell.dragging').forEach(el => el.classList.remove('dragging'))
+  const target = document
+    .elementFromPoint(e.clientX, e.clientY)
+    ?.closest('.cgp-cell') as HTMLElement | null
+  document.querySelectorAll('.cgp-cell.dragging').forEach((el) => el.classList.remove('dragging'))
   dragGhost.value = { x: 0, y: 0, visible: false }
   if (target) {
     const tr = parseInt(target.dataset.row ?? '', 10)
@@ -346,72 +437,140 @@ onUnmounted(() => {
 
 <style scoped>
 .cgp-root {
-  display: flex; flex-direction: column; height: 100%; padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 6px 8px;
 }
 .cgp-header {
-  display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; flex-shrink: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 4px;
+  flex-shrink: 0;
 }
-.cgp-header h3 { margin: 0; font-size: 1rem; }
-.cgp-info { font-size: 0.75rem; color: #888; }
+.cgp-header h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+.cgp-info {
+  font-size: 0.75rem;
+  color: #888;
+}
 
 .cgp-grid-wrap {
-  flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 
 /* 统一表格：行列标签+缩略图 */
 .cgp-table {
   display: grid;
   gap: 3px;
-  background: #d4d4d4;        /* gap 颜色 = 网格线 */
+  background: #d4d4d4; /* gap 颜色 = 网格线 */
   border: 3px solid #d4d4d4;
   border-radius: 4px;
 }
 .cgp-corner {
-  background: #e8e8e8; border-radius: 2px;
+  background: #e8e8e8;
+  border-radius: 2px;
 }
 
 /* 列标签（顶部） */
 .cgp-col-label {
-  display: flex; align-items: center; justify-content: center;
-  background: #e8e8e8; border-radius: 2px;
-  font-size: 0.65rem; font-weight: 700; color: #555;
-  cursor: context-menu; user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e8e8e8;
+  border-radius: 2px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #555;
+  cursor: context-menu;
+  user-select: none;
 }
-.cgp-col-label:hover { background: #ddd; }
+.cgp-col-label:hover {
+  background: #ddd;
+}
 
 /* 行标签（左侧） */
 .cgp-row-label {
-  display: flex; align-items: center; justify-content: center;
-  background: #e8e8e8; border-radius: 2px;
-  font-size: 0.65rem; font-weight: 700; color: #555;
-  cursor: context-menu; user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e8e8e8;
+  border-radius: 2px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #555;
+  cursor: context-menu;
+  user-select: none;
 }
-.cgp-row-label:hover { background: #ddd; }
+.cgp-row-label:hover {
+  background: #ddd;
+}
 
 /* 缩略图 */
 .cgp-cell {
-  background: #fff; border-radius: 2px;
-  overflow: hidden; cursor: pointer; position: relative;
+  background: #fff;
+  border-radius: 2px;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
 }
-.cgp-cell:hover { outline: 2px solid #bbb; outline-offset: -2px; border-radius: 2px; }
-.cgp-cell.active { outline: 2px solid #6366f1; outline-offset: -2px; border-radius: 2px; }
-.cgp-cell.dragging { opacity: 0.35; outline: 2px solid #f59e0b; outline-offset: -2px; }
+.cgp-cell:hover {
+  outline: 2px solid #bbb;
+  outline-offset: -2px;
+  border-radius: 2px;
+}
+.cgp-cell.dragging {
+  opacity: 0.35;
+  outline: 2px solid #f59e0b;
+  outline-offset: -2px;
+}
 .cgp-ghost {
-  position: fixed; z-index: 30000; pointer-events: none;
-  width: 48px; height: 48px; border-radius: 6px;
-  background: rgba(245, 158, 11, 0.3); border: 2px dashed #f59e0b;
+  position: fixed;
+  z-index: 30000;
+  pointer-events: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  background: rgba(245, 158, 11, 0.3);
+  border: 2px dashed #f59e0b;
   transform: translate(-50%, -50%);
 }
-.cgp-thumb { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+.cgp-thumb {
+  width: 100%;
+  height: 100%;
+  display: block;
+  image-rendering: pixelated;
+}
 
 /* 右键菜单 */
 .cgp-ctx-menu {
-  position: fixed; z-index: 20000; background: #fff; border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15); padding: 4px 0; min-width: 130px;
+  position: fixed;
+  z-index: 20000;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  padding: 4px 0;
+  min-width: 130px;
 }
 .cgp-ctx-item {
-  padding: 6px 14px; font-size: 0.82rem; cursor: pointer; color: #333;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  color: #333;
 }
-.cgp-ctx-item:hover { background: #f5f5f5; }
-.cgp-ctx-item.disabled { color: #ccc; cursor: default; pointer-events: none; }
+.cgp-ctx-item:hover {
+  background: #f5f5f5;
+}
+.cgp-ctx-item.disabled {
+  color: #ccc;
+  cursor: default;
+  pointer-events: none;
+}
 </style>

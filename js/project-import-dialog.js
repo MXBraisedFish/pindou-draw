@@ -150,7 +150,7 @@ function buildOverlay() {
   const dialog = createElement('div', { class: 'overlay__dialog project-import-dialog' });
   const header = createElement('header', { class: 'overlay__header' }, [
     createElement('h2', { text: '.pd 导入设置' }),
-    createElement('button', { id: 'projectImportCloseBtn', type: 'button', 'aria-label': '关闭 .pd 导入设置', text: '×' })
+    createElement('button', { id: 'projectImportCloseBtn', type: 'button', 'aria-label': '关闭 .pd 导入设置', text: 'x' })
   ]);
   const body = createElement('div', { class: 'overlay__body project-import-body' });
   body.append(
@@ -281,7 +281,7 @@ class ProjectImportDialog {
       this.state.paletteStrategy = 'current';
     }
     this.fileNameEl.textContent = fileName || '--';
-    this.canvasSizeEl.textContent = `${importSize.width} × ${importSize.height}`;
+    this.canvasSizeEl.textContent = `${importSize.width} x ${importSize.height}`;
     this.paletteLabelEl.textContent = palette.label || '未识别';
     this.paletteBadgeEl.textContent = palette.sameAsCurrent ? '当前色卡' : (pdAvailable ? '文件色卡' : '未附带');
     this.paletteBadgeEl.style.display = palette.hasFilePalette ? 'inline-flex' : 'none';
@@ -339,7 +339,7 @@ class ProjectImportDialog {
       const info = extend.directions[dir] || { valid: false, reason: '不可用' };
       const sizeLabel = btn.querySelector(`[data-direction-size="${dir}"]`);
       if (sizeLabel) {
-        sizeLabel.textContent = info.valid ? `${info.width} × ${info.height}` : info.reason || '不可用';
+        sizeLabel.textContent = info.valid ? `${info.width} x ${info.height}` : info.reason || '不可用';
       }
       const disabled = !info.valid;
       btn.setAttribute('aria-disabled', disabled ? 'true' : 'false');

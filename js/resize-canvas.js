@@ -233,14 +233,14 @@ function updateModeMessage(result = computeResultSize()) {
 }
 function updateSizeSummary(result = computeResultSize()) {
   if (elements.resizeCurrentSize) {
-    elements.resizeCurrentSize.textContent = `当前尺寸：${state.width} × ${state.height}`;
+    elements.resizeCurrentSize.textContent = `当前尺寸：${state.width} x ${state.height}`;
   }
   const { width: previewWidth, height: previewHeight, valid } = result;
   if (elements.resizeResultSize) {
     if (!valid) {
-      elements.resizeResultSize.textContent = '目标尺寸：-- × --';
+      elements.resizeResultSize.textContent = '目标尺寸：-- x --';
     } else {
-      elements.resizeResultSize.textContent = `目标尺寸：${previewWidth} × ${previewHeight}`;
+      elements.resizeResultSize.textContent = `目标尺寸：${previewWidth} x ${previewHeight}`;
     }
   }
   const confirmDisabled = !valid || !validateCanvasSize(previewWidth, previewHeight);
@@ -617,5 +617,5 @@ function willCropRemovePixels() {
 function updateStatusSizeLabel() {
   if (!elements.statusSize) return;
   if (!elements.statusSize) return;
-  elements.statusSize.textContent = state.width && state.height ? `${state.width} × ${state.height}` : '未创建';
+  elements.statusSize.textContent = state.width && state.height ? `${state.width} x ${state.height}` : '未创建';
 }

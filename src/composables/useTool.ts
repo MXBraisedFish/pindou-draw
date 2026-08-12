@@ -1,4 +1,4 @@
-import { type Ref } from 'vue'
+import { toRaw, type Ref } from 'vue'
 import { useCanvasStore } from '@/stores/canvas'
 import { useToolStore } from '@/stores/tool'
 import { usePaletteStore } from '@/stores/palette'
@@ -119,6 +119,7 @@ export function useTool(
     const { cols, rows } = canvasStore
     const layer = canvasStore.activeLayer()
     if (!layer) return
+    const grid = toRaw(layer.grid)
     const replacementColor = paletteStore.currentColor
     if (targetColor === replacementColor) return
     if (!isInSelection(startCol, startRow)) return
@@ -129,11 +130,12 @@ export function useTool(
     const visited = new Uint8Array(cols * rows)
     const stack: number[] = [startRow * cols + startCol]
     const hasSelection = selectionStore.hasSelection
+    const selectionMask = hasSelection ? toRaw(selectionStore.selectionMask) : null
     const symmetricFill = canvasStore.symmetry !== 'off' ? ([] as number[]) : null
     const canFill = (c: number, r: number) =>
       visited[r * cols + c] === 0 &&
-      layer.grid[r]![c] === targetColor &&
-      (!hasSelection || selectionStore.isSelected(c, r))
+      grid[r]![c] === targetColor &&
+      (!selectionMask || selectionMask[r]?.[c] === true)
 
     while (stack.length > 0) {
       const index = stack.pop()!
@@ -149,7 +151,7 @@ export function useTool(
       for (let c = left; c <= right; c++) {
         visited[r * cols + c] = 1
         if (!symmetricFill) {
-          layer.grid[r]![c] = replacementColor
+          grid[r]![c] = replacementColor
         } else {
           // Defer symmetric writes so they cannot change an unvisited target
           // pixel and accidentally cut off the original connected region.
@@ -174,8 +176,8 @@ export function useTool(
         const r = Math.floor(index / cols)
         const c = index - r * cols
         for (const [sc, sr] of getSymmetryPoints(c, r)) {
-          if (!hasSelection || selectionStore.isSelected(sc, sr)) {
-            layer.grid[sr]![sc] = replacementColor
+          if (!selectionMask || selectionMask[sr]?.[sc] === true) {
+            grid[sr]![sc] = replacementColor
           }
         }
       }

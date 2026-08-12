@@ -902,15 +902,15 @@ function updateCanvasSizeWarningMessage() {
   }
 
   const area = width * height;
-  let message = `创建${width} × ${height}尺寸的画布浏览器可以正常运行。`;
+  let message = `创建${width} x ${height}尺寸的画布浏览器可以正常运行。`;
   if (area > CANVAS_DANGER_AREA) {
-    message = `创建${width} × ${height}尺寸的画布可能会导致浏览器卡顿。`;
+    message = `创建${width} x ${height}尺寸的画布可能会导致浏览器卡顿。`;
     warningEl.classList.add('is-danger');
   } else if (area > CANVAS_WARNING_AREA) {
-    message = `创建${width} × ${height}尺寸的画布可能会导致浏览器严重卡顿。`;
+    message = `创建${width} x ${height}尺寸的画布可能会导致浏览器严重卡顿。`;
     warningEl.classList.add('is-warning');
   } else {
-    warningEl.textContent = `创建${width} × ${height}尺寸的画布浏览器可以正常运行。`;
+    warningEl.textContent = `创建${width} x ${height}尺寸的画布浏览器可以正常运行。`;
     return;
   }
 
@@ -1448,7 +1448,7 @@ function updateToolPopouts() {
   selectionPopout.classList.add('no-display');
   selectionPopout.setAttribute('aria-hidden', 'true');
   toolPopouts.setAttribute('aria-hidden', 'true');
-  
+
   // Popouts are exclusive to tablet mode.
   if (!isCompactMode) {
     state.tabletEraserActive = false;
@@ -1490,7 +1490,7 @@ function updateToolPopouts() {
     selectionPopout.classList.remove('no-display');
     selectionPopout.setAttribute('aria-hidden', 'false');
     anyVisible = true;
-    
+
     // Configure the selection mode buttons
     highlightSelectionButton(elements.selectionAddBtn, state.selectionToolMode === 'add');
     highlightSelectionButton(elements.selectionDeleteBtn, state.selectionToolMode === 'delete');

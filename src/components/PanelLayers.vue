@@ -6,11 +6,7 @@
     </div>
 
     <!-- 图层列表：顶层在上、底层在下 -->
-    <div
-      class="layers-list"
-      ref="listRef"
-      :class="{ 'drag-active': dragState.isDragging }"
-    >
+    <div class="layers-list" ref="listRef" :class="{ 'drag-active': dragState.isDragging }">
       <!-- 指针跟随的拖拽指示线 -->
       <div
         v-if="dragState.isDragging && dropIndicatorY !== null"
@@ -34,7 +30,7 @@
         <!-- 预览缩略图 -->
         <div class="layer-thumb">
           <canvas
-            :ref="(el) => drawThumb(el as HTMLCanvasElement, item.layer.grid)"
+            :ref="(el) => setThumbRef(item.layer.id, el as HTMLCanvasElement | null)"
             :width="thumbSize(item.layer.grid).w"
             :height="thumbSize(item.layer.grid).h"
             class="layer-thumb-canvas"
@@ -62,15 +58,13 @@
           :title="item.layer.visible ? '可见' : '隐藏'"
           @click.stop="toggleLayerVisibility(item.layer)"
         >
-          <img
-            :src="item.layer.visible ? iconVisible : iconHidden"
-            class="layer-vis-icon"
-            alt=""
-          />
+          <img :src="item.layer.visible ? iconVisible : iconHidden" class="layer-vis-icon" alt="" />
         </button>
 
         <!-- 激活标记 -->
-        <span v-if="canvasStore.activeLayerId === item.layer.id" class="layer-active-badge">当前</span>
+        <span v-if="canvasStore.activeLayerId === item.layer.id" class="layer-active-badge"
+          >当前</span
+        >
       </div>
     </div>
 
@@ -86,12 +80,16 @@
           class="context-menu-item"
           :class="{ disabled: contextMenu.layerIndex <= 0 }"
           @click="onMenuAction('mergeDown')"
-        >向下合并</div>
+        >
+          向下合并
+        </div>
         <div
           class="context-menu-item"
           :class="{ disabled: canvasStore.layers.length <= 1 }"
           @click="onMenuAction('delete')"
-        >删除图层</div>
+        >
+          删除图层
+        </div>
         <div class="context-menu-item" @click="onMenuAction('duplicate')">复制图层</div>
         <div class="context-menu-item" @click="onMenuAction('rename')">重命名</div>
         <div class="context-menu-item" @click="onMenuAction('toggleVis')">
@@ -104,7 +102,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, nextTick, onUnmounted } from 'vue'
+import { ref, reactive, computed, nextTick, onUnmounted, watch } from 'vue'
 import { useCanvasStore } from '@/stores/canvas'
 import { useExportStore } from '@/stores/exportStore'
 import type { Layer } from '@/stores/canvas'
@@ -113,6 +111,17 @@ import iconHidden from '@/assets/icon/隐藏.png'
 
 const canvasStore = useCanvasStore()
 const exportStore = useExportStore()
+const thumbRefs = new Map<string, HTMLCanvasElement>()
+
+function setThumbRef(layerId: string, el: HTMLCanvasElement | null) {
+  if (el) {
+    thumbRefs.set(layerId, el)
+    const layer = canvasStore.layers.find((item) => item.id === layerId)
+    if (layer) drawThumb(el, layer.grid)
+  } else {
+    thumbRefs.delete(layerId)
+  }
+}
 
 const renamingId = ref('')
 const renameText = ref('')
@@ -255,13 +264,9 @@ function recalcDrag(clientY: number) {
     const y = (aboveBottom + belowTop) / 2 - listRect.top + scrollTop
 
     const aboveStoreIdx = parseInt(items[k - 1]!.dataset.layerIndex ?? '', 10)
-    const higherStoreIdx = Math.max(
-      aboveStoreIdx,
-      parseInt(items[k]!.dataset.layerIndex ?? '', 10),
-    )
+    const higherStoreIdx = Math.max(aboveStoreIdx, parseInt(items[k]!.dataset.layerIndex ?? '', 10))
     // 若被拖拽图层在原位置下方（storeIdx 更小），则上方 item 会因删除而下移一位
-    const targetStoreIdx =
-      higherStoreIdx - (draggedStoreIdx < higherStoreIdx ? 1 : 0)
+    const targetStoreIdx = higherStoreIdx - (draggedStoreIdx < higherStoreIdx ? 1 : 0)
 
     gaps.push({ y, storeIdx: targetStoreIdx })
   }
@@ -391,12 +396,12 @@ function onMenuAction(action: string) {
       canvasStore.duplicateLayer(id)
       break
     case 'rename': {
-      const layer = canvasStore.layers.find(l => l.id === id)
+      const layer = canvasStore.layers.find((l) => l.id === id)
       if (layer) startRename(layer)
       break
     }
     case 'toggleVis': {
-      const l = canvasStore.layers.find(la => la.id === id)
+      const l = canvasStore.layers.find((la) => la.id === id)
       if (l) toggleLayerVisibility(l)
       break
     }
@@ -435,9 +440,9 @@ function thumbSize(grid: string[][]): { w: number; h: number } {
   const rows = grid.length
   const MAX = 32
   if (cols >= rows) {
-    return { w: MAX, h: Math.max(1, Math.round(MAX * rows / cols)) }
+    return { w: MAX, h: Math.max(1, Math.round((MAX * rows) / cols)) }
   }
-  return { w: Math.max(1, Math.round(MAX * cols / rows)), h: MAX }
+  return { w: Math.max(1, Math.round((MAX * cols) / rows)), h: MAX }
 }
 
 function drawThumb(canvas: HTMLCanvasElement | null, grid: string[][]) {
@@ -464,6 +469,18 @@ function drawThumb(canvas: HTMLCanvasElement | null, grid: string[][]) {
     }
   }
 }
+
+function refreshLayerThumbs() {
+  for (const layer of canvasStore.layers) {
+    drawThumb(thumbRefs.get(layer.id) ?? null, layer.grid)
+  }
+}
+
+watch(
+  () => [canvasStore.gridVersion, canvasStore.layers.length],
+  () => nextTick(refreshLayerThumbs),
+  { immediate: true },
+)
 
 onUnmounted(() => {
   cleanupDrag()
@@ -629,8 +646,14 @@ onUnmounted(() => {
 }
 
 @keyframes ctx-fade-in {
-  from { opacity: 0; transform: scale(0.94); }
-  to   { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .context-menu-item {

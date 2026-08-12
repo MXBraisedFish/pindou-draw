@@ -1,13 +1,26 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { useCanvasStore } from '@/stores/canvas'
+import {
+  clampCanvasSize,
+  clampGroupSize,
+  clampInteger,
+  rawPixelGrid,
+  useCanvasStore,
+} from '@/stores/canvas'
 import { usePaletteStore } from '@/stores/palette'
+import {
+  getStoredProject,
+  listStoredProjects,
+  saveStoredProject,
+  type ProjectSlot,
+  type StoredProject,
+} from '@/ts/projectStorage'
 
 export const useProjectStore = defineStore('project', () => {
   const projectName = ref('未命名项目')
   const createdAt = ref(new Date().toLocaleDateString('zh-CN'))
 
-  function saveProject() {
+  function createProjectJson(): string {
     const canvasStore = useCanvasStore()
     const paletteStore = usePaletteStore()
 
@@ -21,43 +34,42 @@ export const useProjectStore = defineStore('project', () => {
         groupCols: g.groupCols,
         groupRows: g.groupRows,
         subSize: g.subSize,
-        canvases: g.canvases.map(row => row.map(snap => ({
-          layers: snap.layers.map(l => ({
-            id: l.id, name: l.name, visible: l.visible,
-            grid: l.grid.map(r => [...r]),
+        canvases: g.canvases.map((row) =>
+          row.map((snap) => ({
+            layers: snap.layers.map((l) => ({
+              id: l.id,
+              name: l.name,
+              visible: l.visible,
+              grid: l.grid.map((r) => [...r]),
+            })),
+            activeLayerId: snap.activeLayerId,
+            renderMode: snap.renderMode,
+            symmetry: snap.symmetry,
+            pixelShape: snap.pixelShape,
+            showColorIds: snap.showColorIds,
+            showColorIdsHighlightOnly: snap.showColorIdsHighlightOnly,
+            backgroundColor: snap.backgroundColor,
+            showGrid: snap.showGrid,
+            thickLineH: { ...snap.thickLineH },
+            thickLineV: { ...snap.thickLineV },
           })),
-          activeLayerId: snap.activeLayerId,
-          renderMode: snap.renderMode,
-          symmetry: snap.symmetry,
-          pixelShape: snap.pixelShape,
-          showColorIds: snap.showColorIds,
-          showColorIdsHighlightOnly: snap.showColorIdsHighlightOnly,
-          backgroundColor: snap.backgroundColor,
-          showGrid: snap.showGrid,
-          thickLineH: { ...snap.thickLineH },
-          thickLineV: { ...snap.thickLineV },
-        }))),
+        ),
         activeGroupRow: canvasStore.activeGroupRow,
         activeGroupCol: canvasStore.activeGroupCol,
-        openGroupTabs: canvasStore.openGroupTabs.map(t => ({ ...t })),
-        colorCard: paletteStore.activeCard ? {
-          name: paletteStore.activeCard.name,
-          author: paletteStore.activeCard.author,
-          version: paletteStore.activeCard.version ?? 1,
-          colors: paletteStore.activeCard.colors.map(c => ({ ...c })),
-        } : null,
+        openGroupTabs: canvasStore.openGroupTabs.map((t) => ({ ...t })),
+        colorCard: paletteStore.activeCard
+          ? {
+              name: paletteStore.activeCard.name,
+              author: paletteStore.activeCard.author,
+              version: paletteStore.activeCard.version ?? 1,
+              colors: paletteStore.activeCard.colors.map((c) => ({ ...c })),
+            }
+          : null,
         currentColorId: paletteStore.currentColorId,
         recentColorIds: [...paletteStore.recentColorIds],
         createdAt: new Date().toISOString(),
       }
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `${projectName.value}.pindou.json`
-      a.click()
-      URL.revokeObjectURL(url)
-      return
+      return JSON.stringify(data)
     }
 
     const data = {
@@ -66,11 +78,11 @@ export const useProjectStore = defineStore('project', () => {
       name: projectName.value,
       cols: canvasStore.cols,
       rows: canvasStore.rows,
-      layers: canvasStore.layers.map(l => ({
+      layers: canvasStore.layers.map((l) => ({
         id: l.id,
         name: l.name,
         visible: l.visible,
-        grid: l.grid.map(row => [...row]),
+        grid: l.grid.map((row) => [...row]),
       })),
       activeLayerId: canvasStore.activeLayerId,
       renderMode: canvasStore.renderMode,
@@ -87,20 +99,74 @@ export const useProjectStore = defineStore('project', () => {
             name: paletteStore.activeCard.name,
             author: paletteStore.activeCard.author,
             version: paletteStore.activeCard.version ?? 1,
-            colors: paletteStore.activeCard.colors.map(c => ({ ...c })),
+            colors: paletteStore.activeCard.colors.map((c) => ({ ...c })),
           }
         : null,
       currentColorId: paletteStore.currentColorId,
       recentColorIds: [...paletteStore.recentColorIds],
       createdAt: new Date().toISOString(),
     }
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+    return JSON.stringify(data)
+  }
+
+  function saveProject() {
+    const blob = new Blob([createProjectJson()], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
     a.download = `${projectName.value}.pindou.json`
     a.click()
     URL.revokeObjectURL(url)
+  }
+
+  function createProjectPreview(): string {
+    const canvasStore = useCanvasStore()
+    const group = canvasStore.canvasGroup
+    if (group) canvasStore.saveActiveToGroup()
+    const cols = group ? group.groupCols * group.subSize : canvasStore.cols
+    const rows = group ? group.groupRows * group.subSize : canvasStore.rows
+    const maxEdge = 280
+    const scale = Math.max(0.1, Math.min(maxEdge / Math.max(cols, rows), 8))
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.max(1, Math.round(cols * scale))
+    canvas.height = Math.max(1, Math.round(rows * scale))
+    const context = canvas.getContext('2d')
+    if (!context) return ''
+    context.fillStyle = '#ffffff'
+    context.fillRect(0, 0, canvas.width, canvas.height)
+
+    const drawGrid = (grid: string[][], offsetCol: number, offsetRow: number) => {
+      for (let row = 0; row < grid.length; row++) {
+        for (let col = 0; col < (grid[row]?.length ?? 0); col++) {
+          const color = grid[row]?.[col]
+          if (!color) continue
+          context.fillStyle = color
+          context.fillRect(
+            Math.floor((offsetCol + col) * scale),
+            Math.floor((offsetRow + row) * scale),
+            Math.ceil(scale),
+            Math.ceil(scale),
+          )
+        }
+      }
+    }
+
+    if (group) {
+      for (let groupRow = 0; groupRow < group.groupRows; groupRow++) {
+        for (let groupCol = 0; groupCol < group.groupCols; groupCol++) {
+          const snapshot = group.canvases[groupRow]?.[groupCol]
+          if (!snapshot) continue
+          for (const layer of snapshot.layers) {
+            if (layer.visible) {
+              drawGrid(layer.grid, groupCol * group.subSize, groupRow * group.subSize)
+            }
+          }
+        }
+      }
+    } else {
+      drawGrid(canvasStore.compositeGrid, 0, 0)
+    }
+    return canvas.toDataURL('image/webp', 0.78)
   }
 
   function importFile() {
@@ -131,9 +197,9 @@ export const useProjectStore = defineStore('project', () => {
 
       // --- 画布组加载 (v3) ---
       if (fileVersion >= 3 && data.type === 'group') {
-        const gCols = data.groupCols ?? 1
-        const gRows = data.groupRows ?? 1
-        const gSubSize = data.subSize ?? 16
+        const gCols = clampGroupSize(data.groupCols ?? 1, 1)
+        const gRows = clampGroupSize(data.groupRows ?? 1, 1)
+        const gSubSize = clampCanvasSize(data.subSize ?? 16)
         canvasStore.createCanvasGroup(data.name ?? '导入画布组', gCols, gRows, gSubSize)
         const g = canvasStore.canvasGroup!
         if (Array.isArray(data.canvases)) {
@@ -145,10 +211,14 @@ export const useProjectStore = defineStore('project', () => {
               if (!snap) continue
               const target = g.canvases[r]![c]!
               if (Array.isArray(snap.layers)) {
-                target.layers = snap.layers.map((l: any) => ({
-                  id: l.id ?? '', name: l.name ?? '图层', visible: l.visible ?? true,
-                  grid: (l.grid ?? []).map((row2: string[]) => [...row2]),
-                }))
+                target.layers = snap.layers.map(
+                  (l: { id?: string; name?: string; visible?: boolean; grid?: string[][] }) => ({
+                    id: l.id ?? '',
+                    name: l.name ?? '图层',
+                    visible: l.visible ?? true,
+                    grid: rawPixelGrid((l.grid ?? []).map((row2: string[]) => [...row2])),
+                  }),
+                )
                 target.activeLayerId = snap.activeLayerId || target.layers[0]?.id || ''
               }
               target.renderMode = snap.renderMode ?? 'day'
@@ -163,30 +233,38 @@ export const useProjectStore = defineStore('project', () => {
             }
           }
         }
-        canvasStore.activeGroupRow = data.activeGroupRow ?? 0
-        canvasStore.activeGroupCol = data.activeGroupCol ?? 0
+        canvasStore.activeGroupRow = clampInteger(data.activeGroupRow, 0, gRows - 1, 0)
+        canvasStore.activeGroupCol = clampInteger(data.activeGroupCol, 0, gCols - 1, 0)
         if (Array.isArray(data.openGroupTabs)) {
-          canvasStore.openGroupTabs = data.openGroupTabs.map((t: any) => ({ row: t.row ?? 0, col: t.col ?? 0 }))
+          canvasStore.openGroupTabs = data.openGroupTabs.map(
+            (t: { row?: number; col?: number }) => ({
+              row: clampInteger(t.row, 0, gRows - 1, 0),
+              col: clampInteger(t.col, 0, gCols - 1, 0),
+            }),
+          )
         }
         // 恢复活跃画布
         const activeSnap = g.canvases[canvasStore.activeGroupRow]?.[canvasStore.activeGroupCol]
         if (activeSnap) canvasStore.restoreCanvasSnapshot(activeSnap)
+        canvasStore.showGroupPreview = true
         canvasStore.buildComposite()
         // 继续恢复色卡...
         if (data.colorCard) {
-          const existing = paletteStore.cardList.find(c => c.name === data.colorCard.name)
+          const existing = paletteStore.cardList.find((c) => c.name === data.colorCard.name)
           if (!existing) paletteStore.registerCard(data.colorCard)
           paletteStore.loadCard(existing ?? data.colorCard)
           if (data.currentColorId) paletteStore.setColor(data.currentColorId)
           if (Array.isArray(data.recentColorIds)) {
-            paletteStore.recentColorIds = data.recentColorIds.filter((id: unknown): id is string => typeof id === 'string')
+            paletteStore.recentColorIds = data.recentColorIds.filter(
+              (id: unknown): id is string => typeof id === 'string',
+            )
           }
         }
         return
       }
 
-      const newCols = data.cols ?? 16
-      const newRows = data.rows ?? 16
+      const newCols = clampCanvasSize(data.cols ?? 16)
+      const newRows = clampCanvasSize(data.rows ?? 16)
 
       // --- 图层恢复 ---
       canvasStore.layers = []
@@ -205,7 +283,7 @@ export const useProjectStore = defineStore('project', () => {
             id: l.id ?? '',
             name: l.name ?? '图层',
             visible: l.visible ?? true,
-            grid,
+            grid: rawPixelGrid(grid),
           })
         }
         canvasStore.activeLayerId = data.activeLayerId || canvasStore.layers[0]?.id || ''
@@ -220,12 +298,14 @@ export const useProjectStore = defineStore('project', () => {
           }
           grid.push(newRow)
         }
-        canvasStore.layers = [{
-          id: 'layer_1',
-          name: '主图层',
-          visible: true,
-          grid,
-        }]
+        canvasStore.layers = [
+          {
+            id: 'layer_1',
+            name: '主图层',
+            visible: true,
+            grid: rawPixelGrid(grid),
+          },
+        ]
         canvasStore.activeLayerId = 'layer_1'
       }
 
@@ -266,7 +346,7 @@ export const useProjectStore = defineStore('project', () => {
 
       // --- 色卡恢复 ---
       if (fileVersion >= 2 && data.colorCard) {
-        const existing = paletteStore.cardList.find(c => c.name === data.colorCard.name)
+        const existing = paletteStore.cardList.find((c) => c.name === data.colorCard.name)
         if (!existing) {
           paletteStore.registerCard(data.colorCard)
         }
@@ -285,6 +365,47 @@ export const useProjectStore = defineStore('project', () => {
     } catch {
       // ignore invalid file
     }
+  }
+
+  async function loadProjectJson(json: string) {
+    await loadProject(new File([json], '浏览器存储.pindou.json', { type: 'application/json' }))
+  }
+
+  function describeCurrentProject() {
+    const canvasStore = useCanvasStore()
+    const group = canvasStore.canvasGroup
+    if (group) {
+      return {
+        projectType: 'group' as const,
+        summary: `${group.groupCols}x${group.groupRows} · 每格 ${group.subSize}x${group.subSize}`,
+      }
+    }
+    return {
+      projectType: 'single' as const,
+      summary: `${canvasStore.cols}x${canvasStore.rows}`,
+    }
+  }
+
+  async function saveToBrowser(slot: ProjectSlot): Promise<StoredProject> {
+    const description = describeCurrentProject()
+    const project: StoredProject = {
+      slot,
+      name: projectName.value,
+      savedAt: new Date().toISOString(),
+      projectType: description.projectType,
+      summary: description.summary,
+      preview: createProjectPreview(),
+      data: createProjectJson(),
+    }
+    await saveStoredProject(project)
+    return project
+  }
+
+  async function loadFromBrowser(slot: ProjectSlot) {
+    const project = await getStoredProject(slot)
+    if (!project) throw new Error('这个存储槽位中没有工程。')
+    await loadProjectJson(project.data)
+    return project
   }
 
   async function importImage(file: File) {
@@ -321,7 +442,7 @@ export const useProjectStore = defineStore('project', () => {
         const hex =
           '#' +
           [imageData.data[i], imageData.data[i + 1], imageData.data[i + 2]]
-            .map(v => v!.toString(16).padStart(2, '0'))
+            .map((v) => v!.toString(16).padStart(2, '0'))
             .join('')
         const closest = paletteStore.findClosestColor(hex)
         canvasStore.setCell(c, r, closest)
@@ -350,7 +471,7 @@ export const useProjectStore = defineStore('project', () => {
         }
       }
     }
-    exportCanvas.toBlob(blob => {
+    exportCanvas.toBlob((blob) => {
       if (!blob) return
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -364,8 +485,14 @@ export const useProjectStore = defineStore('project', () => {
   return {
     projectName,
     createdAt,
+    createProjectJson,
+    createProjectPreview,
     saveProject,
     importFile,
+    loadProjectJson,
+    saveToBrowser,
+    loadFromBrowser,
+    listBrowserProjects: listStoredProjects,
     exportFile,
   }
 })

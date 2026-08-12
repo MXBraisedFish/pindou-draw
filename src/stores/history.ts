@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { markRaw, ref, shallowRef, computed } from 'vue'
 
 interface HistoryEntry {
   layerId: string
@@ -9,18 +9,19 @@ interface HistoryEntry {
 }
 
 export const useHistoryStore = defineStore('history', () => {
-  const stack = ref<HistoryEntry[]>([])
+  // Snapshots are immutable bulk pixel data. Only replacing the stack must be
+  // reactive; proxying every historical cell adds cost without any UI benefit.
+  const stack = shallowRef<HistoryEntry[]>([])
   const index = ref(-1)
 
   const canUndo = computed(() => index.value > 0)
   const canRedo = computed(() => index.value < stack.value.length - 1)
 
   function push(entry: HistoryEntry) {
-    stack.value = stack.value.slice(0, index.value + 1)
-    stack.value.push(entry)
-    if (stack.value.length > 100) {
-      stack.value.shift()
-    }
+    const next = stack.value.slice(0, index.value + 1)
+    next.push({ ...entry, grid: markRaw(entry.grid) })
+    if (next.length > 100) next.shift()
+    stack.value = next
     index.value = stack.value.length - 1
   }
 

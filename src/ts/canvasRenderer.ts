@@ -10,11 +10,12 @@ export function getCellSize(
   cols: number,
   rows: number,
   zoom: number,
+  minSize = CELL_MIN_SIZE,
 ): number {
   const maxW = viewW / cols
   const maxH = viewH / rows
   const base = Math.min(maxW, maxH)
-  return Math.max(CELL_MIN_SIZE, Math.min(CELL_MAX_SIZE, base * zoom))
+  return Math.max(minSize, Math.min(CELL_MAX_SIZE, base * zoom))
 }
 
 export function screenToGrid(
@@ -80,13 +81,13 @@ function getEffectiveColor(
   return lerpColor(prevRaw, raw, progress)
 }
 
-function getRawModeColor(entry: ColorEntry, mode: RenderMode): string {
+export function getRawModeColor(entry: ColorEntry, mode: RenderMode): string {
   const { type, color1, color2 } = entry
   switch (mode) {
     case 'day':
       return color1
     case 'night':
-      if (type === 'glow' && color2) return color2
+      if (type === 'glow') return color1
       return dimColor(color1)
     case 'thermo':
       if (type === 'thermo' && color2) return color2
@@ -112,17 +113,25 @@ function drawCheckerBg(ctx: CanvasRenderingContext2D, x: number, y: number, w: n
   for (let row = 0; row * cSize < h; row++) {
     for (let col = 0; col * cSize < w; col++) {
       ctx.fillStyle = (row + col) % 2 === 0 ? '#e8e8e8' : '#f5f5f5'
-      ctx.fillRect(x + col * cSize, y + row * cSize, Math.min(cSize, w - col * cSize), Math.min(cSize, h - row * cSize))
+      ctx.fillRect(
+        x + col * cSize,
+        y + row * cSize,
+        Math.min(cSize, w - col * cSize),
+        Math.min(cSize, h - row * cSize),
+      )
     }
   }
 }
 
 function drawThickLines(
   ctx: CanvasRenderingContext2D,
-  ox: number, oy: number,
-  cols: number, rows: number,
+  ox: number,
+  oy: number,
+  cols: number,
+  rows: number,
   cellSize: number,
-  gridW: number, gridH: number,
+  gridW: number,
+  gridH: number,
   cfg: ThickLineConfig,
   direction: 'horizontal' | 'vertical',
 ) {
@@ -137,9 +146,7 @@ function drawThickLines(
 
   for (let i = startOffset; i <= count; i += interval) {
     if (i < 0 || i > count) continue
-    const pos = direction === 'horizontal'
-      ? oy + i * cellSize
-      : ox + i * cellSize
+    const pos = direction === 'horizontal' ? oy + i * cellSize : ox + i * cellSize
 
     if (direction === 'horizontal') {
       ctx.moveTo(ox, pos)
@@ -154,10 +161,19 @@ function drawThickLines(
 
 function drawShapePreview(
   ctx: CanvasRenderingContext2D,
-  ox: number, oy: number,
+  ox: number,
+  oy: number,
   cellSize: number,
-  rows: number, cols: number,
-  preview: { shape: string; c1: number; r1: number; c2: number; r2: number; points: [number, number][] },
+  rows: number,
+  cols: number,
+  preview: {
+    shape: string
+    c1: number
+    r1: number
+    c2: number
+    r2: number
+    points: [number, number][]
+  },
 ) {
   ctx.save()
   ctx.strokeStyle = '#6366f1'
@@ -165,7 +181,10 @@ function drawShapePreview(
   ctx.setLineDash([3, 2])
 
   if (preview.shape === 'lasso') {
-    if (preview.points.length < 2) { ctx.restore(); return }
+    if (preview.points.length < 2) {
+      ctx.restore()
+      return
+    }
     ctx.beginPath()
     const first = preview.points[0]!
     ctx.moveTo(ox + first[0] * cellSize + cellSize / 2, oy + first[1] * cellSize + cellSize / 2)
@@ -191,10 +210,10 @@ function drawShapePreview(
       ctx.rect(x, y, w, h)
       ctx.stroke()
     } else if (preview.shape === 'ellipse') {
-      const cx = ox + (cMin + cMax + 1) * cellSize / 2
-      const cy = oy + (rMin + rMax + 1) * cellSize / 2
-      const rx = (cMax - cMin + 1) * cellSize / 2
-      const ry = (rMax - rMin + 1) * cellSize / 2
+      const cx = ox + ((cMin + cMax + 1) * cellSize) / 2
+      const cy = oy + ((rMin + rMax + 1) * cellSize) / 2
+      const rx = ((cMax - cMin + 1) * cellSize) / 2
+      const ry = ((rMax - rMin + 1) * cellSize) / 2
       ctx.beginPath()
       ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2)
       ctx.stroke()
@@ -216,10 +235,13 @@ function drawShapePreview(
 
 function drawHighlightOverlay(
   ctx: CanvasRenderingContext2D,
-  ox: number, oy: number,
-  rows: number, cols: number,
+  ox: number,
+  oy: number,
+  rows: number,
+  cols: number,
   cellSize: number,
-  gridW: number, gridH: number,
+  gridW: number,
+  gridH: number,
   mask: boolean[][],
 ) {
   // 1. 对未高亮区域绘制灰蒙版 + 斜线
@@ -263,10 +285,22 @@ function drawHighlightOverlay(
       const x = ox + c * cellSize
       const y = oy + r * cellSize
       const hl = (nr: number, nc: number) => mask[nr]?.[nc] ?? false
-      if (!hl(r - 1, c))     { ctx.moveTo(x, y); ctx.lineTo(x + cellSize, y) }
-      if (!hl(r + 1, c))     { ctx.moveTo(x, y + cellSize); ctx.lineTo(x + cellSize, y + cellSize) }
-      if (!hl(r, c - 1))     { ctx.moveTo(x, y); ctx.lineTo(x, y + cellSize) }
-      if (!hl(r, c + 1))     { ctx.moveTo(x + cellSize, y); ctx.lineTo(x + cellSize, y + cellSize) }
+      if (!hl(r - 1, c)) {
+        ctx.moveTo(x, y)
+        ctx.lineTo(x + cellSize, y)
+      }
+      if (!hl(r + 1, c)) {
+        ctx.moveTo(x, y + cellSize)
+        ctx.lineTo(x + cellSize, y + cellSize)
+      }
+      if (!hl(r, c - 1)) {
+        ctx.moveTo(x, y)
+        ctx.lineTo(x, y + cellSize)
+      }
+      if (!hl(r, c + 1)) {
+        ctx.moveTo(x + cellSize, y)
+        ctx.lineTo(x + cellSize, y + cellSize)
+      }
     }
   }
   ctx.stroke()
@@ -276,10 +310,13 @@ function drawHighlightOverlay(
 
 function drawSelectionOverlay(
   ctx: CanvasRenderingContext2D,
-  ox: number, oy: number,
-  rows: number, cols: number,
+  ox: number,
+  oy: number,
+  rows: number,
+  cols: number,
   cellSize: number,
-  gridW: number, gridH: number,
+  gridW: number,
+  gridH: number,
   mask: boolean[][],
 ) {
   // 1. 对未选区绘制灰蒙版 + 斜线（clip 限制在未选区）
@@ -326,10 +363,22 @@ function drawSelectionOverlay(
       const x = ox + c * cellSize
       const y = oy + r * cellSize
       const sel = (nr: number, nc: number) => mask[nr]?.[nc] ?? false
-      if (!sel(r - 1, c))     { ctx.moveTo(x, y); ctx.lineTo(x + cellSize, y) }
-      if (!sel(r + 1, c))     { ctx.moveTo(x, y + cellSize); ctx.lineTo(x + cellSize, y + cellSize) }
-      if (!sel(r, c - 1))     { ctx.moveTo(x, y); ctx.lineTo(x, y + cellSize) }
-      if (!sel(r, c + 1))     { ctx.moveTo(x + cellSize, y); ctx.lineTo(x + cellSize, y + cellSize) }
+      if (!sel(r - 1, c)) {
+        ctx.moveTo(x, y)
+        ctx.lineTo(x + cellSize, y)
+      }
+      if (!sel(r + 1, c)) {
+        ctx.moveTo(x, y + cellSize)
+        ctx.lineTo(x + cellSize, y + cellSize)
+      }
+      if (!sel(r, c - 1)) {
+        ctx.moveTo(x, y)
+        ctx.lineTo(x, y + cellSize)
+      }
+      if (!sel(r, c + 1)) {
+        ctx.moveTo(x + cellSize, y)
+        ctx.lineTo(x + cellSize, y + cellSize)
+      }
     }
   }
   ctx.stroke()
@@ -337,14 +386,15 @@ function drawSelectionOverlay(
   ctx.restore()
 }
 
-function drawPearlSheen(
-  ctx: CanvasRenderingContext2D,
-  cx: number, cy: number, cellSize: number,
-) {
+function drawPearlSheen(ctx: CanvasRenderingContext2D, cx: number, cy: number, cellSize: number) {
   // 左上角高光向四周渐变
   const grad = ctx.createRadialGradient(
-    cx + cellSize * 0.3, cy + cellSize * 0.3, 0,
-    cx + cellSize * 0.5, cy + cellSize * 0.5, cellSize * 0.65,
+    cx + cellSize * 0.3,
+    cy + cellSize * 0.3,
+    0,
+    cx + cellSize * 0.5,
+    cy + cellSize * 0.5,
+    cellSize * 0.65,
   )
   grad.addColorStop(0, 'rgba(255,255,255,0.55)')
   grad.addColorStop(0.5, 'rgba(255,255,255,0.1)')
@@ -355,9 +405,13 @@ function drawPearlSheen(
 
 function drawSymmetryGuides(
   ctx: CanvasRenderingContext2D,
-  ox: number, oy: number,
-  cols: number, rows: number,
-  cellSize: number, gridW: number, gridH: number,
+  ox: number,
+  oy: number,
+  cols: number,
+  rows: number,
+  cellSize: number,
+  gridW: number,
+  gridH: number,
   symmetry: string,
 ) {
   if (symmetry === 'off') return
@@ -401,14 +455,29 @@ function drawSymmetryGuides(
     ctx.setLineDash([4, 2.5])
   }
 
-  if (symmetry === 'center') { drawDot() }
-  else if (symmetry === 'vertical') { drawV() }
-  else if (symmetry === 'horizontal') { drawH() }
-  else if (symmetry === 'diag45') { drawDiag45() }
-  else if (symmetry === 'diag135') { drawDiag135() }
-  else if (symmetry === 'cross') { drawV(); drawH() }
-  else if (symmetry === 'x') { drawDiag45(); drawDiag135() }
-  else if (symmetry === 'all8') { drawV(); drawH(); drawDiag45(); drawDiag135(); drawDot() }
+  if (symmetry === 'center') {
+    drawDot()
+  } else if (symmetry === 'vertical') {
+    drawV()
+  } else if (symmetry === 'horizontal') {
+    drawH()
+  } else if (symmetry === 'diag45') {
+    drawDiag45()
+  } else if (symmetry === 'diag135') {
+    drawDiag135()
+  } else if (symmetry === 'cross') {
+    drawV()
+    drawH()
+  } else if (symmetry === 'x') {
+    drawDiag45()
+    drawDiag135()
+  } else if (symmetry === 'all8') {
+    drawV()
+    drawH()
+    drawDiag45()
+    drawDiag135()
+    drawDot()
+  }
 
   ctx.setLineDash([])
   ctx.restore()
@@ -416,7 +485,8 @@ function drawSymmetryGuides(
 
 function drawGeoPreview(
   ctx: CanvasRenderingContext2D,
-  ox: number, oy: number,
+  ox: number,
+  oy: number,
   cellSize: number,
   prev: { shape: string; sides?: number; c1: number; r1: number; c2: number; r2: number },
 ) {
@@ -425,7 +495,10 @@ function drawGeoPreview(
   ctx.lineWidth = 1.5
   ctx.setLineDash([3, 2])
 
-  const c1 = prev.c1; const r1 = prev.r1; const c2 = prev.c2; const r2 = prev.r2
+  const c1 = prev.c1
+  const r1 = prev.r1
+  const c2 = prev.c2
+  const r2 = prev.r2
 
   if (prev.shape === 'line') {
     const x1 = ox + c1 * cellSize + cellSize / 2
@@ -437,18 +510,22 @@ function drawGeoPreview(
     ctx.lineTo(x2, y2)
     ctx.stroke()
   } else if (prev.shape === 'ellipse') {
-    const cMin = Math.min(c1, c2); const cMax = Math.max(c1, c2)
-    const rMin = Math.min(r1, r2); const rMax = Math.max(r1, r2)
-    const cx = ox + (cMin + cMax + 1) * cellSize / 2
-    const cy = oy + (rMin + rMax + 1) * cellSize / 2
-    const rx = (cMax - cMin + 1) * cellSize / 2
-    const ry = (rMax - rMin + 1) * cellSize / 2
+    const cMin = Math.min(c1, c2)
+    const cMax = Math.max(c1, c2)
+    const rMin = Math.min(r1, r2)
+    const rMax = Math.max(r1, r2)
+    const cx = ox + ((cMin + cMax + 1) * cellSize) / 2
+    const cy = oy + ((rMin + rMax + 1) * cellSize) / 2
+    const rx = ((cMax - cMin + 1) * cellSize) / 2
+    const ry = ((rMax - rMin + 1) * cellSize) / 2
     ctx.beginPath()
     ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2)
     ctx.stroke()
   } else if (prev.shape === 'rect') {
-    const cMin = Math.min(c1, c2); const cMax = Math.max(c1, c2)
-    const rMin = Math.min(r1, r2); const rMax = Math.max(r1, r2)
+    const cMin = Math.min(c1, c2)
+    const cMax = Math.max(c1, c2)
+    const rMin = Math.min(r1, r2)
+    const rMax = Math.max(r1, r2)
     const x = ox + cMin * cellSize
     const y = oy + rMin * cellSize
     const w = (cMax - cMin + 1) * cellSize
@@ -481,21 +558,32 @@ export interface RenderOptions {
   previewRows?: number
   previewShape: {
     shape: string
-    c1: number; r1: number
-    c2: number; r2: number
+    c1: number
+    r1: number
+    c2: number
+    r2: number
     points: [number, number][]
   } | null
   geoPreview: {
-    shape: string; sides: number
-    c1: number; r1: number; c2: number; r2: number
+    shape: string
+    sides: number
+    c1: number
+    r1: number
+    c2: number
+    r2: number
   } | null
 }
 
 export function renderCanvas(
   canvas: HTMLCanvasElement,
   store: {
-    cols: number; rows: number; zoom: number; panX: number; panY: number
-    showGrid: boolean; compositeGrid: string[][]
+    cols: number
+    rows: number
+    zoom: number
+    panX: number
+    panY: number
+    showGrid: boolean
+    compositeGrid: string[][]
   },
   opts: RenderOptions,
   exportSize?: { width: number; height: number; dpr?: number },
@@ -531,7 +619,14 @@ export function renderCanvas(
   const { zoom, panX, panY, showGrid, compositeGrid: grid } = store
   const cols = opts.previewCols ?? store.cols
   const rows = opts.previewRows ?? store.rows
-  const cellSize = getCellSize(w, h, cols, rows, exportSize ? 1 : zoom)
+  const cellSize = getCellSize(
+    w,
+    h,
+    cols,
+    rows,
+    exportSize ? 1 : zoom,
+    exportSize ? 1 : CELL_MIN_SIZE,
+  )
   const gridW = cellSize * cols
   const gridH = cellSize * rows
   const ox = (w - gridW) / 2 + panX
@@ -554,8 +649,13 @@ export function renderCanvas(
       const color = grid[r]?.[c]
       if (color) {
         const entry = opts.colorMap.get(color)
-        const effective = getEffectiveColor(color, entry, opts.renderMode,
-          opts.prevRenderMode, opts.transitionProgress)
+        const effective = getEffectiveColor(
+          color,
+          entry,
+          opts.renderMode,
+          opts.prevRenderMode,
+          opts.transitionProgress,
+        )
         ctx.fillStyle = effective
 
         if (entry?.type === 'transparent') {
@@ -587,8 +687,8 @@ export function renderCanvas(
   }
 
   // grid lines
-  if (showGrid && cellSize >= 4) {
-    const gAlpha = opts.gridOpacity != null ? opts.gridOpacity / 100 : (cellSize <= 8 ? 0.08 : 0.12)
+  if (showGrid && cellSize >= 1) {
+    const gAlpha = opts.gridOpacity != null ? opts.gridOpacity / 100 : cellSize <= 8 ? 0.08 : 0.12
     ctx.strokeStyle = `rgba(0,0,0,${gAlpha})`
     ctx.lineWidth = opts.gridThickness ?? 1
     ctx.beginPath()
@@ -655,7 +755,7 @@ export function renderCanvas(
           const cx = ox + c * cellSize + cellSize / 2
           const cy = oy + r * cellSize + cellSize / 2
           ctx.fillStyle = isColorBright(grid[r]?.[c] ?? '') ? '#000' : '#fff'
-          ctx.fillText(String(seq), cx, cy)
+          ctx.fillText(String(seq), cx, cy, Math.max(1, cellSize - 4))
         }
       }
     } else if (mode === 'row') {
@@ -667,7 +767,7 @@ export function renderCanvas(
           const cx = ox + c * cellSize + cellSize / 2
           const cy = oy + r * cellSize + cellSize / 2
           ctx.fillStyle = isColorBright(grid[r]?.[c] ?? '') ? '#000' : '#fff'
-          ctx.fillText(String(seq), cx, cy)
+          ctx.fillText(String(seq), cx, cy, Math.max(1, cellSize - 4))
         }
       }
     } else if (mode === 'col') {
@@ -679,14 +779,14 @@ export function renderCanvas(
           const cx = ox + c * cellSize + cellSize / 2
           const cy = oy + r * cellSize + cellSize / 2
           ctx.fillStyle = isColorBright(grid[r]?.[c] ?? '') ? '#000' : '#fff'
-          ctx.fillText(String(seq), cx, cy)
+          ctx.fillText(String(seq), cx, cy, Math.max(1, cellSize - 4))
         }
       }
     }
   }
 
   // color IDs on cells（高亮序号激活时不渲染色号）
-  if (opts.showColorIds && cellSize >= 14 && (opts.highlightNumberMode === 'off')) {
+  if (opts.showColorIds && cellSize >= 14 && opts.highlightNumberMode === 'off') {
     const hlOnly = opts.showColorIdsHighlightOnly && opts.highlightMask
     ctx.font = '8px sans-serif'
     ctx.textAlign = 'center'
@@ -701,7 +801,7 @@ export function renderCanvas(
         const cx = ox + c * cellSize + cellSize / 2
         const cy = oy + r * cellSize + cellSize / 2
         ctx.fillStyle = isColorBright(color) ? '#000' : '#fff'
-        ctx.fillText(entry.id, cx, cy)
+        ctx.fillText(entry.id, cx, cy, Math.max(1, cellSize - 4))
       }
     }
   }

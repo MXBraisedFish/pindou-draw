@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, shallowRef, triggerRef } from 'vue'
+import { markRaw, ref, shallowRef, triggerRef } from 'vue'
 
 export type RenderMode = 'day' | 'night' | 'thermo' | 'photo' | 'thermo-photo'
 export type SymmetryMode =
@@ -50,6 +50,25 @@ export interface CanvasGroup {
   canvases: CanvasSnapshot[][]
 }
 
+export const CANVAS_SIZE_MIN = 1
+export const CANVAS_SIZE_MAX = 64
+export const GROUP_SIZE_MIN = 1
+export const GROUP_SIZE_MAX = 32
+
+export function clampInteger(value: unknown, min: number, max: number, fallback = min): number {
+  const parsed = typeof value === 'number' ? value : Number(value)
+  if (!Number.isFinite(parsed)) return fallback
+  return Math.max(min, Math.min(max, Math.round(parsed)))
+}
+
+export function clampCanvasSize(value: unknown, fallback = 16): number {
+  return clampInteger(value, CANVAS_SIZE_MIN, CANVAS_SIZE_MAX, fallback)
+}
+
+export function clampGroupSize(value: unknown, fallback = 4): number {
+  return clampInteger(value, GROUP_SIZE_MIN, GROUP_SIZE_MAX, fallback)
+}
+
 let layerUid = 0
 function nextLayerId(): string {
   return `layer_${++layerUid}`
@@ -60,7 +79,16 @@ function makeEmptyGrid(cols: number, rows: number): string[][] {
   for (let r = 0; r < rows; r++) {
     g.push(new Array<string>(cols).fill(''))
   }
-  return g
+  return markRaw(g)
+}
+
+/** Keep the large pixel matrix outside Vue's deep-reactivity graph. */
+export function rawPixelGrid(grid: string[][]): string[][] {
+  return markRaw(grid)
+}
+
+function clonePixelGrid(grid: string[][]): string[][] {
+  return rawPixelGrid(grid.map((row) => [...row]))
 }
 
 function makeEmptyMask(cols: number, rows: number): boolean[][] {
@@ -74,7 +102,9 @@ function makeEmptyMask(cols: number, rows: number): boolean[][] {
 export const useCanvasStore = defineStore('canvas', () => {
   const cols = ref(16)
   const rows = ref(16)
-  const compositeGrid = ref<string[][]>([])
+  // Rendering is driven by gridVersion; individual composite cells never need
+  // dependency tracking.
+  const compositeGrid = shallowRef<string[][]>(markRaw([]))
   const zoom = ref(1)
   const panX = ref(0)
   const panY = ref(0)
@@ -145,6 +175,7 @@ export const useCanvasStore = defineStore('canvas', () => {
   // cell makes large image imports dramatically slower and consumes far more
   // memory. Group mutations are explicit, so a shallow ref is sufficient.
   const canvasGroup = shallowRef<CanvasGroup | null>(null)
+  const groupVersion = ref(0)
   const activeGroupCol = ref(0)
   const activeGroupRow = ref(0)
   const openGroupTabs = ref<{ row: number; col: number }[]>([])
@@ -157,13 +188,18 @@ export const useCanvasStore = defineStore('canvas', () => {
     dirtyCanvases.value = next
   }
 
+  function notifyGroupChanged() {
+    groupVersion.value++
+    triggerRef(canvasGroup)
+  }
+
   function captureCanvasSnapshot(): CanvasSnapshot {
     return {
       layers: layers.value.map((l) => ({
         id: l.id,
         name: l.name,
         visible: l.visible,
-        grid: l.grid.map((row) => [...row]),
+        grid: clonePixelGrid(l.grid),
       })),
       activeLayerId: activeLayerId.value,
       renderMode: renderMode.value,
@@ -185,7 +221,7 @@ export const useCanvasStore = defineStore('canvas', () => {
       id: l.id,
       name: l.name,
       visible: l.visible,
-      grid: l.grid.map((row) => [...row]),
+      grid: clonePixelGrid(l.grid),
     }))
     activeLayerId.value = snap.activeLayerId
     renderMode.value = snap.renderMode
@@ -214,6 +250,9 @@ export const useCanvasStore = defineStore('canvas', () => {
     thickLineV.value = { ...thickLineV.value, ...cfg }
   }
 
+  // Layer metadata stays reactive for the panels, while every layer grid is
+  // explicitly markRaw. This prevents flood fill and rendering from paying a
+  // Proxy get/set cost for every pixel.
   const layers = ref<Layer[]>([])
   const activeLayerId = ref<string>('')
 
@@ -238,13 +277,16 @@ export const useCanvasStore = defineStore('canvas', () => {
         }
       }
     }
-    compositeGrid.value = result
+    compositeGrid.value = rawPixelGrid(result)
     bumpVersion()
   }
 
   // ===== 画布组管理 =====
 
   function createCanvasGroup(name: string, groupCols: number, groupRows: number, subSize: number) {
+    groupCols = clampGroupSize(groupCols)
+    groupRows = clampGroupSize(groupRows)
+    subSize = clampCanvasSize(subSize)
     const empty = (): CanvasSnapshot => ({
       layers: [
         { id: nextLayerId(), name: '主图层', visible: true, grid: makeEmptyGrid(subSize, subSize) },
@@ -274,11 +316,13 @@ export const useCanvasStore = defineStore('canvas', () => {
     activeGroupCol.value = 0
     activeGroupRow.value = 0
     openGroupTabs.value = [{ row: 0, col: 0 }]
-    showGroupPreview.value = false
+    showGroupPreview.value = true
     restoreCanvasSnapshot(canvases[0]![0]!)
+    notifyGroupChanged()
   }
 
   function createCanvasGroupFromGrid(name: string, source: string[][], subSize = 64) {
+    subSize = clampCanvasSize(subSize, 64)
     const sourceRows = source.length
     const sourceCols = source[0]?.length ?? 0
     const groupCols = Math.max(1, Math.ceil(sourceCols / subSize))
@@ -297,7 +341,7 @@ export const useCanvasStore = defineStore('canvas', () => {
         }
         const layerId = nextLayerId()
         canvasRow[gc] = {
-          layers: [{ id: layerId, name: '主图层', visible: true, grid }],
+          layers: [{ id: layerId, name: '主图层', visible: true, grid: rawPixelGrid(grid) }],
           activeLayerId: layerId,
           renderMode: 'day',
           symmetry: 'off',
@@ -317,9 +361,10 @@ export const useCanvasStore = defineStore('canvas', () => {
     activeGroupCol.value = 0
     activeGroupRow.value = 0
     openGroupTabs.value = [{ row: 0, col: 0 }]
-    showGroupPreview.value = false
+    showGroupPreview.value = true
     restoreCanvasSnapshot(canvases[0]![0]!)
     dirtyCanvases.value = new Set()
+    notifyGroupChanged()
   }
 
   function switchToSubCanvas(row: number, col: number) {
@@ -382,11 +427,12 @@ export const useCanvasStore = defineStore('canvas', () => {
       activeGroupCol.value = c1
     }
     saveActiveToGroup()
-    triggerRef(canvasGroup)
+    notifyGroupChanged()
   }
 
   function resizeGroupCanvas(newSize: number) {
     if (!canvasGroup.value) return
+    newSize = clampCanvasSize(newSize, canvasGroup.value.subSize)
     const g = canvasGroup.value
     for (let r = 0; r < g.groupRows; r++) {
       for (let c = 0; c < g.groupCols; c++) {
@@ -401,7 +447,7 @@ export const useCanvasStore = defineStore('canvas', () => {
               newRow[cc] = oldRow[cc]!
             }
           }
-          layer.grid = newGrid
+          layer.grid = rawPixelGrid(newGrid)
         }
       }
     }
@@ -411,7 +457,7 @@ export const useCanvasStore = defineStore('canvas', () => {
     dirtyCanvases.value = new Set() // 全部标记脏
     buildComposite()
     bumpVersion()
-    triggerRef(canvasGroup)
+    notifyGroupChanged()
   }
 
   function addGroupRow(atIndex: number, above: boolean) {
@@ -451,7 +497,7 @@ export const useCanvasStore = defineStore('canvas', () => {
     openGroupTabs.value = openGroupTabs.value.map((t) =>
       t.row >= insertIdx ? { row: t.row + 1, col: t.col } : t,
     )
-    triggerRef(canvasGroup)
+    notifyGroupChanged()
   }
 
   function deleteGroupRow(index: number) {
@@ -470,7 +516,7 @@ export const useCanvasStore = defineStore('canvas', () => {
       .filter((t) => t.row !== index)
       .map((t) => (t.row > index ? { row: t.row - 1, col: t.col } : t))
     dirtyCanvases.value = new Set()
-    triggerRef(canvasGroup)
+    notifyGroupChanged()
   }
 
   function addGroupCol(atIndex: number, left: boolean) {
@@ -507,7 +553,7 @@ export const useCanvasStore = defineStore('canvas', () => {
     openGroupTabs.value = openGroupTabs.value.map((t) =>
       t.col >= insertIdx ? { row: t.row, col: t.col + 1 } : t,
     )
-    triggerRef(canvasGroup)
+    notifyGroupChanged()
   }
 
   function deleteGroupCol(index: number) {
@@ -527,7 +573,7 @@ export const useCanvasStore = defineStore('canvas', () => {
       .filter((t) => t.col !== index)
       .map((t) => (t.col > index ? { row: t.row, col: t.col - 1 } : t))
     dirtyCanvases.value = new Set()
-    triggerRef(canvasGroup)
+    notifyGroupChanged()
   }
 
   function hasPixelsInRow(index: number): boolean {
@@ -593,7 +639,7 @@ export const useCanvasStore = defineStore('canvas', () => {
     const idx = layers.value.findIndex((l) => l.id === id)
     if (idx === -1) return
     const original = layers.value[idx]!
-    const clonedGrid = original.grid.map((row) => [...row])
+    const clonedGrid = clonePixelGrid(original.grid)
     const cloned: Layer = {
       id: nextLayerId(),
       name: `${original.name} 副本`,
@@ -659,10 +705,17 @@ export const useCanvasStore = defineStore('canvas', () => {
   }
 
   function newCanvas(c?: number, r?: number) {
-    if (c && r) {
-      cols.value = c
-      rows.value = r
+    const nextCols = clampCanvasSize(c, cols.value)
+    const nextRows = clampCanvasSize(r, rows.value)
+    if (canvasGroup.value) {
+      canvasGroup.value = null
+      openGroupTabs.value = []
+      showGroupPreview.value = false
+      dirtyCanvases.value = new Set()
+      groupVersion.value++
     }
+    cols.value = nextCols
+    rows.value = nextRows
     zoom.value = 1
     panX.value = 0
     panY.value = 0
@@ -697,7 +750,7 @@ export const useCanvasStore = defineStore('canvas', () => {
         }
         newGrid.push(newRow)
       }
-      layer.grid = newGrid
+      layer.grid = rawPixelGrid(newGrid)
     }
     cols.value = oldRows
     rows.value = oldCols
@@ -716,7 +769,7 @@ export const useCanvasStore = defineStore('canvas', () => {
         }
         newGrid.push(newRow)
       }
-      layer.grid = newGrid
+      layer.grid = rawPixelGrid(newGrid)
     }
     cols.value = oldRows
     rows.value = oldCols
@@ -724,6 +777,8 @@ export const useCanvasStore = defineStore('canvas', () => {
   }
 
   function resizeCanvas(c: number, r: number) {
+    c = clampCanvasSize(c, cols.value)
+    r = clampCanvasSize(r, rows.value)
     for (const layer of layers.value) {
       const oldGrid = layer.grid
       const newGrid: string[][] = []
@@ -736,7 +791,7 @@ export const useCanvasStore = defineStore('canvas', () => {
         }
         newGrid.push(newRow)
       }
-      layer.grid = newGrid
+      layer.grid = rawPixelGrid(newGrid)
     }
     cols.value = c
     rows.value = r
@@ -773,7 +828,7 @@ export const useCanvasStore = defineStore('canvas', () => {
           newGrid[nr]![nc] = layer.grid[r]![c]!
         }
       }
-      layer.grid = newGrid
+      layer.grid = rawPixelGrid(newGrid)
     }
     cols.value = newCols
     rows.value = newRows
@@ -782,7 +837,7 @@ export const useCanvasStore = defineStore('canvas', () => {
 
   function saveResizeBackup() {
     resizeBackup = {
-      layers: layers.value.map((l) => ({ grid: l.grid.map((row) => [...row]) })),
+      layers: layers.value.map((l) => ({ grid: clonePixelGrid(l.grid) })),
       cols: cols.value,
       rows: rows.value,
     }
@@ -791,13 +846,15 @@ export const useCanvasStore = defineStore('canvas', () => {
   function restoreResizeBackup() {
     if (!resizeBackup) return
     for (let i = 0; i < layers.value.length; i++) {
-      layers.value[i]!.grid = resizeBackup.layers[i]!.grid.map((row) => [...row])
+      layers.value[i]!.grid = clonePixelGrid(resizeBackup.layers[i]!.grid)
     }
     cols.value = resizeBackup.cols
     rows.value = resizeBackup.rows
   }
 
   function startResize(c: number, r: number, aRow: number, aCol: number) {
+    c = clampCanvasSize(c, cols.value)
+    r = clampCanvasSize(r, rows.value)
     if (!resizeBackup) {
       saveResizeBackup()
     } else {
@@ -903,7 +960,7 @@ export const useCanvasStore = defineStore('canvas', () => {
     if (!layer) return null
     return {
       layerId: layer.id,
-      grid: layer.grid.map((row) => [...row]),
+      grid: clonePixelGrid(layer.grid),
     }
   }
 
@@ -911,9 +968,24 @@ export const useCanvasStore = defineStore('canvas', () => {
     const layer = layers.value.find((l) => l.id === layerId)
     if (!layer) return
     if (gridSnapshot.length > 0) {
-      layer.grid = gridSnapshot.map((row) => [...row])
+      layer.grid = clonePixelGrid(gridSnapshot)
     }
     buildComposite()
+  }
+
+  function hasAnyPixels(): boolean {
+    const hasPixels = (sourceLayers: CanvasSnapshot['layers']) =>
+      sourceLayers.some((layer) => layer.grid.some((row) => row.some(Boolean)))
+    if (hasPixels(layers.value)) return true
+    return (
+      canvasGroup.value?.canvases.some((row, groupRow) =>
+        row.some(
+          (snapshot, groupCol) =>
+            (groupRow !== activeGroupRow.value || groupCol !== activeGroupCol.value) &&
+            hasPixels(snapshot.layers),
+        ),
+      ) ?? false
+    )
   }
 
   // init
@@ -978,10 +1050,12 @@ export const useCanvasStore = defineStore('canvas', () => {
     updateCursor,
     getActiveLayerSnapshot,
     applyLayerSnapshot,
+    hasAnyPixels,
     buildComposite,
     bumpVersion,
     // 画布组
     canvasGroup,
+    groupVersion,
     activeGroupCol,
     activeGroupRow,
     openGroupTabs,

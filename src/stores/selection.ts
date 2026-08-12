@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { markRaw, ref, shallowRef, computed } from 'vue'
 import { useToolStore } from '@/stores/tool'
 import { useCanvasStore } from '@/stores/canvas'
 
@@ -11,15 +11,17 @@ function makeEmptyMask(cols: number, rows: number): boolean[][] {
   for (let r = 0; r < rows; r++) {
     m.push(new Array<boolean>(cols).fill(false))
   }
-  return m
+  return markRaw(m)
 }
 
 function cloneMask(mask: boolean[][]): boolean[][] {
-  return mask.map((row) => [...row])
+  return markRaw(mask.map((row) => [...row]))
 }
 
 export const useSelectionStore = defineStore('selection', () => {
-  const selectionMask = ref<boolean[][]>(makeEmptyMask(16, 16))
+  // Cell-level changes are signalled by version; the mask itself should not be
+  // deeply proxied because selection-aware tools read it in tight loops.
+  const selectionMask = shallowRef<boolean[][]>(makeEmptyMask(16, 16))
   const version = ref(0)
 
   // 拖拽预览
@@ -33,7 +35,10 @@ export const useSelectionStore = defineStore('selection', () => {
   const selectShape = ref<SelectShape>('rect')
   const selectMode = ref<SelectMode>('add')
 
-  const hasSelection = computed(() => selectionMask.value.some((row) => row.some((v) => v)))
+  const hasSelection = computed(() => {
+    // Include the explicit mutation version in the dependency set.
+    return version.value >= 0 && selectionMask.value.some((row) => row.some((v) => v))
+  })
 
   const previewMask = computed(() => {
     if (!isSelecting.value) return null

@@ -49,12 +49,12 @@ export function initializeReferenceFeature() {
   events.forEach(([element, event, handler]) => element?.addEventListener(event, handler));
   window.addEventListener('resize', handleViewportResize);
 
-  
+
   initializeReferenceRect();
   renderReferenceImages();
   syncReferenceWindowState();
 
-  
+
   if (elements.referenceAddBtn && state.referenceWindowMinimized) {
     elements.referenceAddBtn.style.display = 'none';
   }
@@ -77,20 +77,20 @@ function setReferenceWindowMinimized(flag) {
   if (state.referenceWindowMinimized === next) return;
 
   if (next) {
-    
+
     state.referenceWindowPrevRect = { ...state.referenceWindowRect };
-    
+
     state.referenceWindowRect.width = MINIMIZED_SIZE;
     state.referenceWindowRect.height = MINIMIZED_SIZE;
   } else {
-    
+
     if (state.referenceWindowPrevRect) {
       state.referenceWindowRect = { ...state.referenceWindowPrevRect };
     } else {
       state.referenceWindowRect.width = 320;
       state.referenceWindowRect.height = 420;
     }
-    
+
     state.referenceWindowPrevRect = null;
   }
 
@@ -144,7 +144,7 @@ function renderReferenceImages() {
     header.appendChild(name);
     if (entry.width && entry.height) {
       const meta = document.createElement('span');
-      meta.textContent = `${entry.width} × ${entry.height}`;
+      meta.textContent = `${entry.width} x ${entry.height}`;
       header.appendChild(meta);
     } item.appendChild(header);
     const image = document.createElement('img');
@@ -210,7 +210,7 @@ function ensureReferenceRectBounds(adjustSize = false) {
     rect.height = clamp(rect.height, MIN_HEIGHT, maxHeight);
   }
 
-  
+
   const usedWidth = state.referenceWindowMinimized ? MINIMIZED_SIZE : rect.width;
   const usedHeight = state.referenceWindowMinimized ? MINIMIZED_SIZE : rect.height;
 
@@ -253,16 +253,16 @@ function syncReferenceWindowState() {
   windowEl.classList.toggle('is-minimized', state.referenceWindowMinimized);
   windowEl.setAttribute('aria-hidden', visible ? 'false' : 'true');
 
-  
+
   if (elements.toggleReferenceBtn) {
     elements.toggleReferenceBtn.classList.toggle('is-active', visible);
     elements.toggleReferenceBtn.setAttribute('aria-pressed', visible ? 'true' : 'false');
   }
 
-  
+
   if (elements.referenceAddBtn) {
     elements.referenceAddBtn.textContent = ICONS.ADD;
-    
+
     elements.referenceAddBtn.style.display = state.referenceWindowMinimized ? 'none' : 'block';
   }
 
@@ -276,7 +276,7 @@ function syncReferenceWindowState() {
     elements.referenceCloseBtn.textContent = ICONS.CLOSE;
   }
 
-  
+
   if (elements.referenceResizer) {
     elements.referenceResizer.style.pointerEvents = state.referenceWindowMinimized ? 'none' : 'auto';
   }
@@ -290,7 +290,7 @@ function handleHeaderPointerDown(ev) {
   beginInteraction(ev, 'move');
 }
 function handleWindowPointerDown(ev) {
-  
+
   if (!state.referenceWindowMinimized || ev.button !== 0 || ev.target.closest('button')) return;
   if (isTouchLongPressEnabled() && ev.pointerType !== 'mouse') {
     startLongPress(ev, 'move');
@@ -370,7 +370,7 @@ function beginInteraction(ev, mode) {
 function beginInteractionWithPointer(pointerId, mode, clientX, clientY) {
   if (!elements.referenceWindow) return;
 
-  
+
   if (mode === 'resize' && state.referenceWindowMinimized) return;
 
   activePointer = {
@@ -381,23 +381,23 @@ function beginInteractionWithPointer(pointerId, mode, clientX, clientY) {
     origin: { ...state.referenceWindowRect }
   };
 
-  
+
   const draggingClass = mode === 'resize' ? 'is-resizing' : 'is-dragging';
   elements.referenceWindow.classList.add(draggingClass);
   elements.referenceWindow.style.transition = 'none';
   referenceWindowStackHandle?.bringToFront();
 
-  
+
   pointerMoveHandler = handlePointerMove.bind(this);
   pointerUpHandler = handlePointerUp.bind(this);
   pointerCancelHandler = handlePointerUp.bind(this);
 
-  
+
   window.addEventListener('pointermove', pointerMoveHandler, { passive: false });
   window.addEventListener('pointerup', pointerUpHandler, { passive: true });
   window.addEventListener('pointercancel', pointerCancelHandler, { passive: true });
 
-  
+
   if (elements.referenceWindow.setPointerCapture) {
     try {
       elements.referenceWindow.setPointerCapture(pointerId);
@@ -405,7 +405,7 @@ function beginInteractionWithPointer(pointerId, mode, clientX, clientY) {
   }
 }
 function handlePointerMove(ev) {
-  
+
   if (!activePointer) {
     cleanupInteraction();
     return;
@@ -422,13 +422,13 @@ function handlePointerMove(ev) {
   const dx = ev.clientX - activePointer.startX;
   const dy = ev.clientY - activePointer.startY;
 
-  
+
   if (!_rafPending) {
     _rafPending = true;
     requestAnimationFrame(() => {
       _rafPending = false;
 
-      
+
       if (!activePointer) {
         return;
       }
@@ -452,7 +452,7 @@ function handlePointerMove(ev) {
 }
 
 function cleanupInteraction() {
-  
+
   window.removeEventListener('pointermove', pointerMoveHandler);
   window.removeEventListener('pointerup', pointerUpHandler);
   window.removeEventListener('pointercancel', pointerCancelHandler);
@@ -461,12 +461,12 @@ function cleanupInteraction() {
   pointerUpHandler = null;
   pointerCancelHandler = null;
 
-  
+
   if (elements.referenceWindow) {
     elements.referenceWindow.classList.remove('is-dragging', 'is-resizing');
     elements.referenceWindow.style.transition = '';
 
-    
+
     if (elements.referenceWindow.releasePointerCapture && activePointer) {
       elements.referenceWindow.releasePointerCapture(activePointer.id);
     }
@@ -479,7 +479,7 @@ function cleanupInteraction() {
   applyReferenceWindowLayout();
 }
 function handlePointerUp(ev) {
-  
+
   if (!activePointer) return;
   if (ev.pointerId !== activePointer.id) return;
   cleanupInteraction();

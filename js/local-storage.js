@@ -436,7 +436,7 @@ function buildSlotTile(slot, index, mode) {
   const sizeRow = document.createElement('div');
   sizeRow.className = 'local-slot__meta-row';
   const sizeLeft = document.createElement('span');
-  sizeLeft.textContent = empty ? '尺寸：--' : `尺寸：${slot.canvas?.width ?? '--'}×${slot.canvas?.height ?? '--'}`;
+  sizeLeft.textContent = empty ? '尺寸：--' : `尺寸：${slot.canvas?.width ?? '--'}x${slot.canvas?.height ?? '--'}`;
   const sizeRight = document.createElement('span');
   sizeRight.textContent = empty ? '' : `时间：${formatTime(slot.savedAt)}`;
   sizeRow.appendChild(sizeLeft);

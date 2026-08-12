@@ -387,7 +387,7 @@ function extendCanvasWithPayload(payload, direction) {
 
   const targetGrid = Array.from({ length: plan.height }, () => Array.from({ length: plan.width }, () => null));
 
-  
+
   copyGrid({
     sourceGrid: state.grid,
     targetGrid,
@@ -628,6 +628,6 @@ function findNearestEntry(rgb, targetList) {
 
 function updateStatusSizeLabel() {
   if (elements.statusSize && state.width && state.height) {
-    elements.statusSize.textContent = `${state.width} × ${state.height}`;
+    elements.statusSize.textContent = `${state.width} x ${state.height}`;
   }
 }

@@ -192,7 +192,7 @@ function loadPhotoSketchImage(file) {
     }
     photoSketchState.imageUrl = url;
     photoSketchState.image = image;
-    updateSketchStatus(`已载入图片：${image.naturalWidth} × ${image.naturalHeight}`, 'success');
+    updateSketchStatus(`已载入图片：${image.naturalWidth} x ${image.naturalHeight}`, 'success');
     resetOffsetControls();
     schedulePreviewRender();
   };
@@ -395,7 +395,7 @@ function renderPhotoSketchPreview() {
   photoSketchState.lastResult = previewResult;
   updatePhotoSketchPreview(previewResult, config);
   toggleSketchActionButtons(true);
-  updateSketchStatus(`已生成 ${previewResult.width} × ${previewResult.height} 的草图预览`, 'success');
+  updateSketchStatus(`已生成 ${previewResult.width} x ${previewResult.height} 的草图预览`, 'success');
 }
 
 function computeSketchConfig() {
@@ -861,16 +861,16 @@ function applyPreviewAspect(canvas, ratio) {
 
 function updatePreviewInfo(result, config) {
   if (!elements.photoSketchPreviewInfo) return;
-  elements.photoSketchPreviewInfo.textContent = `原图：${photoSketchState.image.naturalWidth} × ${photoSketchState.image.naturalHeight} ｜ 像素图：${result.width} × ${result.height} ｜ 像素比 1:${config.pixelRatio}`;
+  elements.photoSketchPreviewInfo.textContent = `原图：${photoSketchState.image.naturalWidth} x ${photoSketchState.image.naturalHeight} ｜ 像素图：${result.width} x ${result.height} ｜ 像素比 1:${config.pixelRatio}`;
 }
 
 function updateSketchSummary(config) {
   if (!elements.photoSketchSummary) return;
   if (!config || !photoSketchState.image) {
-    elements.photoSketchSummary.textContent = '目标尺寸：-- × --';
+    elements.photoSketchSummary.textContent = '目标尺寸：-- x --';
     return;
   }
-  elements.photoSketchSummary.textContent = `目标尺寸：${config.width} × ${config.height}（像素比 1:${config.pixelRatio}）`;
+  elements.photoSketchSummary.textContent = `目标尺寸：${config.width} x ${config.height}（像素比 1:${config.pixelRatio}）`;
 }
 
 function clearPreviewCanvases() {
@@ -914,7 +914,7 @@ function applySketchToCanvas() {
   redrawCanvas();
   renderSelectionLayers();
   saveHistory();
-  updateSketchStatus(`已创建 ${width} × ${height} 草图并应用到画布。`, 'success');
+  updateSketchStatus(`已创建 ${width} x ${height} 草图并应用到画布。`, 'success');
   closePhotoSketchOverlay();
   try {
     document.dispatchEvent(new CustomEvent('mobile:reset-subtools'));

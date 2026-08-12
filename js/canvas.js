@@ -816,100 +816,100 @@ function handleSelectionPointerDown(ev) {
         saveHistory();
         return true;
       }
-       ev.preventDefault();
-       selectionPointerState.mode = 'add';
-       selectionPointerState.pointerId = ev.pointerId;
-       selectionPointerState.startX = selectionPointerState.currentX = coords.cellX;
-       selectionPointerState.startY = selectionPointerState.currentY = coords.cellY;
-       try {
-         elements.canvas?.setPointerCapture?.(ev.pointerId);
-       } catch (_) { }
-       updateSelectionPreview();
-       return true;
-     }
-     if (state.selectionToolMode === 'delete') {
+      ev.preventDefault();
+      selectionPointerState.mode = 'add';
+      selectionPointerState.pointerId = ev.pointerId;
+      selectionPointerState.startX = selectionPointerState.currentX = coords.cellX;
+      selectionPointerState.startY = selectionPointerState.currentY = coords.cellY;
+      try {
+        elements.canvas?.setPointerCapture?.(ev.pointerId);
+      } catch (_) { }
+      updateSelectionPreview();
+      return true;
+    }
+    if (state.selectionToolMode === 'delete') {
       if (isSelectionDoubleClick('right', ev.timeStamp)) {
         state.selection.preview = null;
         clearSelection();
         saveHistory();
         return true;
       }
-       ev.preventDefault();
-       selectionPointerState.mode = 'subtract';
-       selectionPointerState.pointerId = ev.pointerId;
-       selectionPointerState.startX = selectionPointerState.currentX = coords.cellX;
-       selectionPointerState.startY = selectionPointerState.currentY = coords.cellY;
-       try {
-         elements.canvas?.setPointerCapture?.(ev.pointerId);
-       } catch (_) { }
-       updateSelectionPreview();
-       return true;
-     }
-     if (state.selectionToolMode === 'move' && state.selection.active) {
+      ev.preventDefault();
+      selectionPointerState.mode = 'subtract';
+      selectionPointerState.pointerId = ev.pointerId;
+      selectionPointerState.startX = selectionPointerState.currentX = coords.cellX;
+      selectionPointerState.startY = selectionPointerState.currentY = coords.cellY;
+      try {
+        elements.canvas?.setPointerCapture?.(ev.pointerId);
+      } catch (_) { }
+      updateSelectionPreview();
+      return true;
+    }
+    if (state.selectionToolMode === 'move' && state.selection.active) {
       ev.preventDefault();
       selectionPointerState.mode = 'move';
-       selectionPointerState.pointerId = ev.pointerId;
-       selectionPointerState.startX = selectionPointerState.currentX = coords.cellX;
-       selectionPointerState.startY = selectionPointerState.currentY = coords.cellY;
-       selectionPointerState.offsetX = 0;
-       selectionPointerState.offsetY = 0;
-       try {
-         elements.canvas?.setPointerCapture?.(ev.pointerId);
-       } catch (_) { }
-       updateSelectionPreview();
-       return true;
-     }
-   }
-   if (ev.button === 0) {
+      selectionPointerState.pointerId = ev.pointerId;
+      selectionPointerState.startX = selectionPointerState.currentX = coords.cellX;
+      selectionPointerState.startY = selectionPointerState.currentY = coords.cellY;
+      selectionPointerState.offsetX = 0;
+      selectionPointerState.offsetY = 0;
+      try {
+        elements.canvas?.setPointerCapture?.(ev.pointerId);
+      } catch (_) { }
+      updateSelectionPreview();
+      return true;
+    }
+  }
+  if (ev.button === 0) {
     if (isSelectionDoubleClick('left', ev.timeStamp)) {
       state.selection.preview = null;
       invertSelection();
       saveHistory();
       return true;
     } if (!coords) return true;
-     ev.preventDefault();
-     selectionPointerState.mode = 'add';
-     selectionPointerState.pointerId = ev.pointerId;
-     selectionPointerState.startX = selectionPointerState.currentX = coords.cellX;
-     selectionPointerState.startY = selectionPointerState.currentY = coords.cellY;
-     try {
-       elements.canvas?.setPointerCapture?.(ev.pointerId);
-     } catch (_) { }
-     updateSelectionPreview();
-     return true;
-   } if (ev.button === 2) {
-     ev.preventDefault();
+    ev.preventDefault();
+    selectionPointerState.mode = 'add';
+    selectionPointerState.pointerId = ev.pointerId;
+    selectionPointerState.startX = selectionPointerState.currentX = coords.cellX;
+    selectionPointerState.startY = selectionPointerState.currentY = coords.cellY;
+    try {
+      elements.canvas?.setPointerCapture?.(ev.pointerId);
+    } catch (_) { }
+    updateSelectionPreview();
+    return true;
+  } if (ev.button === 2) {
+    ev.preventDefault();
     if (isSelectionDoubleClick('right', ev.timeStamp)) {
       state.selection.preview = null;
       clearSelection();
       saveHistory();
       return true;
     } if (!coords) return true;
-     selectionPointerState.mode = 'subtract';
-     selectionPointerState.pointerId = ev.pointerId;
-     selectionPointerState.startX = selectionPointerState.currentX = coords.cellX;
-     selectionPointerState.startY = selectionPointerState.currentY = coords.cellY;
-     try {
-       elements.canvas?.setPointerCapture?.(ev.pointerId);
-     } catch (_) { }
-     updateSelectionPreview();
-     return true;
-   } if (ev.button === 1 && state.selection.active) {
-     if (!coords) return true;
-     ev.preventDefault();
+    selectionPointerState.mode = 'subtract';
+    selectionPointerState.pointerId = ev.pointerId;
+    selectionPointerState.startX = selectionPointerState.currentX = coords.cellX;
+    selectionPointerState.startY = selectionPointerState.currentY = coords.cellY;
+    try {
+      elements.canvas?.setPointerCapture?.(ev.pointerId);
+    } catch (_) { }
+    updateSelectionPreview();
+    return true;
+  } if (ev.button === 1 && state.selection.active) {
+    if (!coords) return true;
+    ev.preventDefault();
     selectionPointerState.mode = 'move';
-     selectionPointerState.pointerId = ev.pointerId;
-     selectionPointerState.startX = selectionPointerState.currentX = coords.cellX;
-     selectionPointerState.startY = selectionPointerState.currentY = coords.cellY;
-     selectionPointerState.offsetX = 0;
-     selectionPointerState.offsetY = 0;
-     try {
-       elements.canvas?.setPointerCapture?.(ev.pointerId);
-     } catch (_) { }
-     updateSelectionPreview();
-     return true;
-   } return false;
- }
+    selectionPointerState.pointerId = ev.pointerId;
+    selectionPointerState.startX = selectionPointerState.currentX = coords.cellX;
+    selectionPointerState.startY = selectionPointerState.currentY = coords.cellY;
+    selectionPointerState.offsetX = 0;
+    selectionPointerState.offsetY = 0;
+    try {
+      elements.canvas?.setPointerCapture?.(ev.pointerId);
+    } catch (_) { }
+    updateSelectionPreview();
+    return true;
+  } return false;
+}
 function handleSelectionPointerRelease(ev) {
   if (selectionPointerState.mode === 'idle' || selectionPointerState.pointerId !== ev.pointerId) return false;
   if (selectionPointerState.mode === 'add') {
@@ -1272,7 +1272,7 @@ export function updateCanvasOpacityLabel() {
 
 function updateStatusSize() {
   if (!elements.statusSize) return;
-  elements.statusSize.textContent = state.width && state.height ? `${state.width} × ${state.height}` : TEXT.status.canvasNotCreated;
+  elements.statusSize.textContent = state.width && state.height ? `${state.width} x ${state.height}` : TEXT.status.canvasNotCreated;
 }
 
 export function updateStatusCreated() {
