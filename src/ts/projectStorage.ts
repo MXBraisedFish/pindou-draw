@@ -72,3 +72,12 @@ export async function listStoredProjects(): Promise<StoredProject[]> {
     return Number(a.slot) - Number(b.slot)
   })
 }
+
+export function clearProjectDatabase(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.deleteDatabase(DATABASE_NAME)
+    request.onsuccess = () => resolve()
+    request.onerror = () => reject(request.error ?? new Error('无法清理浏览器工程存储。'))
+    request.onblocked = () => reject(new Error('浏览器工程仍在使用中，请稍后重试。'))
+  })
+}

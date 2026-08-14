@@ -18,13 +18,18 @@
           v-for="c in groupCols"
           :key="'cl' + c"
           class="cgp-col-label"
+          @click.stop="onColTap($event, c - 1)"
           @contextmenu.prevent="onColContext($event, c - 1)"
         >
           {{ c }}
         </div>
         <!-- 行标签 + 缩略图行 -->
         <template v-for="r in groupRows" :key="'row' + r">
-          <div class="cgp-row-label" @contextmenu.prevent="onRowContext($event, r - 1)">
+          <div
+            class="cgp-row-label"
+            @click.stop="onRowTap($event, r - 1)"
+            @contextmenu.prevent="onRowContext($event, r - 1)"
+          >
             {{ r }}
           </div>
           <div
@@ -127,8 +132,10 @@
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { GROUP_SIZE_MAX, useCanvasStore } from '@/stores/canvas'
 import ConfirmModal from '@/components/ConfirmModal.vue'
+import { useDevice } from '@/composables/useDevice'
 
 const canvasStore = useCanvasStore()
+const { device } = useDevice()
 
 const deleteConfirm = ref<{
   visible: boolean
@@ -285,6 +292,7 @@ watch(thumbPixelSize, () => {
 })
 
 function enterCell(r: number, c: number) {
+  if (suppressCellClick) return
   canvasStore.switchToSubCanvas(r, c)
 }
 
@@ -307,6 +315,14 @@ function onRowContext(e: MouseEvent, idx: number) {
   ctxMenu.value = { visible: true, x: e.clientX, y: e.clientY, type: 'row', index: idx }
 }
 function onColContext(e: MouseEvent, idx: number) {
+  ctxMenu.value = { visible: true, x: e.clientX, y: e.clientY, type: 'col', index: idx }
+}
+function onRowTap(e: MouseEvent, idx: number) {
+  if (device.value !== 'tb') return
+  ctxMenu.value = { visible: true, x: e.clientX, y: e.clientY, type: 'row', index: idx }
+}
+function onColTap(e: MouseEvent, idx: number) {
+  if (device.value !== 'tb') return
   ctxMenu.value = { visible: true, x: e.clientX, y: e.clientY, type: 'col', index: idx }
 }
 
@@ -364,19 +380,26 @@ function deleteCol(idx: number) {
 // 长按拖动交换
 let longPressTimer: ReturnType<typeof setTimeout> | null = null
 let dragSource: { row: number; col: number } | null = null
+let pressStart = { x: 0, y: 0 }
+let suppressCellClick = false
 const dragGhost = ref<{ x: number; y: number; visible: boolean }>({ x: 0, y: 0, visible: false })
 
 function onCellPointerDown(e: PointerEvent, r: number, c: number) {
   if (e.button !== 0) return
   const sx = e.clientX
   const sy = e.clientY
-  longPressTimer = setTimeout(() => {
-    // 长按触发：标记拖拽源
-    dragSource = { row: r, col: c }
-    const el = e.currentTarget as HTMLElement
-    el.classList.add('dragging')
-    dragGhost.value = { x: sx, y: sy, visible: true }
-  }, 150)
+  pressStart = { x: sx, y: sy }
+  longPressTimer = setTimeout(
+    () => {
+      // 长按触发：标记拖拽源
+      dragSource = { row: r, col: c }
+      const el = e.currentTarget as HTMLElement
+      el.classList.add('dragging')
+      dragGhost.value = { x: sx, y: sy, visible: true }
+      suppressCellClick = true
+    },
+    device.value === 'tb' && e.pointerType === 'touch' ? 360 : 150,
+  )
 }
 
 function onPointerMove(e: PointerEvent) {
@@ -385,7 +408,7 @@ function onPointerMove(e: PointerEvent) {
     return
   }
   if (!longPressTimer) return
-  if (Math.abs(e.movementX) > 3 || Math.abs(e.movementY) > 3) {
+  if (Math.hypot(e.clientX - pressStart.x, e.clientY - pressStart.y) > 8) {
     clearTimeout(longPressTimer!)
     longPressTimer = null
   }
@@ -412,6 +435,9 @@ function onPointerUp(e: PointerEvent) {
     }
   }
   dragSource = null
+  setTimeout(() => {
+    suppressCellClick = false
+  }, 0)
 }
 
 onMounted(() => {
@@ -428,6 +454,9 @@ onMounted(() => {
   window.addEventListener('click', closeCtxMenu)
 })
 onUnmounted(() => {
+  if (longPressTimer) clearTimeout(longPressTimer)
+  longPressTimer = null
+  dragSource = null
   resizeObserver?.disconnect()
   window.removeEventListener('pointermove', onPointerMove)
   window.removeEventListener('pointerup', onPointerUp)
@@ -439,7 +468,8 @@ onUnmounted(() => {
 .cgp-root {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   padding: 6px 8px;
 }
 .cgp-header {
@@ -520,6 +550,12 @@ onUnmounted(() => {
   overflow: hidden;
   cursor: pointer;
   position: relative;
+}
+
+body#tb .cgp-cell,
+body#tb .cgp-row-label,
+body#tb .cgp-col-label {
+  touch-action: none;
 }
 .cgp-cell:hover {
   outline: 2px solid #bbb;

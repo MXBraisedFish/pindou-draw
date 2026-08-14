@@ -3,7 +3,7 @@ import { ref } from 'vue'
 
 export type ToolType = 'move' | 'pencil' | 'eraser' | 'bucket' | 'select' | 'picker' | 'geometry'
 export type SelectShape = 'rect' | 'ellipse' | 'line' | 'lasso'
-export type SelectMode = 'add' | 'remove'
+export type SelectMode = 'replace' | 'add' | 'remove'
 export type GeometryShape = 'line' | 'rect' | 'ellipse'
 
 export const useToolStore = defineStore('tool', () => {
@@ -12,7 +12,7 @@ export const useToolStore = defineStore('tool', () => {
   const eraserSize = ref(1)
 
   const selectShape = ref<SelectShape>('rect')
-  const selectMode = ref<SelectMode>('add')
+  const selectMode = ref<SelectMode>('replace')
 
   const geometryShape = ref<GeometryShape>('line')
   const geometryFill = ref(false)

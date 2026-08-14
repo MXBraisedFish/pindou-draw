@@ -398,6 +398,7 @@ import { computed, defineComponent, h, nextTick, onBeforeUnmount, onMounted, ref
 import { useExportStore } from '@/stores/exportStore'
 import { useCanvasStore } from '@/stores/canvas'
 import ExportHighlightModal from '@/components/ExportHighlightModal.vue'
+import { useDevice } from '@/composables/useDevice'
 import iconBack from '@/assets/icon/退出返回.png'
 import iconOutput from '@/assets/icon/输出.png'
 import iconSketchAppearance from '@/assets/icon/草图外观.png'
@@ -412,6 +413,7 @@ import iconIndividual from '@/assets/icon/逐张.png'
 const emit = defineEmits<{ close: [] }>()
 const exportStore = useExportStore()
 const canvasStore = useCanvasStore()
+const { device } = useDevice()
 const wrapRef = ref<HTMLElement | null>(null)
 const previewCanvas = ref<HTMLCanvasElement | null>(null)
 const previewCanvasStyle = ref<Record<string, string>>({})
@@ -431,6 +433,15 @@ const hStartPos = ref<'center' | 'start' | 'end'>('center')
 const vStartPos = ref<'center' | 'start' | 'end'>('center')
 let isPanning = false
 let panStart = { x: 0, y: 0, panX: 0, panY: 0 }
+const previewPointers = new Map<number, { x: number; y: number }>()
+let previewPinchStart: {
+  distance: number
+  centerX: number
+  centerY: number
+  zoom: number
+  panX: number
+  panY: number
+} | null = null
 let refreshTimer: ReturnType<typeof setTimeout> | null = null
 
 const isGroup = computed(() => Boolean(canvasStore.canvasGroup && !exportStore.exportLayerId))
@@ -741,17 +752,61 @@ function onWheel(event: WheelEvent) {
 }
 function onPanStart(event: PointerEvent) {
   if (event.button !== 0) return
+  if (device.value === 'tb' && event.pointerType === 'touch') {
+    previewPointers.set(event.pointerId, { x: event.clientX, y: event.clientY })
+    wrapRef.value?.setPointerCapture(event.pointerId)
+    if (previewPointers.size >= 2) {
+      isPanning = false
+      const points = [...previewPointers.values()].slice(0, 2)
+      const first = points[0]!
+      const second = points[1]!
+      previewPinchStart = {
+        distance: Math.max(1, Math.hypot(second.x - first.x, second.y - first.y)),
+        centerX: (first.x + second.x) / 2,
+        centerY: (first.y + second.y) / 2,
+        zoom: zoom.value,
+        panX: panX.value,
+        panY: panY.value,
+      }
+    }
+    return
+  }
   isPanning = true
   panStart = { x: event.clientX, y: event.clientY, panX: panX.value, panY: panY.value }
   wrapRef.value?.setPointerCapture(event.pointerId)
 }
 function onPanMove(event: PointerEvent) {
+  if (device.value === 'tb' && event.pointerType === 'touch') {
+    if (!previewPointers.has(event.pointerId)) return
+    previewPointers.set(event.pointerId, { x: event.clientX, y: event.clientY })
+    if (previewPinchStart && previewPointers.size >= 2) {
+      const points = [...previewPointers.values()].slice(0, 2)
+      const first = points[0]!
+      const second = points[1]!
+      const distance = Math.max(1, Math.hypot(second.x - first.x, second.y - first.y))
+      const centerX = (first.x + second.x) / 2
+      const centerY = (first.y + second.y) / 2
+      zoom.value = Math.max(
+        0.08,
+        Math.min(5, previewPinchStart.zoom * (distance / previewPinchStart.distance)),
+      )
+      panX.value = previewPinchStart.panX + centerX - previewPinchStart.centerX
+      panY.value = previewPinchStart.panY + centerY - previewPinchStart.centerY
+      updateCanvasStyle()
+    }
+    return
+  }
   if (!isPanning) return
   panX.value = panStart.panX + event.clientX - panStart.x
   panY.value = panStart.panY + event.clientY - panStart.y
   updateCanvasStyle()
 }
 function onPanEnd(event: PointerEvent) {
+  if (device.value === 'tb' && event.pointerType === 'touch') {
+    previewPointers.delete(event.pointerId)
+    if (previewPointers.size < 2) previewPinchStart = null
+    return
+  }
   isPanning = false
   if (wrapRef.value?.hasPointerCapture(event.pointerId))
     wrapRef.value.releasePointerCapture(event.pointerId)

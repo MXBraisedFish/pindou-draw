@@ -194,7 +194,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { clampCanvasSize, clampGroupSize, useCanvasStore } from '@/stores/canvas'
 import { useProjectStore } from '@/stores/project'
 import { usePaletteStore } from '@/stores/palette'
@@ -276,6 +276,13 @@ function closeNewModal() {
   showNewModal.value = false
   newStep.value = 'menu'
 }
+
+function openNewModal() {
+  showNewModal.value = true
+}
+
+onMounted(() => window.addEventListener('pindou-open-new', openNewModal))
+onBeforeUnmount(() => window.removeEventListener('pindou-open-new', openNewModal))
 
 function openImagePicker() {
   if (!imageFileInput.value) return

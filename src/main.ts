@@ -1,12 +1,37 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 
-import App from './App.vue'
-import router from './router'
+import loadingAnimation from '@/assets/icon/加载动画.gif'
+import { preloadApplicationAssets } from '@/ts/preloadAssets'
 
-const app = createApp(App)
+async function bootstrap() {
+  const root = document.querySelector<HTMLElement>('#app')
+  if (root) {
+    root.innerHTML = `
+      <div style="position:fixed;inset:0;display:grid;place-items:center;background:#f8fafc;color:#64748b;font:14px system-ui,sans-serif">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+          <img src="${loadingAnimation}" alt="正在加载" width="96" height="96" style="object-fit:contain" />
+          <span>正在加载资源…</span>
+        </div>
+      </div>`
+  }
 
-app.use(createPinia())
-app.use(router)
+  await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+  await preloadApplicationAssets()
 
-app.mount('#app')
+  const [{ default: App }, { default: router }, { usePaletteStore }] = await Promise.all([
+    import('./App.vue'),
+    import('./router'),
+    import('./stores/palette'),
+  ])
+  const app = createApp(App)
+  const pinia = createPinia()
+
+  app.use(pinia)
+  app.use(router)
+  await usePaletteStore(pinia).loadBuiltinCards()
+
+  app.mount('#app')
+}
+
+void bootstrap()

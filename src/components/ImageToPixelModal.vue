@@ -128,6 +128,7 @@ import { useCanvasStore, clampInteger, rawPixelGrid } from '@/stores/canvas'
 import { usePaletteStore } from '@/stores/palette'
 import { useProjectStore } from '@/stores/project'
 import { quantizeImage } from '@/ts/photoToPixel'
+import { useDevice } from '@/composables/useDevice'
 import iconClose from '@/assets/icon/关闭取消.png'
 
 type EditorTool = 'ratio' | 'dither' | 'transform' | 'palette'
@@ -153,6 +154,7 @@ const emit = defineEmits<{ close: [] }>()
 const canvasStore = useCanvasStore()
 const paletteStore = usePaletteStore()
 const projectStore = useProjectStore()
+const { device } = useDevice()
 
 const stageRef = ref<HTMLElement | null>(null)
 const editorCanvas = ref<HTMLCanvasElement | null>(null)
@@ -205,6 +207,12 @@ let previewCanvas: HTMLCanvasElement | null = null
 let previewPending = false
 let dividerRatio = 0.5
 let lastViewport = { width: 1, height: 1 }
+let tabletPressTimer: ReturnType<typeof setTimeout> | null = null
+let tabletPendingPointer: {
+  id: number
+  point: Point
+  mode: Exclude<DragMode, null>
+} | null = null
 
 const outputSize = computed(() => {
   const safeScale = clampInteger(scalePercent.value, 1, 200, 100)
@@ -499,6 +507,7 @@ function detectMode(x: number, y: number): DragMode {
   if (withinX && Math.abs(y - crop.y - crop.height) <= threshold) return 's'
   if (withinY && Math.abs(x - crop.x) <= threshold) return 'w'
   if (withinY && Math.abs(x - crop.x - crop.width) <= threshold) return 'e'
+  if (device.value === 'tb' && outsideCrop) return 'rotate'
   if (x >= crop.x && x <= crop.x + crop.width && y >= crop.y && y <= crop.y + crop.height) {
     return 'pan'
   }
@@ -519,16 +528,31 @@ function cursorFor(mode: DragMode) {
 function onPointerDown(event: PointerEvent) {
   if (event.button !== 0 || !editorCanvas.value) return
   const point = canvasPoint(event)
-  dragMode = detectMode(point.x, point.y)
-  if (!dragMode) return
+  const mode = detectMode(point.x, point.y)
+  if (!mode) return
+  if (device.value === 'tb' && event.pointerType === 'touch') {
+    tabletPendingPointer = { id: event.pointerId, point, mode }
+    editorCanvas.value.setPointerCapture(event.pointerId)
+    tabletPressTimer = setTimeout(() => {
+      if (!tabletPendingPointer) return
+      beginEditorDrag(tabletPendingPointer.point, tabletPendingPointer.mode)
+      tabletPressTimer = null
+    }, 360)
+    return
+  }
+  beginEditorDrag(point, mode)
+  editorCanvas.value.setPointerCapture(event.pointerId)
+}
+
+function beginEditorDrag(point: Point, mode: Exclude<DragMode, null>) {
+  dragMode = mode
   pointerStart = point
   dragCropStart = { ...crop }
   dragPanStart = { x: imagePanX, y: imagePanY }
   dragRotationStart = rotation.value
   const center = imageCenter()
   dragAngleStart = Math.atan2(point.y - center.y, point.x - center.x)
-  editorCanvas.value.setPointerCapture(event.pointerId)
-  editorCanvas.value.style.cursor = cursorFor(dragMode)
+  if (editorCanvas.value) editorCanvas.value.style.cursor = cursorFor(dragMode)
 }
 
 function resizeCrop(mode: ResizeHandle, dx: number, dy: number) {
@@ -657,6 +681,16 @@ function snapCropToImage(
 function onPointerMove(event: PointerEvent) {
   if (!editorCanvas.value) return
   const point = canvasPoint(event)
+  if (
+    tabletPendingPointer?.id === event.pointerId &&
+    !dragMode &&
+    Math.hypot(point.x - tabletPendingPointer.point.x, point.y - tabletPendingPointer.point.y) > 9
+  ) {
+    if (tabletPressTimer) clearTimeout(tabletPressTimer)
+    tabletPressTimer = null
+    tabletPendingPointer = null
+    return
+  }
   if (!dragMode) {
     hoverMode = detectMode(point.x, point.y)
     editorCanvas.value.style.cursor = cursorFor(hoverMode)
@@ -683,6 +717,9 @@ function onPointerMove(event: PointerEvent) {
 }
 
 function onPointerUp(event: PointerEvent) {
+  if (tabletPressTimer) clearTimeout(tabletPressTimer)
+  tabletPressTimer = null
+  tabletPendingPointer = null
   if (editorCanvas.value?.hasPointerCapture(event.pointerId)) {
     editorCanvas.value.releasePointerCapture(event.pointerId)
   }
@@ -693,6 +730,9 @@ function onPointerUp(event: PointerEvent) {
 }
 
 function onPointerLeave() {
+  if (tabletPressTimer) clearTimeout(tabletPressTimer)
+  tabletPressTimer = null
+  tabletPendingPointer = null
   if (!dragMode && editorCanvas.value) editorCanvas.value.style.cursor = 'default'
 }
 
@@ -842,6 +882,9 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  if (tabletPressTimer) clearTimeout(tabletPressTimer)
+  tabletPressTimer = null
+  tabletPendingPointer = null
   resizeObserver?.disconnect()
   if (previewTimer) clearTimeout(previewTimer)
   if (sourceUrl) URL.revokeObjectURL(sourceUrl)

@@ -6,6 +6,7 @@ import { useHistoryStore } from '@/stores/history'
 import { useSelectionStore } from '@/stores/selection'
 import { screenToGrid } from '@/ts/canvasRenderer'
 import type { SymmetryMode } from '@/stores/canvas'
+import { useDevice } from '@/composables/useDevice'
 
 export function useTool(
   canvasRef: Ref<HTMLCanvasElement | null>,
@@ -16,6 +17,7 @@ export function useTool(
   const paletteStore = usePaletteStore()
   const historyStore = useHistoryStore()
   const selectionStore = useSelectionStore()
+  const { device } = useDevice()
 
   let isDrawing = false
   let lastCol = -1
@@ -23,12 +25,22 @@ export function useTool(
   let isPanning = false
   let isMoving = false
   let isGeometry = false
+  let historyActionActive = false
   let geoStartCol = 0
   let geoStartRow = 0
   let panStartX = 0
   let panStartY = 0
   let panStartPanX = 0
   let panStartPanY = 0
+  const touchPointers = new Map<number, { x: number; y: number }>()
+  let pinchStart: {
+    distance: number
+    centerX: number
+    centerY: number
+    zoom: number
+    panX: number
+    panY: number
+  } | null = null
 
   // 移动工具
   let moveStartCol = 0
@@ -52,6 +64,21 @@ export function useTool(
       cols: canvasStore.cols,
       rows: canvasStore.rows,
     })
+    historyActionActive = true
+  }
+
+  function finishHistory() {
+    if (!historyActionActive) return
+    const snap = canvasStore.getActiveLayerSnapshot()
+    if (snap) {
+      historyStore.push({
+        layerId: snap.layerId,
+        grid: snap.grid,
+        cols: canvasStore.cols,
+        rows: canvasStore.rows,
+      })
+    }
+    historyActionActive = false
   }
 
   function getSymmetryPoints(c: number, r: number): [number, number][] {
@@ -189,6 +216,36 @@ export function useTool(
     const canvas = getCanvas()
     if (!canvas) return
 
+    if (device.value === 'tb' && e.pointerType === 'touch') {
+      touchPointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      canvas.setPointerCapture?.(e.pointerId)
+      if (touchPointers.size >= 2) {
+        if (isDrawing || isGeometry || isMoving) {
+          const entry = historyStore.stack[historyStore.index]
+          if (entry) canvasStore.applyLayerSnapshot(entry.layerId, entry.grid)
+        }
+        isDrawing = false
+        isGeometry = false
+        isMoving = false
+        isPanning = false
+        canvasStore.geoPreview = null
+        historyActionActive = false
+        if (selectionStore.isSelecting) selectionStore.endSelection()
+        const points = [...touchPointers.values()].slice(0, 2)
+        const first = points[0]!
+        const second = points[1]!
+        pinchStart = {
+          distance: Math.max(1, Math.hypot(second.x - first.x, second.y - first.y)),
+          centerX: (first.x + second.x) / 2,
+          centerY: (first.y + second.y) / 2,
+          zoom: canvasStore.zoom,
+          panX: canvasStore.panX,
+          panY: canvasStore.panY,
+        }
+        return
+      }
+    }
+
     // 若正在扩裁画布，任何工具操作都取消扩裁
     if (canvasStore.resizePreview) {
       canvasStore.cancelResize()
@@ -292,6 +349,24 @@ export function useTool(
     const canvas = getCanvas()
     if (!canvas) return
 
+    if (device.value === 'tb' && e.pointerType === 'touch' && touchPointers.has(e.pointerId)) {
+      touchPointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (pinchStart && touchPointers.size >= 2) {
+        const points = [...touchPointers.values()].slice(0, 2)
+        const first = points[0]!
+        const second = points[1]!
+        const distance = Math.max(1, Math.hypot(second.x - first.x, second.y - first.y))
+        const centerX = (first.x + second.x) / 2
+        const centerY = (first.y + second.y) / 2
+        canvasStore.setZoom(pinchStart.zoom * (distance / pinchStart.distance))
+        canvasStore.setPan(
+          pinchStart.panX + centerX - pinchStart.centerX,
+          pinchStart.panY + centerY - pinchStart.centerY,
+        )
+        return
+      }
+    }
+
     if (isPanning) {
       canvasStore.setPan(
         panStartPanX + (e.clientX - panStartX),
@@ -355,6 +430,17 @@ export function useTool(
   }
 
   function onPointerUp(e: PointerEvent) {
+    if (device.value === 'tb' && e.pointerType === 'touch') {
+      touchPointers.delete(e.pointerId)
+      if (pinchStart) {
+        if (touchPointers.size < 2) pinchStart = null
+        isDrawing = false
+        isPanning = false
+        lastCol = -1
+        lastRow = -1
+        return
+      }
+    }
     if (isGeometry) {
       isGeometry = false
       const preview = canvasStore.geoPreview
@@ -362,12 +448,14 @@ export function useTool(
       if (preview) {
         applyGeometry(preview)
       }
+      finishHistory()
       return
     }
     if (isMoving) {
       isMoving = false
       moveLayerSnap = null
       moveSelSnap = null
+      finishHistory()
       return
     }
     if (selectionStore.isSelecting) {
@@ -378,6 +466,7 @@ export function useTool(
     isPanning = false
     lastCol = -1
     lastRow = -1
+    finishHistory()
   }
 
   function onWheel(e: WheelEvent) {
@@ -422,35 +511,25 @@ export function useTool(
     const { cols, rows } = canvasStore
     const hasSel = moveSelSnap !== null
 
-    // 收集要移动的像素
+    // 选区移动包含透明格，确保透明部分同样能覆盖目标区域。
     const moves: { c: number; r: number; color: string }[] = []
     for (let r = 0; r < rows; r++) {
-      const row = layer.grid[r]!
+      const snapshotRow = moveLayerSnap[r]
+      const row = layer.grid[r]
+      if (!snapshotRow || !row) continue
       for (let c = 0; c < cols; c++) {
-        const hex = row[c]!
-        if (!hex) continue
-        if (hasSel && !moveSelSnap![r]?.[c]) continue
-        if (!hasSel) moves.push({ c, r, color: hex })
-        row[c] = ''
+        if (hasSel) {
+          if (!moveSelSnap![r]?.[c]) continue
+          moves.push({ c, r, color: snapshotRow[c] ?? '' })
+          row[c] = ''
+        } else if (snapshotRow[c]) {
+          moves.push({ c, r, color: snapshotRow[c]! })
+          row[c] = ''
+        }
       }
     }
 
     if (hasSel) {
-      // 重新收集（快照中的选区像素）
-      for (let r = 0; r < Math.min(rows, moveSelSnap!.length); r++) {
-        const selRow = moveSelSnap![r]!
-        for (let c = 0; c < Math.min(cols, selRow.length); c++) {
-          if (selRow[c] && moveLayerSnap[r]?.[c]) {
-            moves.push({ c, r, color: moveLayerSnap[r]![c]! })
-          }
-        }
-      }
-      // 清除所有被选区覆盖的像素
-      for (const m of moves) {
-        const row = layer.grid[m.r]
-        if (row) row[m.c] = ''
-      }
-
       // 更新选区位置
       const newMask = makeMoveMask(cols, rows)
       for (let r = 0; r < Math.min(rows, moveSelSnap!.length); r++) {

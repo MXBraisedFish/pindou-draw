@@ -1,7 +1,7 @@
 <template>
   <div class="canvas-area">
     <!-- 画布组标签栏 -->
-    <div v-if="canvasStore.canvasGroup && !canvasStore.showGroupPreview" class="canvas-tabs">
+    <div v-if="canvasStore.canvasGroup" class="canvas-tabs">
       <button class="ctab-btn" title="查看画布组预览" @click="openPreview()">查看画布组</button>
       <button v-if="canScrollLeft" class="ctab-arrow" @click="scrollTabs(-1)">◀</button>
       <div class="ctab-scroll" ref="tabScrollRef" @scroll="onTabScroll()">
@@ -11,7 +11,9 @@
           class="ctab-tab"
           :class="{
             active:
-              tab.row === canvasStore.activeGroupRow && tab.col === canvasStore.activeGroupCol,
+              !canvasStore.showGroupPreview &&
+              tab.row === canvasStore.activeGroupRow &&
+              tab.col === canvasStore.activeGroupCol,
           }"
           @click="canvasStore.switchToSubCanvas(tab.row, tab.col)"
         >
@@ -189,6 +191,20 @@ watch(
   () => canvasStore.openGroupTabs.length,
   () => nextTick(checkTabScroll),
 )
+
+watch(
+  () => [canvasStore.cols, canvasStore.rows] as const,
+  ([cols, rows]) => selectionStore.resize(cols, rows),
+)
+
+watch(
+  () => [canvasStore.activeGroupRow, canvasStore.activeGroupCol] as const,
+  (next, previous) => {
+    if (previous && (next[0] !== previous[0] || next[1] !== previous[1])) {
+      selectionStore.clearSelection()
+    }
+  },
+)
 </script>
 
 <style scoped>
@@ -301,5 +317,9 @@ watch(
 .main-canvas {
   cursor: crosshair;
   image-rendering: pixelated;
+}
+
+body#tb .main-canvas {
+  touch-action: none;
 }
 </style>

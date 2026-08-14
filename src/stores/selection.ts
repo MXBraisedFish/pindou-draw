@@ -2,9 +2,10 @@ import { defineStore } from 'pinia'
 import { markRaw, ref, shallowRef, computed } from 'vue'
 import { useToolStore } from '@/stores/tool'
 import { useCanvasStore } from '@/stores/canvas'
+import { useHistoryStore } from '@/stores/history'
 
 export type SelectShape = 'rect' | 'ellipse' | 'line' | 'lasso'
-export type SelectMode = 'add' | 'remove'
+export type SelectMode = 'replace' | 'add' | 'remove'
 
 function makeEmptyMask(cols: number, rows: number): boolean[][] {
   const m: boolean[][] = []
@@ -33,7 +34,7 @@ export const useSelectionStore = defineStore('selection', () => {
   const lassoPoints = ref<[number, number][]>([])
 
   const selectShape = ref<SelectShape>('rect')
-  const selectMode = ref<SelectMode>('add')
+  const selectMode = ref<SelectMode>('replace')
 
   const hasSelection = computed(() => {
     // Include the explicit mutation version in the dependency set.
@@ -42,7 +43,10 @@ export const useSelectionStore = defineStore('selection', () => {
 
   const previewMask = computed(() => {
     if (!isSelecting.value) return null
-    const mask = cloneMask(selectionMask.value)
+    const mask =
+      selectMode.value === 'replace'
+        ? makeEmptyMask(selectionMask.value[0]?.length ?? 0, selectionMask.value.length)
+        : cloneMask(selectionMask.value)
 
     if (selectShape.value === 'lasso') {
       if (lassoPoints.value.length < 2) return mask
@@ -95,6 +99,15 @@ export const useSelectionStore = defineStore('selection', () => {
     bumpVersion()
   }
 
+  function selectAll() {
+    const rows = selectionMask.value.length
+    const cols = selectionMask.value[0]?.length ?? 0
+    selectionMask.value = markRaw(
+      Array.from({ length: rows }, () => new Array<boolean>(cols).fill(true)),
+    )
+    bumpVersion()
+  }
+
   function invertSelection() {
     const m = selectionMask.value
     for (const row of m) {
@@ -143,8 +156,11 @@ export const useSelectionStore = defineStore('selection', () => {
     if (!isSelecting.value) return
     isSelecting.value = false
 
-    const mask = selectionMask.value
     const mode = selectMode.value
+    const mask =
+      mode === 'replace'
+        ? makeEmptyMask(selectionMask.value[0]?.length ?? 0, selectionMask.value.length)
+        : cloneMask(selectionMask.value)
 
     if (selectShape.value === 'lasso') {
       if (lassoPoints.value.length >= 2) {
@@ -169,6 +185,7 @@ export const useSelectionStore = defineStore('selection', () => {
         applyLine(mask, r1, c1, r2, c2, mode)
       }
     }
+    selectionMask.value = mask
     bumpVersion()
   }
 
@@ -182,7 +199,7 @@ export const useSelectionStore = defineStore('selection', () => {
     cMax: number,
     mode: SelectMode,
   ) {
-    const val = mode === 'add'
+    const val = mode !== 'remove'
     for (let r = rMin; r <= rMax; r++) {
       const row = mask[r]
       if (!row) continue
@@ -200,7 +217,7 @@ export const useSelectionStore = defineStore('selection', () => {
     cMax: number,
     mode: SelectMode,
   ) {
-    const val = mode === 'add'
+    const val = mode !== 'remove'
     const cx = (cMin + cMax) / 2
     const cy = (rMin + rMax) / 2
     const rx = (cMax - cMin + 1) / 2
@@ -226,7 +243,7 @@ export const useSelectionStore = defineStore('selection', () => {
     c2: number,
     mode: SelectMode,
   ) {
-    const val = mode === 'add'
+    const val = mode !== 'remove'
     const dr = Math.abs(r2 - r1)
     const dc = Math.abs(c2 - c1)
     const sr = r1 < r2 ? 1 : -1
@@ -254,7 +271,7 @@ export const useSelectionStore = defineStore('selection', () => {
   }
 
   function fillLasso(mask: boolean[][], points: [number, number][], mode: SelectMode) {
-    const val = mode === 'add'
+    const val = mode !== 'remove'
     if (points.length < 3) return
     // Ray casting: for each row, find intersections with polygon edges
     const rows = mask.length
@@ -286,11 +303,8 @@ export const useSelectionStore = defineStore('selection', () => {
   const clipboard = ref<{
     width: number
     height: number
-    cells: (string | null)[][]
-    rMin: number
-    cMin: number
-    offR: number
-    offC: number
+    cells: string[][]
+    mask: boolean[][]
   } | null>(null)
   const hasClipboard = computed(() => clipboard.value !== null)
 
@@ -318,34 +332,56 @@ export const useSelectionStore = defineStore('selection', () => {
     if (rMin > rMax || cMin > cMax) return
     const h = rMax - rMin + 1
     const w = cMax - cMin + 1
-    const cells: (string | null)[][] = []
+    const cells: string[][] = []
+    const clipMask: boolean[][] = []
     for (let r = rMin; r <= rMax; r++) {
-      const row: (string | null)[] = []
+      const row: string[] = []
+      const maskRow: boolean[] = []
       for (let c = cMin; c <= cMax; c++) {
-        row.push(mask[r]![c] ? src[r]![c] || null : null)
+        const selected = mask[r]![c] ?? false
+        row.push(selected ? (src[r]![c] ?? '') : '')
+        maskRow.push(selected)
       }
       cells.push(row)
+      clipMask.push(maskRow)
     }
-    // 记录光标相对选区左上角的偏移
-    const offR = canvasStore.cursorRow - rMin
-    const offC = canvasStore.cursorCol - cMin
-    clipboard.value = { width: w, height: h, cells, rMin, cMin, offR, offC }
+    clipboard.value = { width: w, height: h, cells, mask: clipMask }
+  }
+
+  function savePixelHistory() {
+    const canvasStore = useCanvasStore()
+    const snapshot = canvasStore.getActiveLayerSnapshot()
+    if (!snapshot) return
+    useHistoryStore().push({
+      layerId: snapshot.layerId,
+      grid: snapshot.grid,
+      cols: canvasStore.cols,
+      rows: canvasStore.rows,
+    })
+  }
+
+  function deleteSelectionContent() {
+    if (!hasSelection.value) return
+    const canvasStore = useCanvasStore()
+    const layer = canvasStore.activeLayer()
+    if (!layer) return
+    savePixelHistory()
+    for (let r = 0; r < selectionMask.value.length; r++) {
+      const maskRow = selectionMask.value[r]!
+      const gridRow = layer.grid[r]
+      if (!gridRow) continue
+      for (let c = 0; c < maskRow.length; c++) {
+        if (maskRow[c]) gridRow[c] = ''
+      }
+    }
+    canvasStore.flushComposite()
+    savePixelHistory()
   }
 
   function cutSelection() {
     if (!hasSelection.value) return
     copySelection()
-    const canvasStore = useCanvasStore()
-    const layer = canvasStore.activeLayer()
-    if (!layer) return
-    const mask = selectionMask.value
-    const grid = layer.grid
-    for (let r = 0; r < mask.length; r++) {
-      for (let c = 0; c < mask[r]!.length; c++) {
-        if (mask[r]![c]) grid[r]![c] = ''
-      }
-    }
-    canvasStore.flushComposite()
+    deleteSelectionContent()
   }
 
   function pasteSelection(atRow: number, atCol: number) {
@@ -357,20 +393,25 @@ export const useSelectionStore = defineStore('selection', () => {
     const grid = layer.grid
     const rows = grid.length
     const cols = grid[0]?.length ?? 0
-    // 使用复制时的光标偏移量，保持相对位置
-    const startR = atRow - (cb.offR ?? 0)
-    const startC = atCol - (cb.offC ?? 0)
+    savePixelHistory()
+    const startR = Math.max(0, Math.min(rows - 1, atRow))
+    const startC = Math.max(0, Math.min(cols - 1, atCol))
+    const nextMask = makeEmptyMask(cols, rows)
     for (let r = 0; r < cb.height; r++) {
       const tr = startR + r
       if (tr < 0 || tr >= rows) continue
       for (let c = 0; c < cb.width; c++) {
         const tc = startC + c
         if (tc < 0 || tc >= cols) continue
-        const val = cb.cells[r]?.[c] ?? null
-        if (val !== null) grid[tr]![tc] = val
+        if (!cb.mask[r]?.[c]) continue
+        grid[tr]![tc] = cb.cells[r]?.[c] ?? ''
+        nextMask[tr]![tc] = true
       }
     }
+    selectionMask.value = nextMask
+    bumpVersion()
     canvasStore.flushComposite()
+    savePixelHistory()
   }
 
   return {
@@ -394,7 +435,9 @@ export const useSelectionStore = defineStore('selection', () => {
     bumpVersion,
     resize,
     clearSelection,
+    selectAll,
     invertSelection,
+    deleteSelectionContent,
     isSelected,
     beginSelection,
     updateSelection,

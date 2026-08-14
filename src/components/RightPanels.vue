@@ -1,5 +1,13 @@
 <template>
-  <div class="right-panels">
+  <div class="right-panels" :class="{ 'tablet-collapsed': collapsed }">
+    <button
+      class="tablet-panel-toggle"
+      :title="collapsed ? '展开工具栏' : '收起工具栏'"
+      :aria-label="collapsed ? '展开工具栏' : '收起工具栏'"
+      @click="collapsed = !collapsed"
+    >
+      {{ collapsed ? '‹' : '›' }}
+    </button>
     <div class="panel-tabs">
       <button
         v-for="tab in tabs"
@@ -34,6 +42,7 @@ import PanelCanvas from '@/components/PanelCanvas.vue'
 
 const activeTab = ref<'palette' | 'layers' | 'canvas'>('palette')
 const canvasStore = useCanvasStore()
+const collapsed = ref(false)
 
 const tabs = [
   { key: 'palette' as const, label: '色板' },
@@ -50,6 +59,10 @@ const tabs = [
   border-left: 1px solid #e5e7eb;
   overflow: hidden;
   position: relative;
+}
+
+.tablet-panel-toggle {
+  display: none;
 }
 
 .panel-lock {

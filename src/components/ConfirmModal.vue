@@ -5,8 +5,12 @@
         <h3 class="confirm-title">{{ title }}</h3>
         <p class="confirm-message" v-html="message"></p>
         <div class="confirm-actions">
-          <button class="confirm-btn confirm-btn-cancel" @click="$emit('cancel')">{{ cancelText }}</button>
-          <button class="confirm-btn confirm-btn-ok" @click="$emit('confirm')">{{ confirmText }}</button>
+          <button class="confirm-btn confirm-btn-cancel" @click="$emit('cancel')">
+            {{ cancelText }}
+          </button>
+          <button class="confirm-btn confirm-btn-ok" @click="$emit('confirm')">
+            {{ confirmText }}
+          </button>
         </div>
       </div>
     </div>
@@ -35,12 +39,16 @@ defineEmits<{
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10000;
+  z-index: 40000;
   animation: confirm-fade-in 0.15s ease-out;
 }
 @keyframes confirm-fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 .confirm-card {
   background: #fff;

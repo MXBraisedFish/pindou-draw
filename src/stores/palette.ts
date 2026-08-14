@@ -4,22 +4,26 @@ import type { ColorEntry, ColorCard } from '@/ts/colorCard'
 import { validateColorCard } from '@/ts/colorCard'
 import { findBestMatch } from '@/ts/colorDistance'
 import { useCanvasStore } from '@/stores/canvas'
+import { getPreloadedJson } from '@/ts/preloadAssets'
 
-const cardModules = import.meta.glob<{ default: unknown }>(
-  '@/assets/color_card/*.json',
-)
+const cardUrls = import.meta.glob<string>('@/assets/color_card/*.json', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+})
 
 async function loadAllCards(): Promise<ColorCard[]> {
   const cards: ColorCard[] = []
-  for (const [path, loader] of Object.entries(cardModules)) {
-    const mod = await loader()
-    const raw = mod.default
+  for (const url of Object.values(cardUrls)) {
+    const raw =
+      getPreloadedJson(url) ??
+      (await fetch(url, { cache: 'force-cache' }).then((response) => response.json()))
     if (validateColorCard(raw)) {
       cards.push(raw)
     }
   }
   // DMC 排第一作为默认
-  const dmcIdx = cards.findIndex(c => c.name === 'DMC')
+  const dmcIdx = cards.findIndex((c) => c.name === 'DMC')
   if (dmcIdx > 0) {
     const [dmc] = cards.splice(dmcIdx, 1)
     cards.unshift(dmc!)
@@ -41,12 +45,12 @@ export const usePaletteStore = defineStore('palette', () => {
     newCard: ColorCard
   } | null>(null)
 
-  const currentColor = computed(() =>
-    colorEntries.value.find(c => c.id === currentColorId.value)?.color1 ?? '#000000',
+  const currentColor = computed(
+    () => colorEntries.value.find((c) => c.id === currentColorId.value)?.color1 ?? '#000000',
   )
 
-  const currentEntry = computed(() =>
-    colorEntries.value.find(c => c.id === currentColorId.value) ?? null,
+  const currentEntry = computed(
+    () => colorEntries.value.find((c) => c.id === currentColorId.value) ?? null,
   )
 
   const colorMap = computed(() => {
@@ -58,7 +62,7 @@ export const usePaletteStore = defineStore('palette', () => {
   })
 
   function registerCard(card: ColorCard) {
-    const existing = cardList.value.find(c => c.name === card.name)
+    const existing = cardList.value.find((c) => c.name === card.name)
     if (!existing) {
       cardList.value.push(card)
     }
@@ -70,13 +74,13 @@ export const usePaletteStore = defineStore('palette', () => {
   const SPECIAL_TYPES = new Set(['transparent', 'pearl', 'glow', 'thermo', 'photo'])
 
   function switchCard(name: string) {
-    const card = cardList.value.find(c => c.name === name)
+    const card = cardList.value.find((c) => c.name === name)
     if (!card || card.name === activeCard.value?.name) return
 
     const canvasStore = useCanvasStore()
 
-    const hasPixels = canvasStore.layers.some(layer =>
-      layer.grid.some(row => row.some(cell => cell !== '')),
+    const hasPixels = canvasStore.layers.some((layer) =>
+      layer.grid.some((row) => row.some((cell) => cell !== '')),
     )
 
     if (!hasPixels) {
@@ -104,7 +108,7 @@ export const usePaletteStore = defineStore('palette', () => {
           const hex = row[c]
           if (!hex) continue
           // 特殊类型直接清空
-          if (SPECIAL_TYPES.has(colorEntries.value.find(e => e.color1 === hex)?.type ?? '')) {
+          if (SPECIAL_TYPES.has(colorEntries.value.find((e) => e.color1 === hex)?.type ?? '')) {
             row[c] = ''
             continue
           }
@@ -127,7 +131,7 @@ export const usePaletteStore = defineStore('palette', () => {
     activeCard.value = card
     colorEntries.value = [...card.colors]
     clearHighlights()
-    if (card.colors.length > 0 && !card.colors.find(c => c.id === currentColorId.value)) {
+    if (card.colors.length > 0 && !card.colors.find((c) => c.id === currentColorId.value)) {
       currentColorId.value = card.colors[0]!.id
     }
   }
@@ -164,7 +168,7 @@ export const usePaletteStore = defineStore('palette', () => {
   }
 
   function setColor(id: string) {
-    if (colorEntries.value.find(c => c.id === id)) {
+    if (colorEntries.value.find((c) => c.id === id)) {
       currentColorId.value = id
       if (!recentColorIds.value.includes(id)) {
         recentColorIds.value.unshift(id)
@@ -196,8 +200,6 @@ export const usePaletteStore = defineStore('palette', () => {
   }
 
   // load builtin cards on init
-  loadBuiltinCards()
-
   // --- 颜色高亮 ---
   const highlightedColorIds = ref<Set<string>>(new Set())
   const highlightActive = ref(false)
@@ -233,7 +235,7 @@ export const usePaletteStore = defineStore('palette', () => {
       }
     }
     if (hexSet.size === 0) return null
-    return grid.map(row => row.map(hex => hex !== '' && hexSet.has(hex)))
+    return grid.map((row) => row.map((hex) => hex !== '' && hexSet.has(hex)))
   }
 
   return {

@@ -105,12 +105,14 @@
 import { ref, reactive, computed, nextTick, onUnmounted, watch } from 'vue'
 import { useCanvasStore } from '@/stores/canvas'
 import { useExportStore } from '@/stores/exportStore'
+import { useDevice } from '@/composables/useDevice'
 import type { Layer } from '@/stores/canvas'
 import iconVisible from '@/assets/icon/可见.png'
 import iconHidden from '@/assets/icon/隐藏.png'
 
 const canvasStore = useCanvasStore()
 const exportStore = useExportStore()
+const { device } = useDevice()
 const thumbRefs = new Map<string, HTMLCanvasElement>()
 
 function setThumbRef(layerId: string, el: HTMLCanvasElement | null) {
@@ -156,6 +158,7 @@ const DRAG_THRESHOLD = 3
 
 let pendingDragLayerId = ''
 let pendingDragLayerIndex = -1
+let tabletLongPressTimer: ReturnType<typeof setTimeout> | null = null
 
 // --- 右键菜单状态 ---
 const contextMenu = reactive({
@@ -180,8 +183,38 @@ function onPointerDown(e: PointerEvent, layer: Layer, index: number) {
   pendingDragLayerId = layer.id
   pendingDragLayerIndex = index
 
+  if (device.value === 'tb' && e.pointerType === 'touch') {
+    tabletLongPressTimer = setTimeout(() => beginDrag(), 360)
+    document.addEventListener('pointermove', onTabletPressMove)
+    document.addEventListener('pointerup', onPointerUp)
+    return
+  }
+
   document.addEventListener('pointermove', onPotentialDrag)
   document.addEventListener('pointerup', onPointerUp)
+}
+
+function beginDrag() {
+  if (dragState.isDragging || !pendingDragLayerId) return
+  hasMovedForDrag = true
+  dragState.isDragging = true
+  dragState.layerId = pendingDragLayerId
+  dragState.layerIndex = pendingDragLayerIndex
+  dragInsertIndex.value = pendingDragLayerIndex
+  document.removeEventListener('pointermove', onPotentialDrag)
+  document.removeEventListener('pointermove', onTabletPressMove)
+  document.removeEventListener('pointerup', onPointerUp)
+  document.addEventListener('pointermove', onDragMove)
+  document.addEventListener('pointerup', onDragEnd)
+  document.addEventListener('keydown', onDragKeydown)
+  listRef.value?.addEventListener('scroll', onListScroll)
+}
+
+function onTabletPressMove(e: PointerEvent) {
+  if (Math.hypot(e.clientX - pointerStartX.value, e.clientY - pointerStartY.value) <= 9) return
+  if (tabletLongPressTimer) clearTimeout(tabletLongPressTimer)
+  tabletLongPressTimer = null
+  document.removeEventListener('pointermove', onTabletPressMove)
 }
 
 function onPotentialDrag(e: PointerEvent) {
@@ -193,25 +226,15 @@ function onPotentialDrag(e: PointerEvent) {
   }
 
   if (!dragState.isDragging) {
-    hasMovedForDrag = true
-    dragState.isDragging = true
-    dragState.layerId = pendingDragLayerId
-    dragState.layerIndex = pendingDragLayerIndex
-    dragInsertIndex.value = pendingDragLayerIndex
-
-    document.removeEventListener('pointermove', onPotentialDrag)
-    document.removeEventListener('pointerup', onPointerUp)
-    document.addEventListener('pointermove', onDragMove)
-    document.addEventListener('pointerup', onDragEnd)
-    document.addEventListener('keydown', onDragKeydown)
-    if (listRef.value) {
-      listRef.value.addEventListener('scroll', onListScroll)
-    }
+    beginDrag()
   }
 }
 
 function onPointerUp() {
+  if (tabletLongPressTimer) clearTimeout(tabletLongPressTimer)
+  tabletLongPressTimer = null
   document.removeEventListener('pointermove', onPotentialDrag)
+  document.removeEventListener('pointermove', onTabletPressMove)
   document.removeEventListener('pointerup', onPointerUp)
   pendingDragLayerId = ''
   pendingDragLayerIndex = -1
@@ -318,6 +341,8 @@ function onDragKeydown(e: KeyboardEvent) {
 }
 
 function cleanupDrag() {
+  if (tabletLongPressTimer) clearTimeout(tabletLongPressTimer)
+  tabletLongPressTimer = null
   dragState.isDragging = false
   dragState.layerId = ''
   dragState.layerIndex = -1
@@ -328,6 +353,7 @@ function cleanupDrag() {
   pendingDragLayerIndex = -1
 
   document.removeEventListener('pointermove', onPotentialDrag)
+  document.removeEventListener('pointermove', onTabletPressMove)
   document.removeEventListener('pointerup', onPointerUp)
   document.removeEventListener('pointermove', onDragMove)
   document.removeEventListener('pointerup', onDragEnd)
@@ -526,6 +552,11 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 5px;
   position: relative;
+}
+
+body#tb .layers-list,
+body#tb .layer-item {
+  touch-action: none;
 }
 
 .layers-list.drag-active {

@@ -3,10 +3,13 @@ import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { nextTick } from 'vue'
 import RightPanels from '@/components/RightPanels.vue'
+import MainLayout from '@/components/MainLayout.vue'
 import TopGlobalBar from '@/components/TopGlobalBar.vue'
 import CanvasGroupPreview from '@/components/CanvasGroupPreview.vue'
+import LeftToolbar from '@/components/LeftToolbar.vue'
 import { useCanvasStore } from '@/stores/canvas'
 import { useExportStore } from '@/stores/exportStore'
+import { useDevice } from '@/composables/useDevice'
 
 describe('desktop editor UI', () => {
   beforeEach(() => {
@@ -137,5 +140,44 @@ describe('desktop editor UI', () => {
     await nextTick()
     expect(wrapper.findAll('.cgp-row-label')).toHaveLength(4)
     expect(wrapper.findAll('.cgp-cell')).toHaveLength(36)
+  })
+
+  it('keeps the right panel collapsible and shows icon history controls on tablet', async () => {
+    useDevice().changeDevice('tb')
+    const wrapper = mount(MainLayout, {
+      global: {
+        stubs: {
+          LeftToolbar: true,
+          CanvasArea: true,
+          RightPanels: true,
+          MobileSheet: true,
+        },
+      },
+    })
+    await nextTick()
+
+    expect(wrapper.find('.tablet-history-actions').exists()).toBe(true)
+    expect(wrapper.findAll('.tablet-history-actions img')).toHaveLength(2)
+    expect(wrapper.findComponent({ name: 'MobileSheet' }).exists()).toBe(false)
+
+    const panel = mount(RightPanels, {
+      global: {
+        stubs: { PanelPalette: true, PanelLayers: true, PanelCanvas: true },
+      },
+    })
+    await panel.find('.tablet-panel-toggle').trigger('click')
+    expect(panel.find('.right-panels').classes()).toContain('tablet-collapsed')
+  })
+
+  it('opens active tool options from the tablet toolbar', async () => {
+    useDevice().changeDevice('tb')
+    const wrapper = mount(LeftToolbar, {
+      global: { stubs: { Teleport: true } },
+    })
+
+    expect(wrapper.find('.tool-expand-toggle').exists()).toBe(true)
+    await wrapper.find('.tool-expand-toggle').trigger('click')
+    expect(wrapper.find('.tablet-tool-options-popover').exists()).toBe(true)
+    expect(wrapper.text()).toContain('铅笔设置')
   })
 })
