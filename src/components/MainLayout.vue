@@ -4,7 +4,7 @@
     <CanvasArea />
     <RightPanels />
     <MobileSheet v-if="device === 'ph'" />
-    <div v-if="device === 'tb'" class="tablet-history-actions">
+    <div v-if="device === 'tb' && !canvasStore.showGroupPreview" class="tablet-history-actions">
       <button title="撤回" :disabled="!historyStore.canUndo" @click="doUndo()">
         <img :src="iconUndo" alt="撤回" />
       </button>

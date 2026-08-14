@@ -4,7 +4,7 @@
       class="tablet-panel-toggle"
       :title="collapsed ? '展开工具栏' : '收起工具栏'"
       :aria-label="collapsed ? '展开工具栏' : '收起工具栏'"
-      @click="collapsed = !collapsed"
+      @click="toggleCollapsed()"
     >
       {{ collapsed ? '‹' : '›' }}
     </button>
@@ -34,7 +34,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import { useDevice } from '@/composables/useDevice'
 import { useCanvasStore } from '@/stores/canvas'
 import PanelPalette from '@/components/PanelPalette.vue'
 import PanelLayers from '@/components/PanelLayers.vue'
@@ -42,7 +43,27 @@ import PanelCanvas from '@/components/PanelCanvas.vue'
 
 const activeTab = ref<'palette' | 'layers' | 'canvas'>('palette')
 const canvasStore = useCanvasStore()
+const { device } = useDevice()
 const collapsed = ref(false)
+let collapsedBeforeGroupPreview = false
+
+function toggleCollapsed() {
+  collapsed.value = !collapsed.value
+}
+
+watch(
+  () => canvasStore.showGroupPreview,
+  (showPreview, wasShowingPreview) => {
+    if (device.value !== 'tb') return
+    if (showPreview && !wasShowingPreview) {
+      collapsedBeforeGroupPreview = collapsed.value
+      collapsed.value = true
+    } else if (!showPreview && wasShowingPreview) {
+      collapsed.value = collapsedBeforeGroupPreview
+    }
+  },
+  { immediate: true },
+)
 
 const tabs = [
   { key: 'palette' as const, label: '色板' },

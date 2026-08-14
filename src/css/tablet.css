@@ -149,8 +149,10 @@ body#tb .ctab-arrow {
 }
 
 body#tb .canvas-viewport {
-  position: absolute;
-  inset: 0;
+  position: relative;
+  inset: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 /* Right panels stay on the right and can collapse outwards. */

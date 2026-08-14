@@ -30,7 +30,13 @@
           @pointerleave="onPointerLeave"
           @wheel.prevent="onWheel"
         ></canvas>
-        <div class="stage-hint">框内为有效区域 · 拖动图片定位 · 滚轮缩放 · 边缘自动吸附</div>
+        <div class="stage-hint">
+          {{
+            device === 'tb'
+              ? '框内为有效区域 · 单指移动 · 双指缩放与旋转 · 按住边缘即可裁剪'
+              : '框内为有效区域 · 拖动图片定位 · 滚轮缩放 · 边缘自动吸附'
+          }}
+        </div>
       </main>
 
       <footer class="editor-controls">
@@ -148,6 +154,16 @@ interface CropRect {
   height: number
 }
 
+interface TabletPinchState {
+  pointerIds: [number, number]
+  startDistance: number
+  startAngle: number
+  startCenter: Point
+  startScale: number
+  startRotation: number
+  startImageCenter: Point
+}
+
 const props = defineProps<{ file: File }>()
 const emit = defineEmits<{ close: [] }>()
 
@@ -207,12 +223,9 @@ let previewCanvas: HTMLCanvasElement | null = null
 let previewPending = false
 let dividerRatio = 0.5
 let lastViewport = { width: 1, height: 1 }
-let tabletPressTimer: ReturnType<typeof setTimeout> | null = null
-let tabletPendingPointer: {
-  id: number
-  point: Point
-  mode: Exclude<DragMode, null>
-} | null = null
+const tabletPointers = new Map<number, Point>()
+let tabletPrimaryPointerId: number | null = null
+let tabletPinch: TabletPinchState | null = null
 
 const outputSize = computed(() => {
   const safeScale = clampInteger(scalePercent.value, 1, 200, 100)
@@ -483,7 +496,7 @@ function canvasPoint(event: PointerEvent | WheelEvent) {
 }
 
 function detectMode(x: number, y: number): DragMode {
-  const threshold = 11
+  const threshold = device.value === 'tb' ? 18 : 11
   const dividerX = crop.x + crop.width * dividerRatio
   if (Math.abs(x - dividerX) <= 12 && y >= crop.y - 44 && y <= crop.y + crop.height) {
     return 'divider'
@@ -528,20 +541,98 @@ function cursorFor(mode: DragMode) {
 function onPointerDown(event: PointerEvent) {
   if (event.button !== 0 || !editorCanvas.value) return
   const point = canvasPoint(event)
-  const mode = detectMode(point.x, point.y)
-  if (!mode) return
   if (device.value === 'tb' && event.pointerType === 'touch') {
-    tabletPendingPointer = { id: event.pointerId, point, mode }
+    event.preventDefault()
+    tabletPointers.set(event.pointerId, point)
     editorCanvas.value.setPointerCapture(event.pointerId)
-    tabletPressTimer = setTimeout(() => {
-      if (!tabletPendingPointer) return
-      beginEditorDrag(tabletPendingPointer.point, tabletPendingPointer.mode)
-      tabletPressTimer = null
-    }, 360)
+    if (tabletPointers.size >= 2) {
+      beginTabletPinch()
+      return
+    }
+
+    tabletPrimaryPointerId = event.pointerId
+    const detectedMode = detectMode(point.x, point.y)
+    const mode = detectedMode === 'divider' || isResizeHandle(detectedMode) ? detectedMode : 'pan'
+    beginEditorDrag(point, mode)
     return
   }
+  const mode = detectMode(point.x, point.y)
+  if (!mode) return
   beginEditorDrag(point, mode)
   editorCanvas.value.setPointerCapture(event.pointerId)
+}
+
+function isResizeHandle(mode: DragMode): mode is ResizeHandle {
+  return (
+    mode === 'n' ||
+    mode === 's' ||
+    mode === 'e' ||
+    mode === 'w' ||
+    mode === 'nw' ||
+    mode === 'ne' ||
+    mode === 'sw' ||
+    mode === 'se'
+  )
+}
+
+function beginTabletPinch() {
+  const entries = Array.from(tabletPointers.entries()).slice(0, 2)
+  if (entries.length < 2) return
+  const [firstId, first] = entries[0]!
+  const [secondId, second] = entries[1]!
+  const dx = second.x - first.x
+  const dy = second.y - first.y
+  dragMode = null
+  tabletPrimaryPointerId = null
+  tabletPinch = {
+    pointerIds: [firstId, secondId],
+    startDistance: Math.max(1, Math.hypot(dx, dy)),
+    startAngle: Math.atan2(dy, dx),
+    startCenter: { x: (first.x + second.x) / 2, y: (first.y + second.y) / 2 },
+    startScale: scalePercent.value,
+    startRotation: rotation.value,
+    startImageCenter: imageCenter(),
+  }
+  if (editorCanvas.value) editorCanvas.value.style.cursor = 'grabbing'
+}
+
+function normalizeAngleDelta(delta: number) {
+  if (delta > Math.PI) return delta - Math.PI * 2
+  if (delta < -Math.PI) return delta + Math.PI * 2
+  return delta
+}
+
+function updateTabletPinch() {
+  if (!tabletPinch) return false
+  const [firstId, secondId] = tabletPinch.pointerIds
+  const first = tabletPointers.get(firstId)
+  const second = tabletPointers.get(secondId)
+  if (!first || !second) return false
+
+  const dx = second.x - first.x
+  const dy = second.y - first.y
+  const distance = Math.max(1, Math.hypot(dx, dy))
+  const angleDelta = normalizeAngleDelta(Math.atan2(dy, dx) - tabletPinch.startAngle)
+  const nextScale = Math.max(
+    1,
+    Math.min(200, tabletPinch.startScale * (distance / tabletPinch.startDistance)),
+  )
+  const appliedScaleRatio = nextScale / tabletPinch.startScale
+  const center = { x: (first.x + second.x) / 2, y: (first.y + second.y) / 2 }
+  const offsetX = tabletPinch.startImageCenter.x - tabletPinch.startCenter.x
+  const offsetY = tabletPinch.startImageCenter.y - tabletPinch.startCenter.y
+  const cos = Math.cos(angleDelta)
+  const sin = Math.sin(angleDelta)
+  const imageCenterX = center.x + (offsetX * cos - offsetY * sin) * appliedScaleRatio
+  const imageCenterY = center.y + (offsetX * sin + offsetY * cos) * appliedScaleRatio
+
+  scalePercent.value = Math.round(nextScale * 10) / 10
+  rotation.value = tabletPinch.startRotation + (angleDelta * 180) / Math.PI
+  imagePanX = imageCenterX - viewportWidth / 2
+  imagePanY = imageCenterY - viewportHeight / 2
+  invalidatePreview()
+  render()
+  return true
 }
 
 function beginEditorDrag(point: Point, mode: Exclude<DragMode, null>) {
@@ -681,15 +772,15 @@ function snapCropToImage(
 function onPointerMove(event: PointerEvent) {
   if (!editorCanvas.value) return
   const point = canvasPoint(event)
-  if (
-    tabletPendingPointer?.id === event.pointerId &&
-    !dragMode &&
-    Math.hypot(point.x - tabletPendingPointer.point.x, point.y - tabletPendingPointer.point.y) > 9
-  ) {
-    if (tabletPressTimer) clearTimeout(tabletPressTimer)
-    tabletPressTimer = null
-    tabletPendingPointer = null
-    return
+  if (device.value === 'tb' && event.pointerType === 'touch') {
+    if (!tabletPointers.has(event.pointerId)) return
+    event.preventDefault()
+    tabletPointers.set(event.pointerId, point)
+    if (tabletPinch) {
+      updateTabletPinch()
+      return
+    }
+    if (tabletPrimaryPointerId !== event.pointerId) return
   }
   if (!dragMode) {
     hoverMode = detectMode(point.x, point.y)
@@ -717,11 +808,33 @@ function onPointerMove(event: PointerEvent) {
 }
 
 function onPointerUp(event: PointerEvent) {
-  if (tabletPressTimer) clearTimeout(tabletPressTimer)
-  tabletPressTimer = null
-  tabletPendingPointer = null
   if (editorCanvas.value?.hasPointerCapture(event.pointerId)) {
     editorCanvas.value.releasePointerCapture(event.pointerId)
+  }
+  if (device.value === 'tb' && event.pointerType === 'touch') {
+    const wasPinching = tabletPinch?.pointerIds.includes(event.pointerId) ?? false
+    tabletPointers.delete(event.pointerId)
+    if (tabletPinch && !wasPinching) return
+
+    if (tabletPinch) {
+      tabletPinch = null
+      if (tabletPointers.size >= 2) {
+        beginTabletPinch()
+      } else {
+        const remaining = tabletPointers.entries().next().value as [number, Point] | undefined
+        if (remaining) {
+          tabletPrimaryPointerId = remaining[0]
+          beginEditorDrag(remaining[1], 'pan')
+        } else {
+          tabletPrimaryPointerId = null
+          dragMode = null
+          schedulePreview()
+        }
+      }
+      return
+    }
+    if (tabletPrimaryPointerId !== event.pointerId) return
+    tabletPrimaryPointerId = null
   }
   const completedMode = dragMode
   dragMode = null
@@ -729,10 +842,8 @@ function onPointerUp(event: PointerEvent) {
   if (editorCanvas.value) editorCanvas.value.style.cursor = cursorFor(hoverMode)
 }
 
-function onPointerLeave() {
-  if (tabletPressTimer) clearTimeout(tabletPressTimer)
-  tabletPressTimer = null
-  tabletPendingPointer = null
+function onPointerLeave(event: PointerEvent) {
+  if (device.value === 'tb' && event.pointerType === 'touch') return
   if (!dragMode && editorCanvas.value) editorCanvas.value.style.cursor = 'default'
 }
 
@@ -882,9 +993,9 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  if (tabletPressTimer) clearTimeout(tabletPressTimer)
-  tabletPressTimer = null
-  tabletPendingPointer = null
+  tabletPointers.clear()
+  tabletPrimaryPointerId = null
+  tabletPinch = null
   resizeObserver?.disconnect()
   if (previewTimer) clearTimeout(previewTimer)
   if (sourceUrl) URL.revokeObjectURL(sourceUrl)

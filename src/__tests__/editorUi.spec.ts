@@ -26,7 +26,27 @@ describe('desktop editor UI', () => {
       () =>
         ({
           fillStyle: '',
+          strokeStyle: '',
+          globalAlpha: 1,
+          setTransform: vi.fn(),
+          clearRect: vi.fn(),
           fillRect: vi.fn(),
+          strokeRect: vi.fn(),
+          beginPath: vi.fn(),
+          closePath: vi.fn(),
+          moveTo: vi.fn(),
+          lineTo: vi.fn(),
+          rect: vi.fn(),
+          arc: vi.fn(),
+          ellipse: vi.fn(),
+          clip: vi.fn(),
+          fill: vi.fn(),
+          stroke: vi.fn(),
+          save: vi.fn(),
+          restore: vi.fn(),
+          setLineDash: vi.fn(),
+          fillText: vi.fn(),
+          createRadialGradient: vi.fn(() => ({ addColorStop: vi.fn() })),
         }) as unknown as CanvasRenderingContext2D,
     )
   })
@@ -144,6 +164,7 @@ describe('desktop editor UI', () => {
 
   it('keeps the right panel collapsible and shows icon history controls on tablet', async () => {
     useDevice().changeDevice('tb')
+    const canvas = useCanvasStore()
     const wrapper = mount(MainLayout, {
       global: {
         stubs: {
@@ -160,12 +181,36 @@ describe('desktop editor UI', () => {
     expect(wrapper.findAll('.tablet-history-actions img')).toHaveLength(2)
     expect(wrapper.findComponent({ name: 'MobileSheet' }).exists()).toBe(false)
 
+    canvas.showGroupPreview = true
+    await nextTick()
+    expect(wrapper.find('.tablet-history-actions').exists()).toBe(false)
+
+    canvas.showGroupPreview = false
+    await nextTick()
+    expect(wrapper.find('.tablet-history-actions').exists()).toBe(true)
+
     const panel = mount(RightPanels, {
       global: {
         stubs: { PanelPalette: true, PanelLayers: true, PanelCanvas: true },
       },
     })
+    expect(panel.find('.right-panels').classes()).not.toContain('tablet-collapsed')
+
+    canvas.showGroupPreview = true
+    await nextTick()
+    expect(panel.find('.right-panels').classes()).toContain('tablet-collapsed')
+
+    canvas.showGroupPreview = false
+    await nextTick()
+    expect(panel.find('.right-panels').classes()).not.toContain('tablet-collapsed')
+
     await panel.find('.tablet-panel-toggle').trigger('click')
+    expect(panel.find('.right-panels').classes()).toContain('tablet-collapsed')
+
+    canvas.showGroupPreview = true
+    await nextTick()
+    canvas.showGroupPreview = false
+    await nextTick()
     expect(panel.find('.right-panels').classes()).toContain('tablet-collapsed')
   })
 
