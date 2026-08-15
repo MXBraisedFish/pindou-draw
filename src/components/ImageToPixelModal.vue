@@ -135,6 +135,7 @@ import { usePaletteStore } from '@/stores/palette'
 import { useProjectStore } from '@/stores/project'
 import { quantizeImage } from '@/ts/photoToPixel'
 import { useDevice } from '@/composables/useDevice'
+import { useWorkspaceStore } from '@/stores/workspace'
 import iconClose from '@/assets/icon/关闭取消.png'
 
 type EditorTool = 'ratio' | 'dither' | 'transform' | 'palette'
@@ -170,6 +171,7 @@ const emit = defineEmits<{ close: [] }>()
 const canvasStore = useCanvasStore()
 const paletteStore = usePaletteStore()
 const projectStore = useProjectStore()
+const workspaceStore = useWorkspaceStore()
 const { device } = useDevice()
 
 const stageRef = ref<HTMLElement | null>(null)
@@ -971,6 +973,7 @@ async function apply() {
       pixelRatio: 1,
     })
     if (card) paletteStore.loadCard(card)
+    workspaceStore.resetWorkspace()
     projectStore.projectName = props.file.name.replace(/\.[^.]+$/, '') || '以图生图'
     if (Math.max(result.width, result.height) <= 64) {
       canvasStore.newCanvas(result.width, result.height)

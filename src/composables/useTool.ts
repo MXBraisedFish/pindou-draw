@@ -4,7 +4,7 @@ import { useToolStore } from '@/stores/tool'
 import { usePaletteStore } from '@/stores/palette'
 import { useHistoryStore } from '@/stores/history'
 import { useSelectionStore } from '@/stores/selection'
-import { screenToGrid } from '@/ts/canvasRenderer'
+import { getCellSize, screenToGrid } from '@/ts/canvasRenderer'
 import type { SymmetryMode } from '@/stores/canvas'
 import { useDevice } from '@/composables/useDevice'
 
@@ -40,6 +40,18 @@ export function useTool(
     zoom: number
     panX: number
     panY: number
+  } | null = null
+  const underlayPointers = new Map<number, { x: number; y: number }>()
+  let underlayDragging = false
+  let underlayPointerId: number | null = null
+  let underlayStart = { x: 0, y: 0, offsetX: 0, offsetY: 0 }
+  let underlayPinchStart: {
+    distance: number
+    centerX: number
+    centerY: number
+    scale: number
+    offsetX: number
+    offsetY: number
   } | null = null
 
   // 移动工具
@@ -79,6 +91,119 @@ export function useTool(
       })
     }
     historyActionActive = false
+  }
+
+  function viewCellSize(canvas: HTMLCanvasElement) {
+    const rect = canvas.getBoundingClientRect()
+    return getCellSize(
+      rect.width,
+      rect.height,
+      canvasStore.cols,
+      canvasStore.rows,
+      canvasStore.zoom,
+    )
+  }
+
+  function beginUnderlayInteraction(e: PointerEvent, canvas: HTMLCanvasElement) {
+    if (e.button !== 0 || !canvasStore.underlay) return false
+    canvas.setPointerCapture?.(e.pointerId)
+    if (device.value === 'tb' && e.pointerType === 'touch') {
+      underlayPointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (underlayPointers.size >= 2) {
+        const [first, second] = [...underlayPointers.values()].slice(0, 2) as [
+          { x: number; y: number },
+          { x: number; y: number },
+        ]
+        underlayDragging = false
+        underlayPointerId = null
+        underlayPinchStart = {
+          distance: Math.max(1, Math.hypot(second.x - first.x, second.y - first.y)),
+          centerX: (first.x + second.x) / 2,
+          centerY: (first.y + second.y) / 2,
+          scale: canvasStore.underlay.scale,
+          offsetX: canvasStore.underlay.offsetX,
+          offsetY: canvasStore.underlay.offsetY,
+        }
+        return true
+      }
+    }
+    underlayDragging = true
+    underlayPointerId = e.pointerId
+    underlayStart = {
+      x: e.clientX,
+      y: e.clientY,
+      offsetX: canvasStore.underlay.offsetX,
+      offsetY: canvasStore.underlay.offsetY,
+    }
+    return true
+  }
+
+  function moveUnderlayInteraction(e: PointerEvent, canvas: HTMLCanvasElement) {
+    const state = canvasStore.underlay
+    if (!state) return false
+    if (device.value === 'tb' && e.pointerType === 'touch') {
+      if (!underlayPointers.has(e.pointerId)) return false
+      underlayPointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (underlayPinchStart && underlayPointers.size >= 2) {
+        const [first, second] = [...underlayPointers.values()].slice(0, 2) as [
+          { x: number; y: number },
+          { x: number; y: number },
+        ]
+        const distance = Math.max(1, Math.hypot(second.x - first.x, second.y - first.y))
+        const centerX = (first.x + second.x) / 2
+        const centerY = (first.y + second.y) / 2
+        const cellSize = viewCellSize(canvas)
+        canvasStore.updateUnderlay({
+          scale: underlayPinchStart.scale * (distance / underlayPinchStart.distance),
+          offsetX: underlayPinchStart.offsetX + (centerX - underlayPinchStart.centerX) / cellSize,
+          offsetY: underlayPinchStart.offsetY + (centerY - underlayPinchStart.centerY) / cellSize,
+        })
+        return true
+      }
+    }
+    if (!underlayDragging || underlayPointerId !== e.pointerId) return false
+    const cellSize = viewCellSize(canvas)
+    canvasStore.updateUnderlay({
+      offsetX: underlayStart.offsetX + (e.clientX - underlayStart.x) / cellSize,
+      offsetY: underlayStart.offsetY + (e.clientY - underlayStart.y) / cellSize,
+    })
+    return true
+  }
+
+  function endUnderlayInteraction(e: PointerEvent) {
+    const tracked = underlayPointers.has(e.pointerId) || underlayPointerId === e.pointerId
+    underlayPointers.delete(e.pointerId)
+    if (underlayPinchStart) {
+      if (underlayPointers.size < 2) underlayPinchStart = null
+      if (underlayPointers.size === 1 && canvasStore.underlay) {
+        const remaining = underlayPointers.entries().next().value as
+          | [number, { x: number; y: number }]
+          | undefined
+        if (remaining) {
+          underlayDragging = true
+          underlayPointerId = remaining[0]
+          underlayStart = {
+            x: remaining[1].x,
+            y: remaining[1].y,
+            offsetX: canvasStore.underlay.offsetX,
+            offsetY: canvasStore.underlay.offsetY,
+          }
+        }
+      }
+    } else if (underlayPointerId === e.pointerId) {
+      underlayDragging = false
+      underlayPointerId = null
+    }
+    return tracked
+  }
+
+  function syncPaintColor(col: number, row: number) {
+    if (!canvasStore.autoPickUnderlayColor || !canvasStore.underlay) return
+    const sampled = canvasStore.sampleUnderlayColor(col, row)
+    if (!sampled) return
+    const closestHex = paletteStore.findClosestColor(sampled)
+    const entry = paletteStore.colorMap.get(closestHex)
+    if (entry) paletteStore.setColor(entry.id)
   }
 
   function getSymmetryPoints(c: number, r: number): [number, number][] {
@@ -216,6 +341,11 @@ export function useTool(
     const canvas = getCanvas()
     if (!canvas) return
 
+    if (canvasStore.underlayEditMode && canvasStore.underlay) {
+      beginUnderlayInteraction(e, canvas)
+      return
+    }
+
     if (device.value === 'tb' && e.pointerType === 'touch') {
       touchPointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
       canvas.setPointerCapture?.(e.pointerId)
@@ -276,6 +406,7 @@ export function useTool(
 
     // 几何工具：绘制几何形状
     if (toolStore.activeTool === 'geometry') {
+      syncPaintColor(pos.col, pos.row)
       saveHistory()
       isGeometry = true
       geoStartCol = pos.col
@@ -339,6 +470,7 @@ export function useTool(
     } else if (toolStore.activeTool === 'eraser') {
       eraseCell(pos.col, pos.row)
     } else if (toolStore.activeTool === 'bucket') {
+      syncPaintColor(pos.col, pos.row)
       const layer = canvasStore.activeLayer()
       const targetColor = layer?.grid[pos.row]?.[pos.col] ?? ''
       floodFill(pos.col, pos.row, targetColor)
@@ -348,6 +480,11 @@ export function useTool(
   function onPointerMove(e: PointerEvent) {
     const canvas = getCanvas()
     if (!canvas) return
+
+    if (canvasStore.underlayEditMode && canvasStore.underlay) {
+      moveUnderlayInteraction(e, canvas)
+      return
+    }
 
     if (device.value === 'tb' && e.pointerType === 'touch' && touchPointers.has(e.pointerId)) {
       touchPointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
@@ -430,6 +567,7 @@ export function useTool(
   }
 
   function onPointerUp(e: PointerEvent) {
+    if (endUnderlayInteraction(e)) return
     if (device.value === 'tb' && e.pointerType === 'touch') {
       touchPointers.delete(e.pointerId)
       if (pinchStart) {
@@ -472,6 +610,11 @@ export function useTool(
   function onWheel(e: WheelEvent) {
     const canvas = getCanvas()
     if (!canvas) return
+    if (canvasStore.underlayEditMode && canvasStore.underlay) {
+      const factor = Math.exp(-e.deltaY * 0.0015)
+      canvasStore.updateUnderlay({ scale: canvasStore.underlay.scale * factor })
+      return
+    }
     if (e.ctrlKey || e.metaKey) {
       canvasStore.setZoom(canvasStore.zoom - e.deltaY * 0.002)
     } else {
@@ -737,6 +880,7 @@ export function useTool(
   }
 
   function applyPencilSize(col: number, row: number) {
+    syncPaintColor(col, row)
     const syms = getSymmetryPoints(col, row)
     const size = toolStore.pencilSize
     const half = Math.floor(size / 2)

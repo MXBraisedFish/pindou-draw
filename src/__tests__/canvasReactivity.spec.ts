@@ -10,6 +10,8 @@ import {
 } from '@/stores/canvas'
 import { useHistoryStore } from '@/stores/history'
 import { useSelectionStore } from '@/stores/selection'
+import { useProjectStore } from '@/stores/project'
+import { useWorkspaceStore } from '@/stores/workspace'
 
 describe('bulk canvas data reactivity', () => {
   function setup() {
@@ -99,5 +101,66 @@ describe('bulk canvas data reactivity', () => {
 
     expect(canvas.canvasGroup?.groupRows).toBe(GROUP_SIZE_MAX)
     expect(canvas.canvasGroup?.groupCols).toBe(GROUP_SIZE_MAX)
+  })
+
+  it('keeps each canvas underlay independent inside a canvas group', () => {
+    const canvas = setup()
+    canvas.createCanvasGroup('底图组', 2, 1, 16)
+    canvas.switchToSubCanvas(0, 0)
+    canvas.setUnderlay({ src: 'data:image/png;base64,AAAA', name: '左侧.png' })
+    canvas.updateUnderlay({ opacity: 0.35, scale: 1.8, offsetX: 2, offsetY: -1 })
+    canvas.autoPickUnderlayColor = true
+    canvas.saveActiveToGroup()
+
+    canvas.switchToSubCanvas(0, 1)
+    expect(canvas.underlay).toBeNull()
+    expect(canvas.autoPickUnderlayColor).toBe(false)
+
+    canvas.switchToSubCanvas(0, 0)
+    expect(canvas.underlay).toMatchObject({
+      name: '左侧.png',
+      opacity: 0.35,
+      scale: 1.8,
+      offsetX: 2,
+      offsetY: -1,
+    })
+    expect(canvas.autoPickUnderlayColor).toBe(true)
+    expect(canvas.underlayEditMode).toBe(false)
+  })
+
+  it('directly replaces an existing underlay and resets it to centered proportional fit', () => {
+    const canvas = setup()
+    canvas.setUnderlay({ src: 'data:image/png;base64,AAAA', name: '旧底图.png' })
+    canvas.updateUnderlay({ opacity: 0.2, scale: 3, offsetX: 5, offsetY: -4 })
+
+    canvas.setUnderlay({ src: 'data:image/png;base64,BBBB', name: '新底图.png' })
+
+    expect(canvas.underlay).toEqual({
+      src: 'data:image/png;base64,BBBB',
+      name: '新底图.png',
+      opacity: 0.5,
+      scale: 1,
+      offsetX: 0,
+      offsetY: 0,
+    })
+  })
+
+  it('serializes the underlay and project reference image', () => {
+    const canvas = setup()
+    const project = useProjectStore()
+    const workspace = useWorkspaceStore()
+    canvas.setUnderlay({ src: 'data:image/png;base64,BBBB', name: '底图.png' })
+    canvas.updateUnderlay({ opacity: 0.4, scale: 1.25 })
+    canvas.autoPickUnderlayColor = true
+    workspace.referenceImage = { src: 'data:image/png;base64,CCCC', name: '参考图.png' }
+
+    const saved = JSON.parse(project.createProjectJson())
+    expect(saved.version).toBe(4)
+    expect(saved.underlay).toMatchObject({ name: '底图.png', opacity: 0.4, scale: 1.25 })
+    expect(saved.autoPickUnderlayColor).toBe(true)
+    expect(saved.referenceImage).toEqual({
+      src: 'data:image/png;base64,CCCC',
+      name: '参考图.png',
+    })
   })
 })

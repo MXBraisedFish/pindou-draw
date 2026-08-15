@@ -1,5 +1,5 @@
 import type { ColorEntry } from '@/ts/colorCard'
-import type { RenderMode, PixelShape, ThickLineConfig } from '@/stores/canvas'
+import type { RenderMode, PixelShape, ThickLineConfig, UnderlayState } from '@/stores/canvas'
 
 const CELL_MIN_SIZE = 4
 const CELL_MAX_SIZE = 80
@@ -551,6 +551,10 @@ export interface RenderOptions {
   thickLineV: ThickLineConfig
   gridThickness?: number
   gridOpacity?: number
+  underlay?: {
+    image: HTMLImageElement
+    state: UnderlayState
+  } | null
   selectionMask: boolean[][] | null
   highlightMask: boolean[][] | null
   highlightNumberMode: 'off' | 'row' | 'col' | 'global'
@@ -641,6 +645,27 @@ export function renderCanvas(
   } else {
     ctx.fillStyle = opts.backgroundColor
     ctx.fillRect(ox, oy, gridW, gridH)
+  }
+
+  // The underlay is an editing aid only. Export renders intentionally omit it.
+  if (!exportSize && opts.underlay) {
+    const { image, state } = opts.underlay
+    const imageWidth = image.naturalWidth || image.width
+    const imageHeight = image.naturalHeight || image.height
+    if (imageWidth > 0 && imageHeight > 0) {
+      const fitScale = Math.min(gridW / imageWidth, gridH / imageHeight) * state.scale
+      const drawWidth = imageWidth * fitScale
+      const drawHeight = imageHeight * fitScale
+      const centerX = ox + gridW / 2 + state.offsetX * cellSize
+      const centerY = oy + gridH / 2 + state.offsetY * cellSize
+      ctx.save()
+      ctx.beginPath()
+      ctx.rect(ox, oy, gridW, gridH)
+      ctx.clip()
+      ctx.globalAlpha = state.opacity
+      ctx.drawImage(image, centerX - drawWidth / 2, centerY - drawHeight / 2, drawWidth, drawHeight)
+      ctx.restore()
+    }
   }
 
   // draw cells

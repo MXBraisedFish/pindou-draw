@@ -14,6 +14,15 @@ export type SymmetryMode =
   | 'all8'
 export type PixelShape = 'square' | 'circle'
 
+export interface UnderlayState {
+  src: string
+  name: string
+  opacity: number
+  scale: number
+  offsetX: number
+  offsetY: number
+}
+
 export interface ThickLineConfig {
   enabled: boolean
   interval: number
@@ -40,6 +49,8 @@ export interface CanvasSnapshot {
   showGrid: boolean
   thickLineH: ThickLineConfig
   thickLineV: ThickLineConfig
+  underlay?: UnderlayState | null
+  autoPickUnderlayColor?: boolean
 }
 
 export interface CanvasGroup {
@@ -160,6 +171,105 @@ export const useCanvasStore = defineStore('canvas', () => {
     thickness: 1,
     startOffset: 0,
   })
+  const underlay = ref<UnderlayState | null>(null)
+  const underlayImage = shallowRef<HTMLImageElement | null>(null)
+  const underlayEditMode = ref(false)
+  const autoPickUnderlayColor = ref(false)
+  let underlayLoadRevision = 0
+  let underlaySampler: HTMLCanvasElement | null = null
+
+  function loadUnderlayImage() {
+    const revision = ++underlayLoadRevision
+    underlayImage.value = null
+    const src = underlay.value?.src
+    if (!src) {
+      bumpVersion()
+      return
+    }
+    const image = new Image()
+    image.onload = () => {
+      if (revision !== underlayLoadRevision || underlay.value?.src !== src) return
+      underlayImage.value = markRaw(image)
+      bumpVersion()
+    }
+    image.onerror = () => {
+      if (revision !== underlayLoadRevision) return
+      underlayImage.value = null
+      bumpVersion()
+    }
+    image.src = src
+  }
+
+  function setUnderlay(image: Pick<UnderlayState, 'src' | 'name'>) {
+    underlay.value = {
+      src: image.src,
+      name: image.name,
+      opacity: 0.5,
+      scale: 1,
+      offsetX: 0,
+      offsetY: 0,
+    }
+    underlayEditMode.value = true
+    loadUnderlayImage()
+  }
+
+  function restoreUnderlay(state: UnderlayState | null, autoPick = false) {
+    underlay.value = state ? { ...state } : null
+    autoPickUnderlayColor.value = Boolean(state) && autoPick
+    underlayEditMode.value = false
+    loadUnderlayImage()
+  }
+
+  function updateUnderlay(patch: Partial<Omit<UnderlayState, 'src' | 'name'>>) {
+    const current = underlay.value
+    if (!current) return
+    const next = { ...current, ...patch }
+    next.opacity = Math.max(0, Math.min(1, Number.isFinite(next.opacity) ? next.opacity : 0.5))
+    next.scale = Math.max(0.1, Math.min(10, Number.isFinite(next.scale) ? next.scale : 1))
+    next.offsetX = Number.isFinite(next.offsetX) ? next.offsetX : 0
+    next.offsetY = Number.isFinite(next.offsetY) ? next.offsetY : 0
+    underlay.value = next
+    bumpVersion()
+  }
+
+  function resetUnderlayTransform() {
+    updateUnderlay({ scale: 1, offsetX: 0, offsetY: 0 })
+  }
+
+  function removeUnderlay() {
+    underlayLoadRevision++
+    underlay.value = null
+    underlayImage.value = null
+    underlayEditMode.value = false
+    autoPickUnderlayColor.value = false
+    bumpVersion()
+  }
+
+  function sampleUnderlayColor(col: number, row: number): string | null {
+    const state = underlay.value
+    const image = underlayImage.value
+    if (!state || !image) return null
+    const width = image.naturalWidth || image.width
+    const height = image.naturalHeight || image.height
+    if (!width || !height) return null
+    const imageScale = Math.min(cols.value / width, rows.value / height) * state.scale
+    const imageX = (col + 0.5 - (cols.value / 2 + state.offsetX)) / imageScale + width / 2
+    const imageY = (row + 0.5 - (rows.value / 2 + state.offsetY)) / imageScale + height / 2
+    if (imageX < 0 || imageY < 0 || imageX >= width || imageY >= height) return null
+    underlaySampler ??= document.createElement('canvas')
+    underlaySampler.width = 1
+    underlaySampler.height = 1
+    const context = underlaySampler.getContext('2d', { willReadFrequently: true })
+    if (!context) return null
+    context.clearRect(0, 0, 1, 1)
+    context.globalAlpha = 1
+    context.drawImage(image, Math.floor(imageX), Math.floor(imageY), 1, 1, 0, 0, 1, 1)
+    const pixel = context.getImageData(0, 0, 1, 1).data
+    if ((pixel[3] ?? 0) === 0) return null
+    return `#${[pixel[0], pixel[1], pixel[2]]
+      .map((channel) => (channel ?? 0).toString(16).padStart(2, '0'))
+      .join('')}`
+  }
 
   const geoPreview = ref<{
     shape: string
@@ -211,6 +321,8 @@ export const useCanvasStore = defineStore('canvas', () => {
       showGrid: showGrid.value,
       thickLineH: { ...thickLineH.value },
       thickLineV: { ...thickLineV.value },
+      underlay: underlay.value ? { ...underlay.value } : null,
+      autoPickUnderlayColor: autoPickUnderlayColor.value,
     }
   }
 
@@ -233,6 +345,7 @@ export const useCanvasStore = defineStore('canvas', () => {
     showGrid.value = snap.showGrid
     thickLineH.value = { ...snap.thickLineH }
     thickLineV.value = { ...snap.thickLineV }
+    restoreUnderlay(snap.underlay ?? null, snap.autoPickUnderlayColor ?? false)
     buildComposite()
     bumpVersion()
   }
@@ -301,6 +414,8 @@ export const useCanvasStore = defineStore('canvas', () => {
       showGrid: true,
       thickLineH: { enabled: false, interval: 5, thickness: 1, startOffset: 0 },
       thickLineV: { enabled: false, interval: 5, thickness: 1, startOffset: 0 },
+      underlay: null,
+      autoPickUnderlayColor: false,
     })
     const canvases: CanvasSnapshot[][] = []
     for (let r = 0; r < groupRows; r++) {
@@ -352,6 +467,8 @@ export const useCanvasStore = defineStore('canvas', () => {
           showGrid: true,
           thickLineH: { enabled: false, interval: 5, thickness: 1, startOffset: 0 },
           thickLineV: { enabled: false, interval: 5, thickness: 1, startOffset: 0 },
+          underlay: null,
+          autoPickUnderlayColor: false,
         }
       }
       canvases[gr] = canvasRow
@@ -601,6 +718,7 @@ export const useCanvasStore = defineStore('canvas', () => {
     canvasGroup.value = null
     openGroupTabs.value = []
     showGroupPreview.value = false
+    removeUnderlay()
     initLayers()
   }
 
@@ -719,6 +837,7 @@ export const useCanvasStore = defineStore('canvas', () => {
     zoom.value = 1
     panX.value = 0
     panY.value = 0
+    removeUnderlay()
     initLayers()
   }
 
@@ -976,13 +1095,13 @@ export const useCanvasStore = defineStore('canvas', () => {
   function hasAnyPixels(): boolean {
     const hasPixels = (sourceLayers: CanvasSnapshot['layers']) =>
       sourceLayers.some((layer) => layer.grid.some((row) => row.some(Boolean)))
-    if (hasPixels(layers.value)) return true
+    if (underlay.value || hasPixels(layers.value)) return true
     return (
       canvasGroup.value?.canvases.some((row, groupRow) =>
         row.some(
           (snapshot, groupCol) =>
             (groupRow !== activeGroupRow.value || groupCol !== activeGroupCol.value) &&
-            hasPixels(snapshot.layers),
+            (Boolean(snapshot.underlay) || hasPixels(snapshot.layers)),
         ),
       ) ?? false
     )
@@ -1013,6 +1132,16 @@ export const useCanvasStore = defineStore('canvas', () => {
     backgroundColor,
     thickLineH,
     thickLineV,
+    underlay,
+    underlayImage,
+    underlayEditMode,
+    autoPickUnderlayColor,
+    setUnderlay,
+    restoreUnderlay,
+    updateUnderlay,
+    resetUnderlayTransform,
+    removeUnderlay,
+    sampleUnderlayColor,
     geoPreview,
     setThickLineH,
     setThickLineV,

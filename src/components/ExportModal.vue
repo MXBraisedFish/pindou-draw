@@ -10,7 +10,7 @@
           <span class="work-badge">{{ isGroup ? '画布组' : '独立画布' }}</span>
           <small>{{ sourceSummary }}</small>
         </div>
-        <button class="export-button" :disabled="exporting" @click="doExport()">
+        <button class="export-button" :disabled="exporting" @click="requestExport('export')">
           {{ exporting ? '正在生成…' : exportActionLabel }}
         </button>
       </header>
@@ -244,9 +244,9 @@
                 <label class="field">
                   <span>字体</span>
                   <select v-model="exportStore.exportFont" class="input-control">
-                    <option value="pixel">MinecraftTen</option>
-                    <option value="pixelfont">PixelFont</option>
                     <option value="default">系统默认字体</option>
+                    <option value="pixel">MinecraftTen（不可商用）</option>
+                    <option value="pixelfont">PixelFont（不可商用）</option>
                   </select>
                 </label>
                 <div class="inline-field">
@@ -377,7 +377,7 @@
                   <button
                     class="secondary-button warm"
                     :disabled="batchExporting"
-                    @click="doBatchHighlight()"
+                    @click="requestExport('batch')"
                   >
                     {{ batchExporting ? '正在打包…' : '按高亮颜色批量导出 ZIP' }}
                   </button>
@@ -390,6 +390,41 @@
     </div>
 
     <ExportHighlightModal v-if="showHighlightModal" @close="showHighlightModal = false" />
+
+    <div
+      v-if="showFontLicenseWarning"
+      class="font-license-backdrop"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="font-license-title"
+      data-test="font-license-warning"
+    >
+      <section class="font-license-dialog">
+        <div class="font-license-mark" aria-hidden="true">!</div>
+        <div class="font-license-copy">
+          <strong id="font-license-title">不可商用字体警告</strong>
+          <p>
+            该字体为不可商用字体。如果该草图用于商单等制作，可能会违反相关版权法律；由此产生的所有收益、损失及责任等均与本网站及开发者无关。
+          </p>
+          <p class="font-license-suggestion">
+            若您不确定，建议取消并切换为“系统默认字体”，以供安全使用。
+          </p>
+        </div>
+        <div class="font-license-actions">
+          <button class="license-cancel" @click="cancelFontLicenseWarning()">
+            取消，返回导出设置
+          </button>
+          <button
+            class="license-confirm"
+            :disabled="fontLicenseWait > 0"
+            data-test="font-license-confirm"
+            @click="confirmFontLicenseWarning()"
+          >
+            {{ fontLicenseWait > 0 ? `确认（${fontLicenseWait} 秒后可用）` : '确认并继续导出' }}
+          </button>
+        </div>
+      </section>
+    </div>
   </Teleport>
 </template>
 
@@ -420,6 +455,9 @@ const previewCanvasStyle = ref<Record<string, string>>({})
 const showHighlightModal = ref(false)
 const batchExporting = ref(false)
 const exporting = ref(false)
+const showFontLicenseWarning = ref(false)
+const fontLicenseWait = ref(5)
+const pendingExportAction = ref<'export' | 'batch' | null>(null)
 const zoom = ref(1)
 const panX = ref(0)
 const panY = ref(0)
@@ -443,6 +481,7 @@ let previewPinchStart: {
   panY: number
 } | null = null
 let refreshTimer: ReturnType<typeof setTimeout> | null = null
+let fontLicenseTimer: ReturnType<typeof setInterval> | null = null
 
 const isGroup = computed(() => Boolean(canvasStore.canvasGroup && !exportStore.exportLayerId))
 const groupCount = computed(() => {
@@ -833,6 +872,44 @@ async function doBatchHighlight() {
   }
 }
 
+function clearFontLicenseTimer() {
+  if (!fontLicenseTimer) return
+  clearInterval(fontLicenseTimer)
+  fontLicenseTimer = null
+}
+
+function requestExport(action: 'export' | 'batch') {
+  const needsWarning = exportStore.exportFormat !== 'pindou' && exportStore.exportFont !== 'default'
+  if (!needsWarning) {
+    if (action === 'export') void doExport()
+    else void doBatchHighlight()
+    return
+  }
+
+  clearFontLicenseTimer()
+  pendingExportAction.value = action
+  fontLicenseWait.value = 5
+  showFontLicenseWarning.value = true
+  fontLicenseTimer = setInterval(() => {
+    fontLicenseWait.value = Math.max(0, fontLicenseWait.value - 1)
+    if (fontLicenseWait.value === 0) clearFontLicenseTimer()
+  }, 1000)
+}
+
+function cancelFontLicenseWarning() {
+  clearFontLicenseTimer()
+  pendingExportAction.value = null
+  showFontLicenseWarning.value = false
+}
+
+function confirmFontLicenseWarning() {
+  if (fontLicenseWait.value > 0) return
+  const action = pendingExportAction.value
+  cancelFontLicenseWarning()
+  if (action === 'export') void doExport()
+  else if (action === 'batch') void doBatchHighlight()
+}
+
 watch(
   [
     () => exportStore.exportName,
@@ -892,6 +969,7 @@ onMounted(() => {
 })
 onBeforeUnmount(() => {
   if (refreshTimer) clearTimeout(refreshTimer)
+  clearFontLicenseTimer()
 })
 </script>
 
@@ -1580,6 +1658,95 @@ onBeforeUnmount(() => {
 .secondary-button:disabled {
   opacity: 0.55;
   cursor: wait;
+}
+
+.font-license-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(17, 24, 39, 0.68);
+  backdrop-filter: blur(3px);
+}
+
+.font-license-dialog {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 16px;
+  width: min(520px, calc(100vw - 48px));
+  box-sizing: border-box;
+  padding: 22px;
+  border: 2px solid #ef4444;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 22px 70px rgba(127, 29, 29, 0.35);
+}
+
+.font-license-mark {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 50%;
+  background: #fee2e2;
+  color: #dc2626;
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+
+.font-license-copy strong {
+  color: #991b1b;
+  font-size: 1.02rem;
+}
+
+.font-license-copy p {
+  margin: 10px 0 0;
+  color: #374151;
+  font-size: 0.82rem;
+  line-height: 1.75;
+}
+
+.font-license-copy .font-license-suggestion {
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+.font-license-actions {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.font-license-actions button {
+  min-height: 40px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.76rem;
+}
+
+.license-cancel {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #4b5563;
+}
+
+.license-confirm {
+  border: 1px solid #dc2626;
+  background: #dc2626;
+  color: #fff;
+}
+
+.license-confirm:disabled {
+  border-color: #fca5a5;
+  background: #fee2e2;
+  color: #b91c1c;
+  cursor: not-allowed;
 }
 
 @media (max-width: 1000px) {

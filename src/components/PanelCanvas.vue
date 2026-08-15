@@ -1,5 +1,106 @@
 <template>
   <div class="panel-canvas">
+    <!-- 图像辅助 -->
+    <div class="canv-section underlay-section">
+      <h4 class="canv-title">底图</h4>
+      <input
+        ref="underlayInputRef"
+        class="hidden-file-input"
+        type="file"
+        accept="image/*"
+        @change="onUnderlayFile"
+      />
+      <template v-if="canvasStore.underlay">
+        <p class="canv-hint image-name" :title="canvasStore.underlay.name">
+          {{ canvasStore.underlay.name }}
+        </p>
+        <div class="canv-btns underlay-actions">
+          <button
+            class="canv-btn"
+            :class="{ active: canvasStore.underlayEditMode }"
+            @click="canvasStore.underlayEditMode = !canvasStore.underlayEditMode"
+          >
+            {{ canvasStore.underlayEditMode ? '完成编辑' : '编辑底图' }}
+          </button>
+          <button class="canv-btn" @click="underlayInputRef?.click()">重新导入</button>
+          <button class="canv-btn danger" @click="canvasStore.removeUnderlay()">删除底图</button>
+        </div>
+        <div class="image-adjustments">
+          <label>
+            <span>等比缩放</span>
+            <input
+              type="range"
+              min="10"
+              max="1000"
+              :value="Math.round(canvasStore.underlay.scale * 100)"
+              @input="setUnderlayScale"
+            />
+            <span>{{ Math.round(canvasStore.underlay.scale * 100) }}%</span>
+          </label>
+          <label>
+            <span>透明度</span>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              :value="Math.round(canvasStore.underlay.opacity * 100)"
+              @input="setUnderlayOpacity"
+            />
+            <span>{{ Math.round(canvasStore.underlay.opacity * 100) }}%</span>
+          </label>
+        </div>
+        <button class="canv-btn reset-underlay" @click="canvasStore.resetUnderlayTransform()">
+          重置位置与缩放
+        </button>
+        <label class="canv-toggle">
+          <input
+            type="checkbox"
+            :checked="canvasStore.autoPickUnderlayColor"
+            @change="canvasStore.autoPickUnderlayColor = !canvasStore.autoPickUnderlayColor"
+          />
+          根据底图自动切换画笔颜色
+        </label>
+        <p v-if="canvasStore.underlayEditMode" class="edit-mode-tip">
+          底图编辑中：拖动移动，滚轮或双指缩放；绘画工具已暂停。
+        </p>
+      </template>
+      <button v-else class="canv-btn" @click="underlayInputRef?.click()">导入底图</button>
+    </div>
+
+    <div class="canv-section floating-section">
+      <h4 class="canv-title">浮动窗口</h4>
+      <input
+        ref="referenceInputRef"
+        class="hidden-file-input"
+        type="file"
+        accept="image/*"
+        @change="onReferenceFile"
+      />
+      <div class="canv-btns floating-actions">
+        <button
+          class="canv-btn"
+          :class="{ active: workspaceStore.referenceWindowOpen }"
+          @click="toggleReferenceWindow()"
+        >
+          {{ workspaceStore.referenceImage ? '参考图' : '导入参考图' }}
+        </button>
+        <button
+          v-if="canvasStore.canvasGroup"
+          class="canv-btn"
+          :class="{ active: workspaceStore.groupPreviewWindowOpen }"
+          @click="workspaceStore.groupPreviewWindowOpen = !workspaceStore.groupPreviewWindowOpen"
+        >
+          组预览
+        </button>
+      </div>
+      <div v-if="workspaceStore.referenceImage" class="canv-btns reference-actions">
+        <button class="canv-btn" @click="referenceInputRef?.click()">更换参考图</button>
+        <button class="canv-btn danger" @click="workspaceStore.removeReferenceImage()">
+          删除参考图
+        </button>
+      </div>
+    </div>
+
     <!-- 1. 渲染模式 -->
     <div class="canv-section render-section">
       <h4 class="canv-title">渲染模式</h4>
@@ -325,6 +426,7 @@ import {
   type SymmetryMode,
 } from '@/stores/canvas'
 import ConfirmModal from '@/components/ConfirmModal.vue'
+import { useWorkspaceStore } from '@/stores/workspace'
 
 import iconSymOff from '@/assets/icon/关闭对称.png'
 import iconSymCenter from '@/assets/icon/中心对称.png'
@@ -343,6 +445,56 @@ import iconSquarePixel from '@/assets/icon/方形像素.png'
 import iconCirclePixel from '@/assets/icon/圆形像素.png'
 
 const canvasStore = useCanvasStore()
+const workspaceStore = useWorkspaceStore()
+const underlayInputRef = ref<HTMLInputElement | null>(null)
+const referenceInputRef = ref<HTMLInputElement | null>(null)
+
+function readImageFile(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result ?? ''))
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(file)
+  })
+}
+
+async function onUnderlayFile(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file) return
+  const src = await readImageFile(file)
+  canvasStore.setUnderlay({ src, name: file.name })
+}
+
+async function onReferenceFile(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file) return
+  const src = await readImageFile(file)
+  workspaceStore.setReferenceImage({ src, name: file.name })
+}
+
+function toggleReferenceWindow() {
+  if (!workspaceStore.referenceImage) {
+    referenceInputRef.value?.click()
+    return
+  }
+  workspaceStore.referenceWindowOpen = !workspaceStore.referenceWindowOpen
+}
+
+function setUnderlayScale(event: Event) {
+  canvasStore.updateUnderlay({
+    scale: Number((event.target as HTMLInputElement).value) / 100,
+  })
+}
+
+function setUnderlayOpacity(event: Event) {
+  canvasStore.updateUnderlay({
+    opacity: Number((event.target as HTMLInputElement).value) / 100,
+  })
+}
 
 // 扩展/裁剪
 const showResize = ref(false)
@@ -581,6 +733,65 @@ const bgColors = [
 .canv-btn:hover {
   border-color: #6366f1;
   color: #6366f1;
+}
+.canv-btn.active {
+  border-color: #818cf8;
+  background: #eef2ff;
+  color: #4f46e5;
+}
+.canv-btn.danger {
+  color: #dc2626;
+}
+.hidden-file-input {
+  display: none;
+}
+.image-name {
+  overflow: hidden;
+  color: #6b7280;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.underlay-actions {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.floating-actions,
+.reference-actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.image-adjustments {
+  display: grid;
+  gap: 8px;
+  padding: 9px;
+  border-radius: 7px;
+  background: #f8fafc;
+}
+.image-adjustments label {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 42px;
+  align-items: center;
+  gap: 6px;
+  color: #6b7280;
+  font-size: 0.66rem;
+}
+.image-adjustments input {
+  width: 100%;
+  min-width: 0;
+  accent-color: #6366f1;
+}
+.image-adjustments label span:last-child {
+  text-align: right;
+}
+.reset-underlay {
+  width: 100%;
+}
+.edit-mode-tip {
+  margin: 0;
+  padding: 8px;
+  border-radius: 7px;
+  background: #fff7ed;
+  color: #c2410c;
+  font-size: 0.65rem;
+  line-height: 1.5;
 }
 .preset-btn {
   display: inline-flex;

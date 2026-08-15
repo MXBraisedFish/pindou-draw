@@ -7,9 +7,14 @@ import MainLayout from '@/components/MainLayout.vue'
 import TopGlobalBar from '@/components/TopGlobalBar.vue'
 import CanvasGroupPreview from '@/components/CanvasGroupPreview.vue'
 import LeftToolbar from '@/components/LeftToolbar.vue'
+import FloatingImageWindows from '@/components/FloatingImageWindows.vue'
+import CanvasArea from '@/components/CanvasArea.vue'
+import ExportModal from '@/components/ExportModal.vue'
 import { useCanvasStore } from '@/stores/canvas'
 import { useExportStore } from '@/stores/exportStore'
 import { useDevice } from '@/composables/useDevice'
+import { useWorkspaceStore } from '@/stores/workspace'
+import { usePaletteStore } from '@/stores/palette'
 
 describe('desktop editor UI', () => {
   beforeEach(() => {
@@ -47,6 +52,8 @@ describe('desktop editor UI', () => {
           setLineDash: vi.fn(),
           fillText: vi.fn(),
           createRadialGradient: vi.fn(() => ({ addColorStop: vi.fn() })),
+          drawImage: vi.fn(),
+          getImageData: vi.fn(() => ({ data: new Uint8ClampedArray([0, 0, 0, 255]) })),
         }) as unknown as CanvasRenderingContext2D,
     )
   })
@@ -112,6 +119,7 @@ describe('desktop editor UI', () => {
     canvas.flushComposite()
 
     const exportStore = useExportStore()
+    expect(exportStore.exportFont).toBe('default')
     expect(exportStore.groupExportMode).toBe('separate')
     exportStore.exportName = '自定义名称'
     const sources = exportStore.getGroupSources()
@@ -135,6 +143,48 @@ describe('desktop editor UI', () => {
     expect(exportStore.groupPreviewRow).toBe(2)
     expect(exportStore.groupPreviewCol).toBe(1)
     expect({ row: canvas.activeGroupRow, col: canvas.activeGroupCol }).toEqual(activeBefore)
+  })
+
+  it('requires a five-second license confirmation for non-commercial export fonts', async () => {
+    vi.useFakeTimers()
+    try {
+      const exportStore = useExportStore()
+      vi.spyOn(exportStore, 'refreshPreview').mockImplementation(() => {})
+      const exportAction = vi.spyOn(exportStore, 'doExport').mockResolvedValue()
+      const wrapper = mount(ExportModal, {
+        global: { stubs: { Teleport: true, ExportHighlightModal: true } },
+      })
+
+      exportStore.exportFont = 'pixel'
+      await nextTick()
+      await wrapper.find('.export-button').trigger('click')
+      expect(wrapper.find('[data-test="font-license-warning"]').exists()).toBe(true)
+      expect(
+        wrapper.find<HTMLButtonElement>('[data-test="font-license-confirm"]').element.disabled,
+      ).toBe(true)
+
+      await wrapper.find('.license-cancel').trigger('click')
+      expect(wrapper.find('[data-test="font-license-warning"]').exists()).toBe(false)
+      expect(exportAction).not.toHaveBeenCalled()
+
+      await wrapper.find('.export-button').trigger('click')
+      vi.advanceTimersByTime(4999)
+      await nextTick()
+      expect(
+        wrapper.find<HTMLButtonElement>('[data-test="font-license-confirm"]').element.disabled,
+      ).toBe(true)
+      vi.advanceTimersByTime(1)
+      await nextTick()
+      expect(
+        wrapper.find<HTMLButtonElement>('[data-test="font-license-confirm"]').element.disabled,
+      ).toBe(false)
+
+      await wrapper.find('[data-test="font-license-confirm"]').trigger('click')
+      expect(exportAction).toHaveBeenCalledOnce()
+      wrapper.unmount()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('rebuilds the canvas-group grid after rows and columns change', async () => {
@@ -171,6 +221,7 @@ describe('desktop editor UI', () => {
           LeftToolbar: true,
           CanvasArea: true,
           RightPanels: true,
+          FloatingImageWindows: true,
           MobileSheet: true,
         },
       },
@@ -224,5 +275,85 @@ describe('desktop editor UI', () => {
     await wrapper.find('.tool-expand-toggle').trigger('click')
     expect(wrapper.find('.tablet-tool-options-popover').exists()).toBe(true)
     expect(wrapper.text()).toContain('铅笔设置')
+  })
+
+  it('temporarily hides floating image windows in the canvas-group overview', async () => {
+    useDevice().changeDevice('pc')
+    const canvas = useCanvasStore()
+    const workspace = useWorkspaceStore()
+    canvas.createCanvasGroup('预览组', 2, 2, 8)
+    canvas.switchToSubCanvas(0, 0)
+    workspace.referenceImage = { src: 'data:image/png;base64,AAAA', name: '参考.png' }
+    workspace.referenceWindowOpen = true
+    workspace.groupPreviewWindowOpen = true
+
+    const wrapper = mount(FloatingImageWindows, {
+      global: { stubs: { Teleport: true } },
+    })
+    await nextTick()
+    expect(wrapper.find('[data-window="reference"]').attributes('style')).not.toContain(
+      'display: none',
+    )
+    expect(wrapper.find('[data-window="group"]').attributes('style')).not.toContain('display: none')
+
+    canvas.showGroupPreview = true
+    await nextTick()
+    expect(wrapper.find('[data-window="reference"]').attributes('style')).toContain('display: none')
+    expect(wrapper.find('[data-window="group"]').attributes('style')).toContain('display: none')
+
+    canvas.showGroupPreview = false
+    await nextTick()
+    expect(wrapper.find('[data-window="reference"]').attributes('style')).not.toContain(
+      'display: none',
+    )
+    expect(workspace.referenceWindowOpen).toBe(true)
+    expect(workspace.groupPreviewWindowOpen).toBe(true)
+  })
+
+  it('uses the underlay color only when a painting tool draws', async () => {
+    useDevice().changeDevice('pc')
+    const canvas = useCanvasStore()
+    const palette = usePaletteStore()
+    palette.colorEntries = [
+      { id: 'dark', type: 'solid', color1: '#000000', color2: null },
+      { id: 'light', type: 'solid', color1: '#ffffff', color2: null },
+    ]
+    palette.currentColorId = 'dark'
+    canvas.underlay = {
+      src: 'data:image/png;base64,AAAA',
+      name: '底图.png',
+      opacity: 0.1,
+      scale: 1,
+      offsetX: 0,
+      offsetY: 0,
+    }
+    canvas.autoPickUnderlayColor = true
+    vi.spyOn(canvas, 'sampleUnderlayColor').mockReturnValue('#fefefe')
+
+    const wrapper = mount(CanvasArea, {
+      global: { stubs: { WorkspaceFooter: true, CanvasGroupPreview: true } },
+    })
+    const drawingCanvas = wrapper.find('canvas')
+    vi.spyOn(drawingCanvas.element, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      left: 0,
+      top: 0,
+      right: 160,
+      bottom: 160,
+      width: 160,
+      height: 160,
+      toJSON: () => ({}),
+    })
+    drawingCanvas.element.dispatchEvent(
+      new MouseEvent('pointerdown', { bubbles: true, button: 0, clientX: 5, clientY: 5 }),
+    )
+    drawingCanvas.element.dispatchEvent(
+      new MouseEvent('pointerup', { bubbles: true, button: 0, clientX: 5, clientY: 5 }),
+    )
+    await nextTick()
+
+    expect(palette.currentColorId).toBe('light')
+    expect(canvas.activeLayer()?.grid[0]?.[0]).toBe('#ffffff')
   })
 })

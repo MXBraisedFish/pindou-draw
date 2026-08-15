@@ -5,13 +5,19 @@
         class="tool-btn"
         :class="{ active: toolStore.activeTool === tool.key }"
         :title="tool.label"
+        :disabled="canvasStore.underlayEditMode"
         @click="selectTool(tool.key)"
       >
         <img :src="tool.icon" class="tool-icon" :alt="tool.label" />
         <span class="tool-label">{{ tool.label }}</span>
       </button>
       <button
-        v-if="device === 'tb' && toolStore.activeTool === tool.key && tool.expandable"
+        v-if="
+          device === 'tb' &&
+          !canvasStore.underlayEditMode &&
+          toolStore.activeTool === tool.key &&
+          tool.expandable
+        "
         class="tool-expand-toggle"
         :class="{ open: optionsOpen }"
         :title="optionsOpen ? '收起工具设置' : '展开工具设置'"
@@ -44,6 +50,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import ToolOptions from '@/components/ToolOptions.vue'
 import { useDevice } from '@/composables/useDevice'
 import { useToolStore } from '@/stores/tool'
+import { useCanvasStore } from '@/stores/canvas'
 import type { ToolType } from '@/stores/tool'
 import iconMove from '@/assets/icon/移动.png'
 import iconPencil from '@/assets/icon/铅笔.png'
@@ -54,6 +61,7 @@ import iconSelect from '@/assets/icon/选区.png'
 import iconGeometry from '@/assets/icon/几何工具.png'
 
 const toolStore = useToolStore()
+const canvasStore = useCanvasStore()
 const { device } = useDevice()
 const toolbarRef = ref<HTMLElement | null>(null)
 const optionsRef = ref<HTMLElement | null>(null)
@@ -74,6 +82,7 @@ const hasOptions = computed(() => activeTool.value?.expandable ?? false)
 const activeToolLabel = computed(() => activeTool.value?.label ?? '工具')
 
 function selectTool(tool: ToolType) {
+  if (canvasStore.underlayEditMode) return
   if (toolStore.activeTool !== tool) optionsOpen.value = false
   toolStore.setTool(tool)
 }
@@ -85,9 +94,9 @@ function closeOnOutside(event: PointerEvent) {
 }
 
 watch(
-  () => toolStore.activeTool,
+  () => [toolStore.activeTool, canvasStore.underlayEditMode],
   () => {
-    if (!hasOptions.value) optionsOpen.value = false
+    if (!hasOptions.value || canvasStore.underlayEditMode) optionsOpen.value = false
   },
 )
 onMounted(() => window.addEventListener('pointerdown', closeOnOutside))
@@ -133,6 +142,11 @@ onBeforeUnmount(() => window.removeEventListener('pointerdown', closeOnOutside))
 .tool-btn.active {
   background: #eef2ff;
   color: #6366f1;
+}
+
+.tool-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
 }
 
 .tool-icon {

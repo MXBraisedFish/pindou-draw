@@ -5,9 +5,11 @@ import {
   clampGroupSize,
   clampInteger,
   rawPixelGrid,
+  type UnderlayState,
   useCanvasStore,
 } from '@/stores/canvas'
 import { usePaletteStore } from '@/stores/palette'
+import { useWorkspaceStore } from '@/stores/workspace'
 import {
   getStoredProject,
   listStoredProjects,
@@ -16,6 +18,24 @@ import {
   type StoredProject,
 } from '@/ts/projectStorage'
 
+function normalizeUnderlay(value: unknown): UnderlayState | null {
+  if (!value || typeof value !== 'object') return null
+  const source = value as Partial<UnderlayState>
+  if (typeof source.src !== 'string' || source.src.length === 0) return null
+  const opacity = Number(source.opacity)
+  const scale = Number(source.scale)
+  const offsetX = Number(source.offsetX)
+  const offsetY = Number(source.offsetY)
+  return {
+    src: source.src,
+    name: typeof source.name === 'string' ? source.name : '底图',
+    opacity: Math.max(0, Math.min(1, Number.isFinite(opacity) ? opacity : 0.5)),
+    scale: Math.max(0.1, Math.min(10, Number.isFinite(scale) ? scale : 1)),
+    offsetX: Number.isFinite(offsetX) ? offsetX : 0,
+    offsetY: Number.isFinite(offsetY) ? offsetY : 0,
+  }
+}
+
 export const useProjectStore = defineStore('project', () => {
   const projectName = ref('未命名项目')
   const createdAt = ref(new Date().toLocaleDateString('zh-CN'))
@@ -23,12 +43,13 @@ export const useProjectStore = defineStore('project', () => {
   function createProjectJson(): string {
     const canvasStore = useCanvasStore()
     const paletteStore = usePaletteStore()
+    const workspaceStore = useWorkspaceStore()
 
     if (canvasStore.canvasGroup) {
       canvasStore.saveActiveToGroup()
       const g = canvasStore.canvasGroup
       const data = {
-        version: 3,
+        version: 4,
         type: 'group',
         name: g.name,
         groupCols: g.groupCols,
@@ -52,6 +73,8 @@ export const useProjectStore = defineStore('project', () => {
             showGrid: snap.showGrid,
             thickLineH: { ...snap.thickLineH },
             thickLineV: { ...snap.thickLineV },
+            underlay: snap.underlay ? { ...snap.underlay } : null,
+            autoPickUnderlayColor: snap.autoPickUnderlayColor ?? false,
           })),
         ),
         activeGroupRow: canvasStore.activeGroupRow,
@@ -67,13 +90,14 @@ export const useProjectStore = defineStore('project', () => {
           : null,
         currentColorId: paletteStore.currentColorId,
         recentColorIds: [...paletteStore.recentColorIds],
+        referenceImage: workspaceStore.referenceImage ? { ...workspaceStore.referenceImage } : null,
         createdAt: new Date().toISOString(),
       }
       return JSON.stringify(data)
     }
 
     const data = {
-      version: 3,
+      version: 4,
       type: 'single',
       name: projectName.value,
       cols: canvasStore.cols,
@@ -94,6 +118,8 @@ export const useProjectStore = defineStore('project', () => {
       showGrid: canvasStore.showGrid,
       thickLineH: { ...canvasStore.thickLineH },
       thickLineV: { ...canvasStore.thickLineV },
+      underlay: canvasStore.underlay ? { ...canvasStore.underlay } : null,
+      autoPickUnderlayColor: canvasStore.autoPickUnderlayColor,
       colorCard: paletteStore.activeCard
         ? {
             name: paletteStore.activeCard.name,
@@ -104,6 +130,7 @@ export const useProjectStore = defineStore('project', () => {
         : null,
       currentColorId: paletteStore.currentColorId,
       recentColorIds: [...paletteStore.recentColorIds],
+      referenceImage: workspaceStore.referenceImage ? { ...workspaceStore.referenceImage } : null,
       createdAt: new Date().toISOString(),
     }
     return JSON.stringify(data)
@@ -191,9 +218,20 @@ export const useProjectStore = defineStore('project', () => {
       const data = JSON.parse(text)
       const canvasStore = useCanvasStore()
       const paletteStore = usePaletteStore()
+      const workspaceStore = useWorkspaceStore()
       const fileVersion = data.version ?? 1
 
       projectName.value = data.name ?? '导入项目'
+      workspaceStore.referenceImage =
+        typeof data.referenceImage?.src === 'string'
+          ? {
+              src: data.referenceImage.src,
+              name:
+                typeof data.referenceImage.name === 'string' ? data.referenceImage.name : '参考图',
+            }
+          : null
+      workspaceStore.referenceWindowOpen = false
+      workspaceStore.groupPreviewWindowOpen = false
 
       // --- 画布组加载 (v3) ---
       if (fileVersion >= 3 && data.type === 'group') {
@@ -230,6 +268,8 @@ export const useProjectStore = defineStore('project', () => {
               target.showGrid = snap.showGrid ?? true
               if (snap.thickLineH) target.thickLineH = { ...snap.thickLineH }
               if (snap.thickLineV) target.thickLineV = { ...snap.thickLineV }
+              target.underlay = normalizeUnderlay(snap.underlay)
+              target.autoPickUnderlayColor = Boolean(target.underlay && snap.autoPickUnderlayColor)
             }
           }
         }
@@ -343,6 +383,10 @@ export const useProjectStore = defineStore('project', () => {
           }
         }
       }
+      canvasStore.restoreUnderlay(
+        normalizeUnderlay(data.underlay),
+        Boolean(data.autoPickUnderlayColor),
+      )
 
       // --- 色卡恢复 ---
       if (fileVersion >= 2 && data.colorCard) {

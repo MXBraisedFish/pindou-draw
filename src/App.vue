@@ -106,6 +106,7 @@ function handleShortcut(event: KeyboardEvent) {
 
   const tool = shortcutTools[action]
   if (tool) {
+    if (useCanvasStore().underlayEditMode) return
     toolStore.setTool(tool)
     return
   }

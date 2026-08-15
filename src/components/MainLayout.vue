@@ -2,6 +2,7 @@
   <div class="main-layout">
     <LeftToolbar />
     <CanvasArea />
+    <FloatingImageWindows />
     <RightPanels />
     <MobileSheet v-if="device === 'ph'" />
     <div v-if="device === 'tb' && !canvasStore.showGroupPreview" class="tablet-history-actions">
@@ -19,6 +20,7 @@
 import { useDevice } from '@/composables/useDevice'
 import LeftToolbar from '@/components/LeftToolbar.vue'
 import CanvasArea from '@/components/CanvasArea.vue'
+import FloatingImageWindows from '@/components/FloatingImageWindows.vue'
 import RightPanels from '@/components/RightPanels.vue'
 import MobileSheet from '@/components/MobileSheet.vue'
 import { useHistoryStore } from '@/stores/history'

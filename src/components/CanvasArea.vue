@@ -145,6 +145,10 @@ function doRender() {
     previewRows: canvasStore.resizePreview?.newRows,
     previewShape: preview,
     geoPreview: canvasStore.geoPreview,
+    underlay:
+      canvasStore.underlay && canvasStore.underlayImage
+        ? { image: canvasStore.underlayImage, state: canvasStore.underlay }
+        : null,
   })
 }
 
@@ -177,6 +181,8 @@ watch(
     canvasStore.thickLineH,
     canvasStore.thickLineV,
     canvasStore.geoPreview,
+    canvasStore.underlay,
+    canvasStore.underlayImage,
     selectionStore.version,
     canvasStore.showGroupPreview,
     paletteStore.highlightActive,

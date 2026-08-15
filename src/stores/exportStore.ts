@@ -113,7 +113,7 @@ export const useExportStore = defineStore('export', () => {
   const sketchBg = ref('#ffffff')
   const pageBg = ref('#ffffff')
   const exportRenderMode = ref<'day' | 'night' | 'thermo' | 'photo' | 'thermo-photo'>('day')
-  const exportFont = ref<'pixel' | 'pixelfont' | 'default'>('pixelfont')
+  const exportFont = ref<'pixel' | 'pixelfont' | 'default'>('default')
   const tableLayout = ref<'block' | 'table' | 'compact'>('block')
   const exportContent = ref<ExportContent>('full')
   const groupExportMode = ref<GroupExportMode>('separate')
@@ -274,7 +274,7 @@ export const useExportStore = defineStore('export', () => {
   function getFontFamily() {
     if (exportFont.value === 'pixel') return 'MinecraftTen, monospace'
     if (exportFont.value === 'pixelfont') return 'PixelFont, monospace'
-    return 'Arial, "Microsoft YaHei", sans-serif'
+    return 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
   }
 
   function renderSource(source: ExportSource, final: boolean, updateSummary = false) {

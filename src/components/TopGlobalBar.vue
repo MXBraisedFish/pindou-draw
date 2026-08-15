@@ -198,6 +198,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { clampCanvasSize, clampGroupSize, useCanvasStore } from '@/stores/canvas'
 import { useProjectStore } from '@/stores/project'
 import { usePaletteStore } from '@/stores/palette'
+import { useWorkspaceStore } from '@/stores/workspace'
 import { useExportStore } from '@/stores/exportStore'
 import ConfirmModal from '@/components/ConfirmModal.vue'
 import ExportModal from '@/components/ExportModal.vue'
@@ -213,6 +214,7 @@ import iconBack from '@/assets/icon/退出返回.png'
 const canvasStore = useCanvasStore()
 const projectStore = useProjectStore()
 const paletteStore = usePaletteStore()
+const workspaceStore = useWorkspaceStore()
 const exportStore = useExportStore()
 const showSettings = ref(false)
 const showSaveMenu = ref(false)
@@ -334,6 +336,7 @@ function executeNewCanvas() {
   projectStore.createdAt = new Date().toLocaleDateString('zh-CN')
   const card = paletteStore.cardList.find((c) => c.name === newCard.value)
   if (card) paletteStore.loadCard(card)
+  workspaceStore.resetWorkspace()
   canvasStore.newCanvas(newW.value, newH.value)
   closeNewModal()
 }
@@ -357,6 +360,7 @@ function executeNewGroup() {
   projectStore.createdAt = new Date().toLocaleDateString('zh-CN')
   const card = paletteStore.cardList.find((c) => c.name === newCard.value)
   if (card) paletteStore.loadCard(card)
+  workspaceStore.resetWorkspace()
   canvasStore.createCanvasGroup(newName.value, groupCols.value, groupRows.value, groupSubSize.value)
   closeNewModal()
 }
