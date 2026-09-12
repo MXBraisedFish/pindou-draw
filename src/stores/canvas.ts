@@ -1056,8 +1056,8 @@ export const useCanvasStore = defineStore('canvas', () => {
     return ''
   }
 
-  function setZoom(z: number) {
-    zoom.value = Math.max(0.1, Math.min(2.0, z))
+  function setZoom(z: number, maxZoom = 2) {
+    zoom.value = Math.max(0.1, Math.min(maxZoom, z))
   }
 
   function setPan(x: number, y: number) {

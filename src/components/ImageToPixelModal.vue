@@ -32,7 +32,7 @@
         ></canvas>
         <div class="stage-hint">
           {{
-            device === 'tb'
+            device === 'tb' || device === 'ph'
               ? '框内为有效区域 · 单指移动 · 双指缩放与旋转 · 按住边缘即可裁剪'
               : '框内为有效区域 · 拖动图片定位 · 滚轮缩放 · 边缘自动吸附'
           }}
@@ -53,7 +53,10 @@
                 @change="normalizeRatio()"
               />
             </label>
-            <span class="option-note">输出约 {{ outputSize.width }} x {{ outputSize.height }}</span>
+            <span class="option-note"
+              >{{ device === 'ph' ? '单画布（最长边 64 格）' : '输出约' }} {{ outputSize.width }} x
+              {{ outputSize.height }}</span
+            >
           </template>
 
           <template v-else-if="activeTool === 'dither'">
@@ -137,6 +140,7 @@ import { quantizeImage } from '@/ts/photoToPixel'
 import { useDevice } from '@/composables/useDevice'
 import { useWorkspaceStore } from '@/stores/workspace'
 import iconClose from '@/assets/icon/关闭取消.png'
+import { fitPhoneOutput } from '@/ts/phoneProject'
 
 type EditorTool = 'ratio' | 'dither' | 'transform' | 'palette'
 type DitherMode = 'none' | 'floyd-steinberg' | 'blue-noise'
@@ -233,10 +237,11 @@ const outputSize = computed(() => {
   const safeScale = clampInteger(scalePercent.value, 1, 200, 100)
   const safeRatio = clampInteger(pixelRatio.value, 1, 32, 4)
   const effectiveScale = Math.max(0.0001, baseImageScale * (safeScale / 100))
-  return {
+  const size = {
     width: Math.max(1, Math.floor(cropDimensions.value.width / effectiveScale / safeRatio)),
     height: Math.max(1, Math.floor(cropDimensions.value.height / effectiveScale / safeRatio)),
   }
+  return device.value === 'ph' ? fitPhoneOutput(size.width, size.height) : size
 })
 
 const outputLayout = computed(() => {
@@ -498,7 +503,7 @@ function canvasPoint(event: PointerEvent | WheelEvent) {
 }
 
 function detectMode(x: number, y: number): DragMode {
-  const threshold = device.value === 'tb' ? 18 : 11
+  const threshold = device.value === 'tb' || device.value === 'ph' ? 18 : 11
   const dividerX = crop.x + crop.width * dividerRatio
   if (Math.abs(x - dividerX) <= 12 && y >= crop.y - 44 && y <= crop.y + crop.height) {
     return 'divider'
@@ -522,7 +527,7 @@ function detectMode(x: number, y: number): DragMode {
   if (withinX && Math.abs(y - crop.y - crop.height) <= threshold) return 's'
   if (withinY && Math.abs(x - crop.x) <= threshold) return 'w'
   if (withinY && Math.abs(x - crop.x - crop.width) <= threshold) return 'e'
-  if (device.value === 'tb' && outsideCrop) return 'rotate'
+  if ((device.value === 'tb' || device.value === 'ph') && outsideCrop) return 'rotate'
   if (x >= crop.x && x <= crop.x + crop.width && y >= crop.y && y <= crop.y + crop.height) {
     return 'pan'
   }
@@ -543,7 +548,7 @@ function cursorFor(mode: DragMode) {
 function onPointerDown(event: PointerEvent) {
   if (event.button !== 0 || !editorCanvas.value) return
   const point = canvasPoint(event)
-  if (device.value === 'tb' && event.pointerType === 'touch') {
+  if ((device.value === 'tb' || device.value === 'ph') && event.pointerType === 'touch') {
     event.preventDefault()
     tabletPointers.set(event.pointerId, point)
     editorCanvas.value.setPointerCapture(event.pointerId)
@@ -774,7 +779,7 @@ function snapCropToImage(
 function onPointerMove(event: PointerEvent) {
   if (!editorCanvas.value) return
   const point = canvasPoint(event)
-  if (device.value === 'tb' && event.pointerType === 'touch') {
+  if ((device.value === 'tb' || device.value === 'ph') && event.pointerType === 'touch') {
     if (!tabletPointers.has(event.pointerId)) return
     event.preventDefault()
     tabletPointers.set(event.pointerId, point)
@@ -813,7 +818,7 @@ function onPointerUp(event: PointerEvent) {
   if (editorCanvas.value?.hasPointerCapture(event.pointerId)) {
     editorCanvas.value.releasePointerCapture(event.pointerId)
   }
-  if (device.value === 'tb' && event.pointerType === 'touch') {
+  if ((device.value === 'tb' || device.value === 'ph') && event.pointerType === 'touch') {
     const wasPinching = tabletPinch?.pointerIds.includes(event.pointerId) ?? false
     tabletPointers.delete(event.pointerId)
     if (tabletPinch && !wasPinching) return
@@ -845,7 +850,7 @@ function onPointerUp(event: PointerEvent) {
 }
 
 function onPointerLeave(event: PointerEvent) {
-  if (device.value === 'tb' && event.pointerType === 'touch') return
+  if ((device.value === 'tb' || device.value === 'ph') && event.pointerType === 'touch') return
   if (!dragMode && editorCanvas.value) editorCanvas.value.style.cursor = 'default'
 }
 

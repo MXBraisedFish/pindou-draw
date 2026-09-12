@@ -67,353 +67,361 @@
       <button v-else class="canv-btn" @click="underlayInputRef?.click()">导入底图</button>
     </div>
 
-    <div class="canv-section floating-section">
-      <h4 class="canv-title">浮动窗口</h4>
-      <input
-        ref="referenceInputRef"
-        class="hidden-file-input"
-        type="file"
-        accept="image/*"
-        @change="onReferenceFile"
-      />
-      <div class="canv-btns floating-actions">
-        <button
-          class="canv-btn"
-          :class="{ active: workspaceStore.referenceWindowOpen }"
-          @click="toggleReferenceWindow()"
-        >
-          {{ workspaceStore.referenceImage ? '参考图' : '导入参考图' }}
-        </button>
-        <button
-          v-if="canvasStore.canvasGroup"
-          class="canv-btn"
-          :class="{ active: workspaceStore.groupPreviewWindowOpen }"
-          @click="workspaceStore.groupPreviewWindowOpen = !workspaceStore.groupPreviewWindowOpen"
-        >
-          组预览
-        </button>
-      </div>
-      <div v-if="workspaceStore.referenceImage" class="canv-btns reference-actions">
-        <button class="canv-btn" @click="referenceInputRef?.click()">更换参考图</button>
-        <button class="canv-btn danger" @click="workspaceStore.removeReferenceImage()">
-          删除参考图
-        </button>
-      </div>
-    </div>
-
-    <!-- 1. 渲染模式 -->
-    <div class="canv-section render-section">
-      <h4 class="canv-title">渲染模式</h4>
-      <div class="canv-btns">
-        <button
-          v-for="m in renderModes"
-          :key="m.key"
-          class="preset-btn"
-          :class="{ active: canvasStore.renderMode === m.key }"
-          @click="canvasStore.setRenderMode(m.key)"
-        >
-          {{ m.label }}
-        </button>
-      </div>
-    </div>
-
-    <!-- 2. 对称绘制 -->
-    <div class="canv-section symmetry-section">
-      <h4 class="canv-title">对称绘制</h4>
-      <div class="sym-grid">
-        <button
-          v-for="s in symModes"
-          :key="s.key"
-          class="sym-btn"
-          :class="{ active: canvasStore.symmetry === s.key }"
-          :title="s.label"
-          @click="canvasStore.symmetry = s.key"
-        >
-          <img :src="s.icon" class="sym-icon" alt="" />
-        </button>
-      </div>
-    </div>
-
-    <!-- 3. 像素形状 -->
-    <div class="canv-section shape-section">
-      <h4 class="canv-title">像素形状</h4>
-      <div class="canv-btns">
-        <button
-          class="preset-btn"
-          :class="{ active: canvasStore.pixelShape === 'square' }"
-          @click="canvasStore.pixelShape = 'square'"
-        >
-          <img :src="iconSquarePixel" class="preset-icon" alt="" />方形
-        </button>
-        <button
-          class="preset-btn"
-          :class="{ active: canvasStore.pixelShape === 'circle' }"
-          @click="canvasStore.pixelShape = 'circle'"
-        >
-          <img :src="iconCirclePixel" class="preset-icon" alt="" />圆形
-        </button>
-      </div>
-    </div>
-
-    <!-- 4. 粗线显示 -->
-    <div class="canv-section thick-section">
-      <h4 class="canv-title">粗线显示</h4>
-      <label class="canv-toggle">
-        <input type="checkbox" :checked="thickLineH.enabled" @change="toggleHL" /> 水平
-      </label>
-      <div v-if="thickLineH.enabled" class="thick-params">
-        <label
-          >间隔
-          <input
-            type="range"
-            min="1"
-            max="20"
-            :value="thickLineH.interval"
-            @input="
-              canvasStore.setThickLineH({
-                interval: Number(($event.target as HTMLInputElement).value),
-              })
-            "
-          />
-          {{ thickLineH.interval }}</label
-        >
-        <label
-          >粗细
-          <input
-            type="range"
-            min="1"
-            max="5"
-            :value="thickLineH.thickness"
-            @input="
-              canvasStore.setThickLineH({
-                thickness: Number(($event.target as HTMLInputElement).value),
-              })
-            "
-          />
-          {{ thickLineH.thickness }}</label
-        >
-        <div class="canv-btns">
+    <template v-if="!underlayOnly">
+      <div class="canv-section floating-section">
+        <h4 class="canv-title">浮动窗口</h4>
+        <input
+          ref="referenceInputRef"
+          class="hidden-file-input"
+          type="file"
+          accept="image/*"
+          @change="onReferenceFile"
+        />
+        <div class="canv-btns floating-actions">
           <button
-            v-for="sp in startPositions"
-            :key="sp.key"
-            class="preset-btn"
-            :class="{ active: hStartPos === sp.key }"
-            @click="setHStart(sp.key)"
+            class="canv-btn"
+            :class="{ active: workspaceStore.referenceWindowOpen }"
+            @click="toggleReferenceWindow()"
           >
-            {{ sp.label }}
+            {{ workspaceStore.referenceImage ? '参考图' : '导入参考图' }}
+          </button>
+          <button
+            v-if="canvasStore.canvasGroup"
+            class="canv-btn"
+            :class="{ active: workspaceStore.groupPreviewWindowOpen }"
+            @click="workspaceStore.groupPreviewWindowOpen = !workspaceStore.groupPreviewWindowOpen"
+          >
+            组预览
+          </button>
+        </div>
+        <div v-if="workspaceStore.referenceImage" class="canv-btns reference-actions">
+          <button class="canv-btn" @click="referenceInputRef?.click()">更换参考图</button>
+          <button class="canv-btn danger" @click="workspaceStore.removeReferenceImage()">
+            删除参考图
           </button>
         </div>
       </div>
-      <label class="canv-toggle" style="margin-top: 4px">
-        <input type="checkbox" :checked="thickLineV.enabled" @change="toggleVL" /> 垂直
-      </label>
-      <div v-if="thickLineV.enabled" class="thick-params">
-        <label
-          >间隔
-          <input
-            type="range"
-            min="1"
-            max="20"
-            :value="thickLineV.interval"
-            @input="
-              canvasStore.setThickLineV({
-                interval: Number(($event.target as HTMLInputElement).value),
-              })
-            "
-          />
-          {{ thickLineV.interval }}</label
-        >
-        <label
-          >粗细
-          <input
-            type="range"
-            min="1"
-            max="5"
-            :value="thickLineV.thickness"
-            @input="
-              canvasStore.setThickLineV({
-                thickness: Number(($event.target as HTMLInputElement).value),
-              })
-            "
-          />
-          {{ thickLineV.thickness }}</label
-        >
+
+      <!-- 1. 渲染模式 -->
+      <div class="canv-section render-section">
+        <h4 class="canv-title">渲染模式</h4>
         <div class="canv-btns">
           <button
-            v-for="sp in startPositions"
-            :key="sp.key"
+            v-for="m in renderModes"
+            :key="m.key"
             class="preset-btn"
-            :class="{ active: vStartPos === sp.key }"
-            @click="setVStart(sp.key)"
+            :class="{ active: canvasStore.renderMode === m.key }"
+            @click="canvasStore.setRenderMode(m.key)"
           >
-            {{ sp.label }}
+            {{ m.label }}
           </button>
         </div>
       </div>
-    </div>
 
-    <!-- 5. 色号显示 -->
-    <div class="canv-section labels-section">
-      <h4 class="canv-title">色号显示</h4>
-      <label class="canv-toggle">
-        <input
-          type="checkbox"
-          :checked="canvasStore.showColorIds"
-          @change="canvasStore.showColorIds = !canvasStore.showColorIds"
-        />
-        在格子上显示色号
-      </label>
-      <label class="canv-toggle" style="margin-top: 4px">
-        <input
-          type="checkbox"
-          :checked="canvasStore.showColorIdsHighlightOnly"
-          @change="canvasStore.showColorIdsHighlightOnly = !canvasStore.showColorIdsHighlightOnly"
-        />
-        仅高亮颜色显示色号
-      </label>
-    </div>
-
-    <!-- 6. 背景色 -->
-    <div class="canv-section background-section">
-      <h4 class="canv-title">背景色</h4>
-      <div class="bg-presets">
-        <button
-          v-for="bg in bgColors"
-          :key="bg.val"
-          class="bg-swatch"
-          :class="{ active: canvasStore.backgroundColor === bg.val }"
-          :style="bg.style"
-          :title="bg.label"
-          @click="canvasStore.backgroundColor = bg.val"
-        ></button>
-        <input
-          type="color"
-          :value="
-            canvasStore.backgroundColor === 'transparent' ? '#ffffff' : canvasStore.backgroundColor
-          "
-          class="bg-picker"
-          @input="canvasStore.backgroundColor = ($event.target as HTMLInputElement).value"
-        />
-      </div>
-    </div>
-
-    <!-- 7. 反转与旋转 -->
-    <div class="canv-section transform-section">
-      <h4 class="canv-title">反转 / 旋转</h4>
-      <div class="canv-btns">
-        <button class="canv-btn" title="左右反转" @click="canvasStore.flipHorizontal()">
-          <img :src="iconFlipH" class="op-icon" alt="" />
-        </button>
-        <button class="canv-btn" title="上下反转" @click="canvasStore.flipVertical()">
-          <img :src="iconFlipV" class="op-icon" alt="" />
-        </button>
-        <button class="canv-btn" title="顺时针90°" @click="canvasStore.rotateCW()">
-          <img :src="iconRotCW" class="op-icon" alt="" />
-        </button>
-        <button class="canv-btn" title="逆时针90°" @click="canvasStore.rotateCCW()">
-          <img :src="iconRotCCW" class="op-icon" alt="" />
-        </button>
-      </div>
-    </div>
-
-    <!-- 8. 扩展/裁剪 -->
-    <div class="canv-section resize-section" v-if="!canvasStore.canvasGroup">
-      <h4 class="canv-title">扩展 / 裁剪画布</h4>
-      <div v-if="!showResize" class="canv-btns">
-        <button class="canv-btn" @click="openResize()">调整画布大小</button>
-      </div>
-      <div v-else class="resize-form">
-        <div class="resize-row">
-          <label
-            >宽
-            <input
-              type="number"
-              v-model.number="resizeW"
-              min="1"
-              max="64"
-              class="resize-input"
-              @input="updatePreview()"
-              @change="normalizeResize()"
-          /></label>
-          <label
-            >高
-            <input
-              type="number"
-              v-model.number="resizeH"
-              min="1"
-              max="64"
-              class="resize-input"
-              @input="updatePreview()"
-              @change="normalizeResize()"
-          /></label>
+      <!-- 2. 对称绘制 -->
+      <div class="canv-section symmetry-section">
+        <h4 class="canv-title">对称绘制</h4>
+        <div class="sym-grid">
+          <button
+            v-for="s in symModes"
+            :key="s.key"
+            class="sym-btn"
+            :class="{ active: canvasStore.symmetry === s.key }"
+            :title="s.label"
+            @click="canvasStore.symmetry = s.key"
+          >
+            <img :src="s.icon" class="sym-icon" alt="" />
+          </button>
         </div>
-        <div class="resize-anchor">
-          <span class="resize-label">锚点</span>
-          <div class="anchor-grid">
+      </div>
+
+      <!-- 3. 像素形状 -->
+      <div class="canv-section shape-section">
+        <h4 class="canv-title">像素形状</h4>
+        <div class="canv-btns">
+          <button
+            class="preset-btn"
+            :class="{ active: canvasStore.pixelShape === 'square' }"
+            @click="canvasStore.pixelShape = 'square'"
+          >
+            <img :src="iconSquarePixel" class="preset-icon" alt="" />方形
+          </button>
+          <button
+            class="preset-btn"
+            :class="{ active: canvasStore.pixelShape === 'circle' }"
+            @click="canvasStore.pixelShape = 'circle'"
+          >
+            <img :src="iconCirclePixel" class="preset-icon" alt="" />圆形
+          </button>
+        </div>
+      </div>
+
+      <!-- 4. 粗线显示 -->
+      <div class="canv-section thick-section">
+        <h4 class="canv-title">粗线显示</h4>
+        <label class="canv-toggle">
+          <input type="checkbox" :checked="thickLineH.enabled" @change="toggleHL" /> 水平
+        </label>
+        <div v-if="thickLineH.enabled" class="thick-params">
+          <label
+            >间隔
+            <input
+              type="range"
+              min="1"
+              max="20"
+              :value="thickLineH.interval"
+              @input="
+                canvasStore.setThickLineH({
+                  interval: Number(($event.target as HTMLInputElement).value),
+                })
+              "
+            />
+            {{ thickLineH.interval }}</label
+          >
+          <label
+            >粗细
+            <input
+              type="range"
+              min="1"
+              max="5"
+              :value="thickLineH.thickness"
+              @input="
+                canvasStore.setThickLineH({
+                  thickness: Number(($event.target as HTMLInputElement).value),
+                })
+              "
+            />
+            {{ thickLineH.thickness }}</label
+          >
+          <div class="canv-btns">
             <button
-              v-for="a in anchors"
-              :key="a.r + ',' + a.c"
-              class="anchor-cell"
-              :class="{ active: anchorR === a.r && anchorC === a.c }"
-              @click="selectAnchor(a.r, a.c)"
-            ></button>
+              v-for="sp in startPositions"
+              :key="sp.key"
+              class="preset-btn"
+              :class="{ active: hStartPos === sp.key }"
+              @click="setHStart(sp.key)"
+            >
+              {{ sp.label }}
+            </button>
           </div>
         </div>
-        <div class="canv-btns">
-          <button class="canv-btn" @click="doResize()">确认</button>
-          <button class="canv-btn" @click="cancelResize()">取消</button>
+        <label class="canv-toggle" style="margin-top: 4px">
+          <input type="checkbox" :checked="thickLineV.enabled" @change="toggleVL" /> 垂直
+        </label>
+        <div v-if="thickLineV.enabled" class="thick-params">
+          <label
+            >间隔
+            <input
+              type="range"
+              min="1"
+              max="20"
+              :value="thickLineV.interval"
+              @input="
+                canvasStore.setThickLineV({
+                  interval: Number(($event.target as HTMLInputElement).value),
+                })
+              "
+            />
+            {{ thickLineV.interval }}</label
+          >
+          <label
+            >粗细
+            <input
+              type="range"
+              min="1"
+              max="5"
+              :value="thickLineV.thickness"
+              @input="
+                canvasStore.setThickLineV({
+                  thickness: Number(($event.target as HTMLInputElement).value),
+                })
+              "
+            />
+            {{ thickLineV.thickness }}</label
+          >
+          <div class="canv-btns">
+            <button
+              v-for="sp in startPositions"
+              :key="sp.key"
+              class="preset-btn"
+              :class="{ active: vStartPos === sp.key }"
+              @click="setVStart(sp.key)"
+            >
+              {{ sp.label }}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- 画布组统一调整大小 -->
-    <div class="canv-section resize-section" v-if="canvasStore.canvasGroup">
-      <h4 class="canv-title">画布组子画布大小</h4>
-      <p class="canv-hint">
-        当前：{{ canvasStore.canvasGroup?.subSize }}x{{ canvasStore.canvasGroup?.subSize }}
-      </p>
-      <div class="resize-row">
-        <label
-          >新尺寸
+      <!-- 5. 色号显示 -->
+      <div class="canv-section labels-section">
+        <h4 class="canv-title">色号显示</h4>
+        <label class="canv-toggle">
           <input
-            type="number"
-            v-model.number="groupResizeSize"
-            min="1"
-            max="64"
-            class="resize-input"
-            @change="normalizeGroupResize()"
-        /></label>
-        <button class="canv-btn" @click="doGroupResize()">应用</button>
+            type="checkbox"
+            :checked="canvasStore.showColorIds"
+            @change="canvasStore.showColorIds = !canvasStore.showColorIds"
+          />
+          在格子上显示色号
+        </label>
+        <label class="canv-toggle" style="margin-top: 4px">
+          <input
+            type="checkbox"
+            :checked="canvasStore.showColorIdsHighlightOnly"
+            @change="canvasStore.showColorIdsHighlightOnly = !canvasStore.showColorIdsHighlightOnly"
+          />
+          仅高亮颜色显示色号
+        </label>
       </div>
-    </div>
 
-    <!-- 9. 其他 -->
-    <div class="canv-section misc-section">
-      <h4 class="canv-title">其他</h4>
-      <label class="canv-toggle">
-        <input type="checkbox" :checked="canvasStore.showGrid" @change="canvasStore.toggleGrid()" />
-        显示网格
-      </label>
-    </div>
+      <!-- 6. 背景色 -->
+      <div class="canv-section background-section">
+        <h4 class="canv-title">背景色</h4>
+        <div class="bg-presets">
+          <button
+            v-for="bg in bgColors"
+            :key="bg.val"
+            class="bg-swatch"
+            :class="{ active: canvasStore.backgroundColor === bg.val }"
+            :style="bg.style"
+            :title="bg.label"
+            @click="canvasStore.backgroundColor = bg.val"
+          ></button>
+          <input
+            type="color"
+            :value="
+              canvasStore.backgroundColor === 'transparent'
+                ? '#ffffff'
+                : canvasStore.backgroundColor
+            "
+            class="bg-picker"
+            @input="canvasStore.backgroundColor = ($event.target as HTMLInputElement).value"
+          />
+        </div>
+      </div>
 
-    <ConfirmModal
-      v-if="resizeConflict"
-      title="裁剪确认"
-      message="该操作会导致部分像素被永久删除，该操作不可撤回。<br><br>确认删除吗？"
-      confirm-text="确认删除"
-      cancel-text="取消"
-      @confirm="confirmForcedResize()"
-      @cancel="resizeConflict = false"
-    />
-    <ConfirmModal
-      v-if="showGroupResizeWarn"
-      title="修改画布组大小"
-      message="画布组的画布大小修改会<strong>强制所有画布</strong>修改为同样大小。<br>该步骤<b>不可撤回</b>。"
-      confirm-text="确认修改"
-      cancel-text="取消"
-      @confirm="confirmGroupResize()"
-      @cancel="showGroupResizeWarn = false"
-    />
+      <!-- 7. 反转与旋转 -->
+      <div class="canv-section transform-section">
+        <h4 class="canv-title">反转 / 旋转</h4>
+        <div class="canv-btns">
+          <button class="canv-btn" title="左右反转" @click="canvasStore.flipHorizontal()">
+            <img :src="iconFlipH" class="op-icon" alt="" />
+          </button>
+          <button class="canv-btn" title="上下反转" @click="canvasStore.flipVertical()">
+            <img :src="iconFlipV" class="op-icon" alt="" />
+          </button>
+          <button class="canv-btn" title="顺时针90°" @click="canvasStore.rotateCW()">
+            <img :src="iconRotCW" class="op-icon" alt="" />
+          </button>
+          <button class="canv-btn" title="逆时针90°" @click="canvasStore.rotateCCW()">
+            <img :src="iconRotCCW" class="op-icon" alt="" />
+          </button>
+        </div>
+      </div>
+
+      <!-- 8. 扩展/裁剪 -->
+      <div class="canv-section resize-section" v-if="!canvasStore.canvasGroup">
+        <h4 class="canv-title">扩展 / 裁剪画布</h4>
+        <div v-if="!showResize" class="canv-btns">
+          <button class="canv-btn" @click="openResize()">调整画布大小</button>
+        </div>
+        <div v-else class="resize-form">
+          <div class="resize-row">
+            <label
+              >宽
+              <input
+                type="number"
+                v-model.number="resizeW"
+                min="1"
+                max="64"
+                class="resize-input"
+                @input="updatePreview()"
+                @change="normalizeResize()"
+            /></label>
+            <label
+              >高
+              <input
+                type="number"
+                v-model.number="resizeH"
+                min="1"
+                max="64"
+                class="resize-input"
+                @input="updatePreview()"
+                @change="normalizeResize()"
+            /></label>
+          </div>
+          <div class="resize-anchor">
+            <span class="resize-label">锚点</span>
+            <div class="anchor-grid">
+              <button
+                v-for="a in anchors"
+                :key="a.r + ',' + a.c"
+                class="anchor-cell"
+                :class="{ active: anchorR === a.r && anchorC === a.c }"
+                @click="selectAnchor(a.r, a.c)"
+              ></button>
+            </div>
+          </div>
+          <div class="canv-btns">
+            <button class="canv-btn" @click="doResize()">确认</button>
+            <button class="canv-btn" @click="cancelResize()">取消</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 画布组统一调整大小 -->
+      <div class="canv-section resize-section" v-if="canvasStore.canvasGroup">
+        <h4 class="canv-title">画布组子画布大小</h4>
+        <p class="canv-hint">
+          当前：{{ canvasStore.canvasGroup?.subSize }}x{{ canvasStore.canvasGroup?.subSize }}
+        </p>
+        <div class="resize-row">
+          <label
+            >新尺寸
+            <input
+              type="number"
+              v-model.number="groupResizeSize"
+              min="1"
+              max="64"
+              class="resize-input"
+              @change="normalizeGroupResize()"
+          /></label>
+          <button class="canv-btn" @click="doGroupResize()">应用</button>
+        </div>
+      </div>
+
+      <!-- 9. 其他 -->
+      <div class="canv-section misc-section">
+        <h4 class="canv-title">其他</h4>
+        <label class="canv-toggle">
+          <input
+            type="checkbox"
+            :checked="canvasStore.showGrid"
+            @change="canvasStore.toggleGrid()"
+          />
+          显示网格
+        </label>
+      </div>
+
+      <ConfirmModal
+        v-if="resizeConflict"
+        title="裁剪确认"
+        message="该操作会导致部分像素被永久删除，该操作不可撤回。<br><br>确认删除吗？"
+        confirm-text="确认删除"
+        cancel-text="取消"
+        @confirm="confirmForcedResize()"
+        @cancel="resizeConflict = false"
+      />
+      <ConfirmModal
+        v-if="showGroupResizeWarn"
+        title="修改画布组大小"
+        message="画布组的画布大小修改会<strong>强制所有画布</strong>修改为同样大小。<br>该步骤<b>不可撤回</b>。"
+        confirm-text="确认修改"
+        cancel-text="取消"
+        @confirm="confirmGroupResize()"
+        @cancel="showGroupResizeWarn = false"
+      />
+    </template>
   </div>
 </template>
 
@@ -445,6 +453,7 @@ import iconSquarePixel from '@/assets/icon/方形像素.png'
 import iconCirclePixel from '@/assets/icon/圆形像素.png'
 
 const canvasStore = useCanvasStore()
+defineProps<{ underlayOnly?: boolean }>()
 const workspaceStore = useWorkspaceStore()
 const underlayInputRef = ref<HTMLInputElement | null>(null)
 const referenceInputRef = ref<HTMLInputElement | null>(null)

@@ -2,9 +2,12 @@
   <DeviceModal v-if="isFirstVisit" @select="selectDevice" />
 
   <div v-if="device" class="app-shell">
-    <TopGlobalBar />
-    <TopContextBar />
-    <MainLayout />
+    <PhoneEditor v-if="device === 'ph'" />
+    <template v-else>
+      <TopGlobalBar />
+      <TopContextBar />
+      <MainLayout />
+    </template>
     <AutoSaveStatus />
   </div>
 </template>
@@ -16,6 +19,7 @@ import DeviceModal from '@/components/DeviceModal.vue'
 import TopGlobalBar from '@/components/TopGlobalBar.vue'
 import TopContextBar from '@/components/TopContextBar.vue'
 import MainLayout from '@/components/MainLayout.vue'
+import PhoneEditor from '@/components/PhoneEditor.vue'
 import AutoSaveStatus from '@/components/AutoSaveStatus.vue'
 import { useCanvasStore } from '@/stores/canvas'
 import { useExportStore } from '@/stores/exportStore'

@@ -44,6 +44,7 @@
         @pointerdown="onPointerDown"
         @pointermove="onPointerMove"
         @pointerup="onPointerUp"
+        @pointercancel="onPointerUp"
         @pointerleave="onPointerUp"
         @wheel.prevent="onWheel"
         @contextmenu.prevent
@@ -54,7 +55,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, nextTick } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import WorkspaceFooter from '@/components/WorkspaceFooter.vue'
 import CanvasGroupPreview from '@/components/CanvasGroupPreview.vue'
 import { useCanvasStore } from '@/stores/canvas'
@@ -161,7 +162,17 @@ function scheduleRender() {
   })
 }
 
-onMounted(() => doRender())
+let viewportObserver: ResizeObserver | null = null
+onMounted(() => {
+  doRender()
+  viewportObserver = new ResizeObserver(scheduleRender)
+  if (viewportRef.value) viewportObserver.observe(viewportRef.value)
+})
+watch(viewportRef, (next, previous) => {
+  if (previous) viewportObserver?.unobserve(previous)
+  if (next) viewportObserver?.observe(next)
+})
+onBeforeUnmount(() => viewportObserver?.disconnect())
 
 watch(
   () => [

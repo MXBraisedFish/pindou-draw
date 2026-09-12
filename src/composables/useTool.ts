@@ -107,7 +107,7 @@ export function useTool(
   function beginUnderlayInteraction(e: PointerEvent, canvas: HTMLCanvasElement) {
     if (e.button !== 0 || !canvasStore.underlay) return false
     canvas.setPointerCapture?.(e.pointerId)
-    if (device.value === 'tb' && e.pointerType === 'touch') {
+    if ((device.value === 'tb' || device.value === 'ph') && e.pointerType === 'touch') {
       underlayPointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
       if (underlayPointers.size >= 2) {
         const [first, second] = [...underlayPointers.values()].slice(0, 2) as [
@@ -141,7 +141,7 @@ export function useTool(
   function moveUnderlayInteraction(e: PointerEvent, canvas: HTMLCanvasElement) {
     const state = canvasStore.underlay
     if (!state) return false
-    if (device.value === 'tb' && e.pointerType === 'touch') {
+    if ((device.value === 'tb' || device.value === 'ph') && e.pointerType === 'touch') {
       if (!underlayPointers.has(e.pointerId)) return false
       underlayPointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
       if (underlayPinchStart && underlayPointers.size >= 2) {
@@ -346,7 +346,7 @@ export function useTool(
       return
     }
 
-    if (device.value === 'tb' && e.pointerType === 'touch') {
+    if ((device.value === 'tb' || device.value === 'ph') && e.pointerType === 'touch') {
       touchPointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
       canvas.setPointerCapture?.(e.pointerId)
       if (touchPointers.size >= 2) {
@@ -381,7 +381,7 @@ export function useTool(
       canvasStore.cancelResize()
     }
 
-    if (e.button === 1) {
+    if (e.button === 1 || (device.value === 'ph' && toolStore.activeTool === 'move')) {
       isPanning = true
       panStartX = e.clientX
       panStartY = e.clientY
@@ -486,7 +486,11 @@ export function useTool(
       return
     }
 
-    if (device.value === 'tb' && e.pointerType === 'touch' && touchPointers.has(e.pointerId)) {
+    if (
+      (device.value === 'tb' || device.value === 'ph') &&
+      e.pointerType === 'touch' &&
+      touchPointers.has(e.pointerId)
+    ) {
       touchPointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
       if (pinchStart && touchPointers.size >= 2) {
         const points = [...touchPointers.values()].slice(0, 2)
@@ -495,7 +499,10 @@ export function useTool(
         const distance = Math.max(1, Math.hypot(second.x - first.x, second.y - first.y))
         const centerX = (first.x + second.x) / 2
         const centerY = (first.y + second.y) / 2
-        canvasStore.setZoom(pinchStart.zoom * (distance / pinchStart.distance))
+        canvasStore.setZoom(
+          pinchStart.zoom * (distance / pinchStart.distance),
+          device.value === 'ph' ? 8 : 2,
+        )
         canvasStore.setPan(
           pinchStart.panX + centerX - pinchStart.centerX,
           pinchStart.panY + centerY - pinchStart.centerY,
@@ -568,7 +575,7 @@ export function useTool(
 
   function onPointerUp(e: PointerEvent) {
     if (endUnderlayInteraction(e)) return
-    if (device.value === 'tb' && e.pointerType === 'touch') {
+    if ((device.value === 'tb' || device.value === 'ph') && e.pointerType === 'touch') {
       touchPointers.delete(e.pointerId)
       if (pinchStart) {
         if (touchPointers.size < 2) pinchStart = null
@@ -616,7 +623,7 @@ export function useTool(
       return
     }
     if (e.ctrlKey || e.metaKey) {
-      canvasStore.setZoom(canvasStore.zoom - e.deltaY * 0.002)
+      canvasStore.setZoom(canvasStore.zoom - e.deltaY * 0.002, device.value === 'ph' ? 8 : 2)
     } else {
       canvasStore.setPan(canvasStore.panX - e.deltaX, canvasStore.panY - e.deltaY)
     }

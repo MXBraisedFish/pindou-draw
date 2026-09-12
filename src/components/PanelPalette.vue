@@ -54,7 +54,7 @@
     </div>
 
     <!-- 颜色工具按钮 -->
-    <div class="palette-tools">
+    <div v-if="!simple" class="palette-tools">
       <button
         class="tool-btn tool-hl"
         :class="{ active: paletteStore.highlightActive }"
@@ -139,6 +139,7 @@ function typeIconSrc(type: ColorType): string | undefined {
 }
 
 const paletteStore = usePaletteStore()
+defineProps<{ simple?: boolean }>()
 
 const showHighlightModal = ref(false)
 const showReplaceModal = ref(false)
