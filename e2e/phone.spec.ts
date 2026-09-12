@@ -4,7 +4,10 @@ test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/pindou-draw-vue/')
-  await page.getByRole('button', { name: '手机 Phone' }).click()
+  await page.getByRole('button', { name: '手机', exact: true }).click()
+  await page.getByRole('button', { name: '知道了', exact: true }).click()
+  await page.getByRole('button', { name: '知道了', exact: true }).click()
+  await page.getByRole('button', { name: '跳过引导' }).click()
   await expect(page.locator('.phone-tools')).toBeVisible()
 })
 

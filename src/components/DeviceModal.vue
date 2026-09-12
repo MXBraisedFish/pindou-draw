@@ -12,7 +12,6 @@
         >
           <img :src="opt.icon" class="device-option-icon" alt="" />
           <span class="device-option-label">{{ opt.label }}</span>
-          <span class="device-option-hint">{{ opt.hint }}</span>
         </button>
       </div>
       <p class="device-modal-note">可随时在设置中切换</p>
@@ -31,9 +30,9 @@ defineEmits<{
 }>()
 
 const deviceOptions = [
-  { value: 'pc' as DeviceType, icon: iconPc, label: '电脑', hint: 'PC 端' },
-  { value: 'tb' as DeviceType, icon: iconTablet, label: '平板', hint: 'Tablet' },
-  { value: 'ph' as DeviceType, icon: iconPhone, label: '手机', hint: 'Phone' },
+  { value: 'pc' as DeviceType, icon: iconPc, label: '电脑' },
+  { value: 'tb' as DeviceType, icon: iconTablet, label: '平板' },
+  { value: 'ph' as DeviceType, icon: iconPhone, label: '手机' },
 ]
 </script>
 
@@ -113,11 +112,6 @@ const deviceOptions = [
   font-size: 1.05rem;
   font-weight: 600;
   color: #1a1a2e;
-}
-
-.device-option-hint {
-  font-size: 0.8rem;
-  color: #999;
 }
 
 .device-modal-note {

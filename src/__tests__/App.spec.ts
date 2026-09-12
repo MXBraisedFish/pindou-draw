@@ -21,6 +21,7 @@ describe('App', () => {
     const wrapper = mount(App)
     await nextTick()
     expect(wrapper.text()).toContain('欢迎使用拼豆绘制')
+    wrapper.unmount()
   })
 
   it('executes the common desktop shortcuts outside editable controls', async () => {
@@ -32,6 +33,8 @@ describe('App', () => {
           TopContextBar: true,
           MainLayout: true,
           AutoSaveStatus: true,
+          NoticeHost: true,
+          TutorialOverlay: true,
         },
       },
     })
@@ -48,13 +51,15 @@ describe('App', () => {
 
   it('supports standard desktop selection shortcuts', async () => {
     useDevice().changeDevice('pc')
-    mount(App, {
+    const wrapper = mount(App, {
       global: {
         stubs: {
           TopGlobalBar: true,
           TopContextBar: true,
           MainLayout: true,
           AutoSaveStatus: true,
+          NoticeHost: true,
+          TutorialOverlay: true,
           DeviceModal: true,
         },
       },
@@ -73,5 +78,6 @@ describe('App', () => {
     expect(canvas.activeLayer()!.grid[0]![0]).toBe('')
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
     expect(selection.hasSelection).toBe(false)
+    wrapper.unmount()
   })
 })

@@ -1,5 +1,8 @@
 <template>
-  <div class="right-panels" :class="{ 'tablet-collapsed': collapsed }">
+  <div
+    class="right-panels"
+    :class="{ 'tablet-collapsed': collapsed && !(running && platform === 'tb' && step === 2) }"
+  >
     <button
       class="tablet-panel-toggle"
       :title="collapsed ? '展开工具栏' : '收起工具栏'"
@@ -36,6 +39,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useDevice } from '@/composables/useDevice'
+import { useTutorial } from '@/composables/useTutorial'
 import { useCanvasStore } from '@/stores/canvas'
 import PanelPalette from '@/components/PanelPalette.vue'
 import PanelLayers from '@/components/PanelLayers.vue'
@@ -45,6 +49,7 @@ const activeTab = ref<'palette' | 'layers' | 'canvas'>('palette')
 const canvasStore = useCanvasStore()
 const { device } = useDevice()
 const collapsed = ref(false)
+const { running, platform, step } = useTutorial()
 let collapsedBeforeGroupPreview = false
 
 function toggleCollapsed() {

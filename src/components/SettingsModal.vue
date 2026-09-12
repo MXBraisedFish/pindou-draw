@@ -30,7 +30,7 @@
             <span><strong>使用教程</strong><small>查看功能和操作说明</small></span>
             <b>›</b>
           </button>
-          <button class="settings-item" @click="openPanel('notice')">
+          <button class="settings-item" @click="showAnnouncement()">
             <span class="settings-icon"><img :src="iconNotice" alt="" /></span>
             <span><strong>公告</strong><small>查看版本公告和更新内容</small></span>
             <b>›</b>
@@ -50,9 +50,7 @@
             <div class="tutorial-animation-window">
               <img class="tutorial-animation" :src="tutorialAnimation" alt="教程操作演示" />
             </div>
-            <button class="tutorial-replay-button" @click="openPanel('animation')">
-              教程小动画重播
-            </button>
+            <button class="tutorial-replay-button" @click="replayTutorial()">教程小动画重播</button>
           </div>
         </div>
       </section>
@@ -73,7 +71,7 @@
             <img :src="panelInfo.icon" alt="" />
           </span>
           <h3>{{ panelInfo.title }}</h3>
-          <p>{{ panelInfo.description }}</p>
+          <p v-if="activePanel !== 'support'">{{ panelInfo.description }}</p>
           <div v-if="activePanel === 'shortcuts'" class="shortcut-settings">
             <p class="shortcut-tip">点击按键框后，按下一个按键完成修改。仅支持单按键。</p>
             <div
@@ -94,6 +92,18 @@
             </div>
             <p v-if="shortcutError" class="shortcut-error">{{ shortcutError }}</p>
             <button class="shortcut-reset" @click="resetShortcutSettings()">恢复默认</button>
+          </div>
+          <div v-else-if="activePanel === 'support'" class="support-links">
+            <a
+              v-for="link in supportLinks"
+              :key="link.url"
+              :href="link.url"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <strong>{{ link.label }}</strong>
+              <small>{{ link.subtitle }}</small>
+            </a>
           </div>
           <div v-else class="placeholder">该功能界面已接入，具体逻辑将在后续版本中完善。</div>
           <button class="sub-confirm" @click="activePanel = null">知道了</button>
@@ -117,6 +127,9 @@
 import { computed, ref } from 'vue'
 import DeviceModal from '@/components/DeviceModal.vue'
 import ConfirmModal from '@/components/ConfirmModal.vue'
+import { useNotices } from '@/composables/useNotices'
+import { useTutorial } from '@/composables/useTutorial'
+import { supportLinks } from '@/ts/supportLinks'
 import { useDevice, type DeviceType } from '@/composables/useDevice'
 import {
   useShortcuts,
@@ -134,10 +147,16 @@ import iconPlatform from '@/assets/icon/使用平台.png'
 import iconSupport from '@/assets/icon/支持.png'
 import tutorialAnimation from '@/assets/icon/播放教程小动画.gif'
 
-type PanelKey = 'shortcuts' | 'tutorial' | 'animation' | 'notice' | 'cleanup' | 'support'
+type PanelKey = 'shortcuts' | 'tutorial' | 'cleanup' | 'support'
 
 const emit = defineEmits<{ close: [] }>()
+const { showAnnouncement } = useNotices()
 const { device, changeDevice } = useDevice()
+function replayTutorial() {
+  if (!device.value) return
+  emit('close')
+  useTutorial().start(device.value, true)
+}
 const showDevicePicker = ref(false)
 const activePanel = ref<PanelKey | null>(null)
 const showCleanupConfirm = ref(false)
@@ -160,12 +179,6 @@ const panels: Record<PanelKey, { title: string; description: string; icon?: stri
     title: '使用教程',
     description: '查看拼豆绘制的完整使用教程。',
     icon: iconTutorial,
-  },
-  animation: { title: '教程小动画重播', description: '重新播放新手操作引导动画。' },
-  notice: {
-    title: '公告',
-    description: '查看版本公告、更新说明与维护信息。',
-    icon: iconNotice,
   },
   cleanup: {
     title: '清理数据',
@@ -235,10 +248,38 @@ async function clearAllData() {
 function selectPlatform(platform: DeviceType) {
   changeDevice(platform)
   showDevicePicker.value = false
+  emit('close')
 }
 </script>
 
 <style scoped>
+.support-links {
+  display: grid;
+  gap: 12px;
+  margin: 20px 0;
+}
+.support-links a {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid #dce0ef;
+  border-radius: 12px;
+  background: #f8f9ff;
+  color: #635bff;
+  text-decoration: none;
+  text-align: left;
+  touch-action: manipulation;
+}
+.support-links a:hover {
+  background: #eef0ff;
+  border-color: #635bff;
+}
+.support-links small {
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
+}
 .settings-overlay,
 .sub-overlay {
   position: fixed;

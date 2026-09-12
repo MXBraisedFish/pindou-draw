@@ -1,5 +1,7 @@
 <template>
   <DeviceModal v-if="isFirstVisit" @select="selectDevice" />
+  <NoticeHost />
+  <TutorialOverlay />
 
   <div v-if="device" class="app-shell">
     <PhoneEditor v-if="device === 'ph'" />
@@ -16,6 +18,8 @@
 import { onBeforeUnmount, onMounted } from 'vue'
 import { useDevice } from '@/composables/useDevice'
 import DeviceModal from '@/components/DeviceModal.vue'
+import NoticeHost from '@/components/NoticeHost.vue'
+import TutorialOverlay from '@/components/TutorialOverlay.vue'
 import TopGlobalBar from '@/components/TopGlobalBar.vue'
 import TopContextBar from '@/components/TopContextBar.vue'
 import MainLayout from '@/components/MainLayout.vue'
@@ -69,7 +73,7 @@ function handleShortcut(event: KeyboardEvent) {
   if (isEditableTarget(event.target)) return
   if (
     document.querySelector(
-      '.settings-overlay, .action-overlay, .new-overlay, .storage-overlay, .confirm-overlay, .image-editor, .export-page, .hl-overlay, .cr-overlay, .ehl-overlay, .device-modal-overlay',
+      '.tutorial-overlay, .notice-overlay, .settings-overlay, .action-overlay, .new-overlay, .storage-overlay, .confirm-overlay, .image-editor, .export-page, .hl-overlay, .cr-overlay, .ehl-overlay, .device-modal-overlay',
     )
   ) {
     return
