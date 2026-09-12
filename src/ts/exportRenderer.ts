@@ -29,6 +29,7 @@ export interface ExportDocumentOptions {
   pageBg: string
   renderMode: RenderMode
   fontFamily: string
+  paletteName: string
   tableLayout: ExportTableLayout
   colorMap: Map<string, ColorEntry>
   highlightMask?: boolean[][] | null
@@ -315,6 +316,11 @@ export function renderExportDocument(
   const pad = 40
   const titleFont = 28
   const totalFont = 18
+  const paletteFont = 17
+  const paletteTopGap = 14
+  const paletteBottomGap = 22
+  const paletteLineHeight = 22
+  const paletteText = `色卡：${options.paletteName || '未选择'}`
   const gridWidth = source.cols * options.cellSize
   const gridHeight = source.rows * options.cellSize
   const margins = measureCoordinateMargins(measureCtx, source, options)
@@ -323,6 +329,8 @@ export function renderExportDocument(
 
   measureCtx.font = `700 ${titleFont}px ${options.fontFamily}`
   const titleWidth = Math.ceil(measureCtx.measureText(source.name).width)
+  measureCtx.font = `600 ${paletteFont}px ${options.fontFamily}`
+  const paletteWidth = Math.ceil(measureCtx.measureText(paletteText).width)
   const preferredStatsWidth = Math.max(
     640,
     Math.min(1800, Math.ceil(Math.sqrt(Math.max(1, stats.length)) * 180)),
@@ -330,15 +338,16 @@ export function renderExportDocument(
   const initialContentWidth = options.content === 'stats-only' ? preferredStatsWidth : gridAreaWidth
   const flowWidth = Math.max(initialContentWidth, titleWidth + 20)
   const flow = makeFlowItems(measureCtx, stats, options.tableLayout, flowWidth, options.fontFamily)
-  const contentWidth = Math.max(initialContentWidth, flow.width, titleWidth + 20)
+  const contentWidth = Math.max(initialContentWidth, flow.width, titleWidth + 20, paletteWidth + 20)
   const titleHeight = options.content === 'sketch-only' ? 0 : titleFont + 22
   const totalHeight = options.content === 'sketch-only' ? 0 : totalFont + 24
-  const sectionGap = options.content === 'full' && flow.height > 0 ? 30 : 0
+  const paletteHeight =
+    options.content === 'sketch-only' ? 0 : paletteTopGap + paletteLineHeight + paletteBottomGap
   const gridSectionHeight = options.content === 'stats-only' ? 0 : gridAreaHeight
   const tableSectionHeight = options.content === 'sketch-only' ? 0 : flow.height
   const width = Math.ceil(contentWidth + pad * 2)
   const height = Math.ceil(
-    pad * 2 + titleHeight + gridSectionHeight + totalHeight + sectionGap + tableSectionHeight,
+    pad * 2 + titleHeight + gridSectionHeight + totalHeight + paletteHeight + tableSectionHeight,
   )
 
   if (width > MAX_CANVAS_EDGE || height > MAX_CANVAS_EDGE || width * height > MAX_CANVAS_AREA) {
@@ -412,7 +421,17 @@ export function renderExportDocument(
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
     ctx.fillText(`总像素：${total}`, width / 2, cursorY + totalHeight / 2)
-    cursorY += totalHeight + sectionGap
+    cursorY += totalHeight
+
+    ctx.fillStyle = '#4b5563'
+    ctx.font = `600 ${paletteFont}px ${options.fontFamily}`
+    ctx.fillText(
+      paletteText,
+      width / 2,
+      cursorY + paletteTopGap + paletteLineHeight / 2,
+      width - pad * 2,
+    )
+    cursorY += paletteHeight
     drawStats(
       ctx,
       flow,

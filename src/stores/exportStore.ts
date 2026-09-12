@@ -315,6 +315,7 @@ export const useExportStore = defineStore('export', () => {
       pageBg: pageBg.value,
       renderMode: exportRenderMode.value,
       fontFamily: getFontFamily(),
+      paletteName: paletteStore.activeCard?.name ?? '未选择',
       tableLayout: tableLayout.value,
       colorMap: paletteStore.colorMap,
       highlightMask,
