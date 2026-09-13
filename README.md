@@ -1,73 +1,11 @@
-# pindou-draw
+大家久等了！拼豆草图制作网页终于完成重构，页面与后端架构都做了大幅优化。
 
-This template should help get you started developing with Vue 3 in Vite.
+总之，这个网站希望为大家提供一个快捷、随时随地可用的拼豆草图制作工具。
 
-## Recommended IDE Setup
+本网站制作出的草图没有任何水印（包括隐形水印），分享的图片无需声明来源于本网站，也可随意用于商业用途（本网站不对任何侵权内容负责）。
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+本网站永远免费使用，所有代码开源且仅在本地运行，没有任何强制收费或 AI 功能，数据也均存储在本地。
 
-## Recommended Browser Setup
+如果喜欢，欢迎多多分享，也欢迎在我的 GitHub 仓库点一颗星，或在爱发电打赏支持！（打赏纯自愿，不强制）
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
-
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
-
-```sh
-npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
-npm run build
-```
-
-### Run Unit Tests with [Vitest](https://vitest.dev/)
-
-```sh
-npm run test:unit
-```
-
-### Run End-to-End Tests with [Playwright](https://playwright.dev)
-
-```sh
-# Install browsers for the first run
-npx playwright install
-
-# When testing on CI, must build the project first
-npm run build
-
-# Runs the end-to-end tests
-npm run test:e2e
-# Runs the tests only on Chromium
-npm run test:e2e -- --project=chromium
-# Runs the tests of a specific file
-npm run test:e2e -- tests/example.spec.ts
-# Runs the tests in debug mode
-npm run test:e2e -- --debug
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
-```
+[爱发电](https://ifdian.net/a/mxfish520) · [Github 仓库](https://github.com/MXBraisedFish/pindou-draw)
