@@ -4,7 +4,7 @@ test('phone introduction and announcement are shown once and fit portrait screen
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 568 })
-  await page.goto('/pindou-draw-vue/')
+  await page.goto('/pindou-draw/')
   await expect(page.locator('.device-option-hint')).toHaveCount(0)
   await page.getByRole('button', { name: '手机', exact: true }).click()
   await expect(page.getByRole('dialog', { name: '手机端使用提示' })).toBeVisible()
@@ -25,7 +25,7 @@ test('phone introduction and announcement are shown once and fit portrait screen
 
 for (const platform of ['电脑', '平板']) {
   test(`${platform} can reopen announcement from settings`, async ({ page }) => {
-    await page.goto('/pindou-draw-vue/')
+    await page.goto('/pindou-draw/')
     await page.getByRole('button', { name: platform }).click()
     await expect(page.getByRole('dialog', { name: '公告', exact: true })).toBeVisible()
     await expect(page.locator('.notice-links a').first()).toHaveAttribute(

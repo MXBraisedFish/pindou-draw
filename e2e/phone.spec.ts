@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true })
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/pindou-draw-vue/')
+  await page.goto('/pindou-draw/')
   await page.getByRole('button', { name: '手机', exact: true }).click()
   await page.getByRole('button', { name: '知道了', exact: true }).click()
   await page.getByRole('button', { name: '知道了', exact: true }).click()

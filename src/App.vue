@@ -73,7 +73,7 @@ function handleShortcut(event: KeyboardEvent) {
   if (isEditableTarget(event.target)) return
   if (
     document.querySelector(
-      '.tutorial-overlay, .notice-overlay, .settings-overlay, .action-overlay, .new-overlay, .storage-overlay, .confirm-overlay, .image-editor, .export-page, .hl-overlay, .cr-overlay, .ehl-overlay, .device-modal-overlay',
+      '.user-guide-overlay, .tutorial-overlay, .notice-overlay, .settings-overlay, .action-overlay, .new-overlay, .storage-overlay, .confirm-overlay, .image-editor, .export-page, .hl-overlay, .cr-overlay, .ehl-overlay, .device-modal-overlay',
     )
   ) {
     return

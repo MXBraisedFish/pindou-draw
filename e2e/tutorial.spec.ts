@@ -20,7 +20,7 @@ for (const platform of [
     page,
   }) => {
     if (platform.key === 'ph') await page.setViewportSize({ width: 390, height: 844 })
-    await page.goto('/pindou-draw-vue/')
+    await page.goto('/pindou-draw/')
     await page.getByRole('button', { name: platform.label, exact: true }).click()
     if (platform.key === 'ph')
       await page.getByRole('button', { name: '知道了', exact: true }).click()

@@ -86,6 +86,7 @@
                 <button :disabled="blocked" @click="sheet = 'underlay'">底图设置</button>
                 <button :disabled="blocked" @click="sheet = 'brush'">画笔设置</button>
                 <button @click="sheet = 'platform'">使用平台</button>
+                <button @click="openUserGuide()">使用教程</button>
               </div>
               <PanelPalette v-else-if="sheet === 'palette'" simple />
               <PanelCanvas v-else-if="sheet === 'underlay'" underlay-only />
@@ -194,6 +195,7 @@
     />
     <input ref="imageInput" hidden type="file" accept="image/*" @change="importPhoto" />
     <ImageToPixelModal v-if="imageFile" :file="imageFile" @close="imageFile = null" />
+    <UserGuideModal v-if="showUserGuide" @close="showUserGuide = false" />
   </div>
 </template>
 
@@ -203,6 +205,7 @@ import CanvasArea from '@/components/CanvasArea.vue'
 import PanelPalette from '@/components/PanelPalette.vue'
 import PanelCanvas from '@/components/PanelCanvas.vue'
 import ImageToPixelModal from '@/components/ImageToPixelModal.vue'
+import UserGuideModal from '@/components/UserGuideModal.vue'
 import { useCanvasStore, clampCanvasSize } from '@/stores/canvas'
 import { usePaletteStore } from '@/stores/palette'
 import { useProjectStore } from '@/stores/project'
@@ -250,6 +253,11 @@ const newCard = ref(palette.activeCard?.name ?? '')
 const projectInput = ref<HTMLInputElement | null>(null)
 const imageInput = ref<HTMLInputElement | null>(null)
 const imageFile = ref<File | null>(null)
+const showUserGuide = ref(false)
+function openUserGuide() {
+  sheet.value = null
+  showUserGuide.value = true
+}
 const withStats = ref(true)
 const exporting = ref(false)
 const phoneTools = [

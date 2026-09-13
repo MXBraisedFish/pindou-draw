@@ -25,7 +25,7 @@
             <span><strong>快捷键设置</strong><small>自定义电脑端操作快捷键</small></span>
             <b>›</b>
           </button>
-          <button class="settings-item" @click="openPanel('tutorial')">
+          <button class="settings-item" @click="showUserGuide = true">
             <span class="settings-icon"><img :src="iconTutorial" alt="" /></span>
             <span><strong>使用教程</strong><small>查看功能和操作说明</small></span>
             <b>›</b>
@@ -56,6 +56,7 @@
       </section>
 
       <DeviceModal v-if="showDevicePicker" @select="selectPlatform" />
+      <UserGuideModal v-if="showUserGuide" @close="showUserGuide = false" />
 
       <div v-if="activePanel" class="sub-overlay" @click.self="activePanel = null">
         <section class="sub-dialog">
@@ -127,6 +128,7 @@
 import { computed, ref } from 'vue'
 import DeviceModal from '@/components/DeviceModal.vue'
 import ConfirmModal from '@/components/ConfirmModal.vue'
+import UserGuideModal from '@/components/UserGuideModal.vue'
 import { useNotices } from '@/composables/useNotices'
 import { useTutorial } from '@/composables/useTutorial'
 import { supportLinks } from '@/ts/supportLinks'
@@ -147,7 +149,7 @@ import iconPlatform from '@/assets/icon/使用平台.png'
 import iconSupport from '@/assets/icon/支持.png'
 import tutorialAnimation from '@/assets/icon/播放教程小动画.gif'
 
-type PanelKey = 'shortcuts' | 'tutorial' | 'cleanup' | 'support'
+type PanelKey = 'shortcuts' | 'cleanup' | 'support'
 
 const emit = defineEmits<{ close: [] }>()
 const { showAnnouncement } = useNotices()
@@ -158,6 +160,7 @@ function replayTutorial() {
   useTutorial().start(device.value, true)
 }
 const showDevicePicker = ref(false)
+const showUserGuide = ref(false)
 const activePanel = ref<PanelKey | null>(null)
 const showCleanupConfirm = ref(false)
 const recordingAction = ref<ShortcutAction | null>(null)
@@ -175,11 +178,6 @@ const panels: Record<PanelKey, { title: string; description: string; icon?: stri
     description: '配置电脑端绘制与界面操作快捷键。',
     icon: iconShortcuts,
   },
-  tutorial: {
-    title: '使用教程',
-    description: '查看拼豆绘制的完整使用教程。',
-    icon: iconTutorial,
-  },
   cleanup: {
     title: '清理数据',
     description: '清理本地偏好或浏览器保存的工程。',
@@ -192,7 +190,7 @@ const panels: Record<PanelKey, { title: string; description: string; icon?: stri
   },
 }
 
-const panelInfo = computed(() => (activePanel.value ? panels[activePanel.value] : panels.tutorial))
+const panelInfo = computed(() => (activePanel.value ? panels[activePanel.value] : panels.shortcuts))
 
 function openPanel(panel: PanelKey) {
   activePanel.value = panel
