@@ -64,7 +64,7 @@ export interface CanvasGroup {
 export const CANVAS_SIZE_MIN = 1
 export const CANVAS_SIZE_MAX = 64
 export const GROUP_SIZE_MIN = 1
-export const GROUP_SIZE_MAX = 10
+export const GROUP_SIZE_MAX = 16
 
 export function clampInteger(value: unknown, min: number, max: number, fallback = min): number {
   const parsed = typeof value === 'number' ? value : Number(value)

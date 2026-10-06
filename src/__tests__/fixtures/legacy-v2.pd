@@ -1,0 +1,76 @@
+{
+  "version": 2,
+  "createdAt": "2026-07-01T03:04:05.000Z",
+  "canvas": {
+    "width": 6,
+    "height": 2,
+    "pixelRatio": 10,
+    "cellSize": 10
+  },
+  "palette": {
+    "id": "custom-test",
+    "label": "旧版测试色卡",
+    "entries": [
+      {
+        "code": "A01",
+        "type": "normal",
+        "color": "rgb(207, 0, 83)",
+        "color1": "rgb(207, 0, 83)",
+        "color2": null
+      },
+      {
+        "code": "T01",
+        "type": "transparent",
+        "color": "rgba(20, 40, 60, 0.2)",
+        "color1": "rgba(20, 40, 60, 0.2)",
+        "color2": null
+      },
+      {
+        "code": "P01",
+        "type": "pearlescent",
+        "color": "rgba(120, 80, 200, 1)",
+        "color1": "rgba(120, 80, 200, 1)",
+        "color2": null
+      },
+      {
+        "code": "G01",
+        "type": "glow",
+        "color": "rgba(240, 250, 180, 1)",
+        "color1": "rgba(240, 250, 180, 1)",
+        "color2": null
+      },
+      {
+        "code": "H01",
+        "type": "temperatrue",
+        "color": "rgba(255, 0, 0, 1)",
+        "color1": "rgba(255, 0, 0, 1)",
+        "color2": "rgba(0, 0, 255, 1)"
+      },
+      {
+        "code": "L01",
+        "type": "light",
+        "color": "rgba(255, 255, 255, 1)",
+        "color1": "rgba(255, 255, 255, 1)",
+        "color2": "rgba(30, 40, 50, 1)"
+      }
+    ]
+  },
+  "grid": [
+    [
+      "A01",
+      "T01",
+      "P01",
+      "G01",
+      "H01",
+      "L01"
+    ],
+    [
+      null,
+      "A01",
+      null,
+      "H01",
+      null,
+      "L01"
+    ]
+  ]
+}

@@ -233,7 +233,7 @@ body#ph .phone-palette-sheet .phone-sheet-body {
   flex-direction: column;
   flex: 1;
   padding: 0;
-  overflow: hidden;
+  overflow-y: auto;
 }
 body#ph .phone-sheet-footer {
   padding: 8px 14px;
@@ -336,6 +336,34 @@ body#ph .phone-sheet .palette-grid {
 }
 body#ph .phone-sheet .palette-swatch-cell {
   min-height: 48px;
+}
+body#ph .phone-sheet .recent-swatch-cell {
+  padding: 2px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  background: none;
+}
+body#ph .phone-sheet .recent-swatch-cell.active {
+  border-color: #6366f1;
+  background: #eef2ff;
+}
+@media (max-height: 650px) {
+  body#ph .phone-palette-sheet {
+    height: 94dvh;
+    max-height: 94dvh;
+  }
+  body#ph .phone-sheet .panel-palette {
+    gap: 4px;
+    padding: 8px;
+  }
+  body#ph .phone-sheet .recent-swatch-cell .swatch-color {
+    height: 28px;
+    aspect-ratio: auto;
+    flex-shrink: 0;
+  }
+  body#ph .phone-sheet .palette-grid-wrapper {
+    min-height: 80px;
+  }
 }
 body#ph .phone-sheet .panel-canvas {
   padding: 0;

@@ -1,13 +1,21 @@
 import { validateColorCard } from '@/ts/colorCard'
+import { parseProjectJson } from '@/ts/projectImport'
 
 // Validate before touching the current project: a group must never be silently truncated.
 export function validatePhoneProject(json: string): void {
-  const data = JSON.parse(json)
+  const raw = JSON.parse(json.replace(/^\uFEFF/, ''))
+  // Check the phone limits before converting a potentially large legacy grid.
+  const data = raw?.canvas ? { ...raw, cols: raw.canvas.width, rows: raw.canvas.height } : raw
   if (!data || typeof data !== 'object' || data.type === 'group' || data.canvases) {
     throw new Error('手机端仅支持单画布工程，请使用电脑或平板打开画布组。')
   }
   if (![data.cols, data.rows].every((n) => Number.isInteger(n) && n >= 1 && n <= 64)) {
     throw new Error('手机端支持宽、高均为 1–64 格的单画布工程。')
+  }
+  if (data.canvas) {
+    // Legacy empty pixels are null, and populated pixels contain palette codes.
+    parseProjectJson(json)
+    return
   }
   const grids =
     Array.isArray(data.layers) && data.layers.length

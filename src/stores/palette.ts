@@ -62,9 +62,11 @@ export const usePaletteStore = defineStore('palette', () => {
   })
 
   function registerCard(card: ColorCard) {
-    const existing = cardList.value.find((c) => c.name === card.name)
-    if (!existing) {
+    const existingIndex = cardList.value.findIndex((c) => c.name === card.name)
+    if (existingIndex === -1) {
       cardList.value.push(card)
+    } else {
+      cardList.value[existingIndex] = card
     }
     if (!activeCard.value) {
       loadCard(card)
@@ -128,6 +130,7 @@ export const usePaletteStore = defineStore('palette', () => {
   }
 
   function loadCard(card: ColorCard) {
+    recentColorIds.value = []
     activeCard.value = card
     colorEntries.value = [...card.colors]
     clearHighlights()
@@ -167,14 +170,14 @@ export const usePaletteStore = defineStore('palette', () => {
     return JSON.stringify(card, null, 2)
   }
 
-  function setColor(id: string) {
+  function setColor(id: string, remember = true) {
     if (colorEntries.value.find((c) => c.id === id)) {
       currentColorId.value = id
-      if (!recentColorIds.value.includes(id)) {
-        recentColorIds.value.unshift(id)
-        if (recentColorIds.value.length > 12) {
-          recentColorIds.value.pop()
-        }
+      if (remember) {
+        recentColorIds.value = [
+          id,
+          ...recentColorIds.value.filter((recent) => recent !== id),
+        ].slice(0, 5)
       }
     }
   }

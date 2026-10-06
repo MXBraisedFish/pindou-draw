@@ -37,6 +37,34 @@
       </div>
     </div>
 
+    <section class="palette-history" aria-label="历史颜色">
+      <span class="history-title">历史颜色</span>
+      <div v-if="recentEntries.length" class="history-grid">
+        <button
+          v-for="entry in recentEntries"
+          :key="entry.id"
+          type="button"
+          class="palette-swatch-cell recent-swatch-cell"
+          :class="{ active: paletteStore.currentColorId === entry.id }"
+          :aria-label="`使用历史颜色 ${entry.id}`"
+          :aria-pressed="paletteStore.currentColorId === entry.id"
+          :title="`${entry.id} · ${typeLabel(entry.type)} · ${entry.color1}`"
+          @click="paletteStore.setColor(entry.id)"
+        >
+          <div class="swatch-color" :style="swatchBg(entry)">
+            <img
+              v-if="entry.type !== 'solid'"
+              :src="typeIconSrc(entry.type)"
+              class="swatch-badge"
+              alt=""
+            />
+          </div>
+          <span class="swatch-id">{{ entry.id }}</span>
+        </button>
+      </div>
+      <span v-else class="history-empty">选色后显示最近使用的 5 个颜色</span>
+    </section>
+
     <!-- 颜色筛选与搜索 -->
     <div class="palette-filters">
       <div class="filter-types">
@@ -116,7 +144,7 @@ import { usePaletteStore } from '@/stores/palette'
 import ConfirmModal from '@/components/ConfirmModal.vue'
 import HighlightModal from '@/components/HighlightModal.vue'
 import ColorReplaceModal from '@/components/ColorReplaceModal.vue'
-import { COLOR_TYPE_LABELS, type ColorType } from '@/ts/colorCard'
+import { COLOR_TYPE_LABELS, type ColorType, type ColorEntry } from '@/ts/colorCard'
 import iconTransparent from '@/assets/icon/透明.png'
 import iconPearl from '@/assets/icon/珠光.png'
 import iconGlow from '@/assets/icon/夜光.png'
@@ -140,6 +168,12 @@ function typeIconSrc(type: ColorType): string | undefined {
 
 const paletteStore = usePaletteStore()
 defineProps<{ simple?: boolean }>()
+
+const recentEntries = computed(() =>
+  paletteStore.recentColorIds
+    .map((id) => paletteStore.colorEntries.find((entry) => entry.id === id))
+    .filter((entry): entry is ColorEntry => Boolean(entry)),
+)
 
 const showHighlightModal = ref(false)
 const showReplaceModal = ref(false)
@@ -209,6 +243,48 @@ function typeLabel(type: ColorType): string {
   flex-direction: column;
   gap: 10px;
   height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+.palette-history {
+  flex-shrink: 0;
+  padding: 6px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #f9fafb;
+}
+
+.history-title {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.history-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.recent-swatch-cell {
+  min-width: 0;
+  min-height: 44px;
+  font: inherit;
+  touch-action: manipulation;
+}
+
+.recent-swatch-cell:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 1px;
+}
+
+.history-empty {
+  display: block;
+  padding: 4px 0;
+  font-size: 0.75rem;
+  color: #999;
 }
 
 .palette-card-select {

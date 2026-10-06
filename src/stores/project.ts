@@ -10,6 +10,9 @@ import {
 } from '@/stores/canvas'
 import { usePaletteStore } from '@/stores/palette'
 import { useWorkspaceStore } from '@/stores/workspace'
+import { useHistoryStore } from '@/stores/history'
+import { useSelectionStore } from '@/stores/selection'
+import { parseProjectJson } from '@/ts/projectImport'
 import {
   getStoredProject,
   listStoredProjects,
@@ -89,7 +92,7 @@ export const useProjectStore = defineStore('project', () => {
             }
           : null,
         currentColorId: paletteStore.currentColorId,
-        recentColorIds: [...paletteStore.recentColorIds],
+        recentColorIds: [],
         referenceImage: workspaceStore.referenceImage ? { ...workspaceStore.referenceImage } : null,
         createdAt: new Date().toISOString(),
       }
@@ -129,7 +132,7 @@ export const useProjectStore = defineStore('project', () => {
           }
         : null,
       currentColorId: paletteStore.currentColorId,
-      recentColorIds: [...paletteStore.recentColorIds],
+      recentColorIds: [],
       referenceImage: workspaceStore.referenceImage ? { ...workspaceStore.referenceImage } : null,
       createdAt: new Date().toISOString(),
     }
@@ -199,14 +202,18 @@ export const useProjectStore = defineStore('project', () => {
   function importFile() {
     const input = document.createElement('input')
     input.type = 'file'
-    input.accept = '.pindou.json,image/png,image/jpeg'
+    input.accept = '.pd,.pindou.json,.json,image/png,image/jpeg'
     input.onchange = async () => {
       const file = input.files?.[0]
       if (!file) return
-      if (file.name.endsWith('.pindou.json')) {
-        await loadProject(file)
-      } else {
-        await importImage(file)
+      try {
+        if (/\.(pd|json)$/i.test(file.name)) {
+          await loadProject(file)
+        } else {
+          await importImage(file)
+        }
+      } catch (error) {
+        window.alert(error instanceof Error ? error.message : '导入失败。')
       }
     }
     input.click()
@@ -215,13 +222,20 @@ export const useProjectStore = defineStore('project', () => {
   async function loadProject(file: File) {
     const text = await file.text()
     try {
-      const data = JSON.parse(text)
+      const data = parseProjectJson(text, file.name.replace(/\.(pindou\.json|pd|json)$/i, ''))
       const canvasStore = useCanvasStore()
       const paletteStore = usePaletteStore()
       const workspaceStore = useWorkspaceStore()
       const fileVersion = data.version ?? 1
 
+      useHistoryStore().clear()
+      useSelectionStore().clearSelection()
+      paletteStore.recentColorIds = []
+
       projectName.value = data.name ?? '导入项目'
+      if (typeof data.createdAt === 'string' && !Number.isNaN(Date.parse(data.createdAt))) {
+        createdAt.value = new Date(data.createdAt).toLocaleDateString('zh-CN')
+      }
       workspaceStore.referenceImage =
         typeof data.referenceImage?.src === 'string'
           ? {
@@ -290,21 +304,16 @@ export const useProjectStore = defineStore('project', () => {
         canvasStore.buildComposite()
         // 继续恢复色卡...
         if (data.colorCard) {
-          const existing = paletteStore.cardList.find((c) => c.name === data.colorCard.name)
-          if (!existing) paletteStore.registerCard(data.colorCard)
-          paletteStore.loadCard(existing ?? data.colorCard)
-          if (data.currentColorId) paletteStore.setColor(data.currentColorId)
-          if (Array.isArray(data.recentColorIds)) {
-            paletteStore.recentColorIds = data.recentColorIds.filter(
-              (id: unknown): id is string => typeof id === 'string',
-            )
-          }
+          paletteStore.registerCard(data.colorCard)
+          paletteStore.loadCard(data.colorCard)
+          if (data.currentColorId) paletteStore.setColor(data.currentColorId, false)
         }
         return
       }
 
       const newCols = clampCanvasSize(data.cols ?? 16)
       const newRows = clampCanvasSize(data.rows ?? 16)
+      canvasStore.newCanvas(newCols, newRows)
 
       // --- 图层恢复 ---
       canvasStore.layers = []
@@ -390,29 +399,21 @@ export const useProjectStore = defineStore('project', () => {
 
       // --- 色卡恢复 ---
       if (fileVersion >= 2 && data.colorCard) {
-        const existing = paletteStore.cardList.find((c) => c.name === data.colorCard.name)
-        if (!existing) {
-          paletteStore.registerCard(data.colorCard)
-        }
-        paletteStore.loadCard(existing ?? data.colorCard)
+        paletteStore.registerCard(data.colorCard)
+        paletteStore.loadCard(data.colorCard)
         if (data.currentColorId) {
-          paletteStore.setColor(data.currentColorId)
-        }
-        if (Array.isArray(data.recentColorIds)) {
-          paletteStore.recentColorIds = data.recentColorIds.filter(
-            (id: unknown): id is string => typeof id === 'string',
-          )
+          paletteStore.setColor(data.currentColorId, false)
         }
       }
 
       canvasStore.buildComposite()
-    } catch {
-      // ignore invalid file
+    } catch (error) {
+      throw error instanceof SyntaxError ? new Error('无法读取工程，请选择有效的工程文件。') : error
     }
   }
 
-  async function loadProjectJson(json: string) {
-    await loadProject(new File([json], '浏览器存储.pindou.json', { type: 'application/json' }))
+  async function loadProjectJson(json: string, fileName = '浏览器存储.pindou.json') {
+    await loadProject(new File([json], fileName, { type: 'application/json' }))
   }
 
   function describeCurrentProject() {

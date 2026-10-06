@@ -35,7 +35,7 @@
         <p>选择工程来源</p>
         <button @click="requestFileImport()">
           <strong class="action-title"><img :src="iconFileImport" alt="" />从文件导入</strong>
-          <span>读取 .pindou.json 或图片文件</span>
+          <span>读取 .pindou.json、旧版 .pd 或图片文件</span>
         </button>
         <button @click="openBrowserStorage()">
           <strong class="action-title"><img :src="iconBrowserImport" alt="" />从浏览器读取</strong>
@@ -131,7 +131,7 @@
                   type="number"
                   v-model.number="groupCols"
                   min="1"
-                  max="10"
+                  :max="GROUP_SIZE_MAX"
                   class="new-input small"
                   @change="normalizeNewGroupSize()"
               /></label>
@@ -141,7 +141,7 @@
                   type="number"
                   v-model.number="groupRows"
                   min="1"
-                  max="10"
+                  :max="GROUP_SIZE_MAX"
                   class="new-input small"
                   @change="normalizeNewGroupSize()"
               /></label>
@@ -195,7 +195,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { clampCanvasSize, clampGroupSize, useCanvasStore } from '@/stores/canvas'
+import { clampCanvasSize, clampGroupSize, GROUP_SIZE_MAX, useCanvasStore } from '@/stores/canvas'
 import { useProjectStore } from '@/stores/project'
 import { usePaletteStore } from '@/stores/palette'
 import { useWorkspaceStore } from '@/stores/workspace'

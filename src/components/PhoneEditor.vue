@@ -190,7 +190,7 @@
       ref="projectInput"
       hidden
       type="file"
-      accept=".json,.pindou.json,application/json"
+      accept=".pd,.json,.pindou.json,application/json"
       @change="importProject"
     />
     <input ref="imageInput" hidden type="file" accept="image/*" @change="importPhoto" />
@@ -320,8 +320,7 @@ async function importProject(event: Event) {
     validatePhoneProject(json)
     if (!confirmReplace()) return
     // The validated single project replaces any previous group context in full.
-    canvas.newCanvas(16, 16)
-    await project.loadProjectJson(json)
+    await project.loadProjectJson(json, file.name)
     prepareDrawing()
     sheet.value = null
   } catch (error) {
